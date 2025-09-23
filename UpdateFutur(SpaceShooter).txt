@@ -1,0 +1,31 @@
+Version : ALPHA 1.0
+
+Idée de futur update :
+- souris (Camera) :
+    direction visuelle de la camera
+- gyroscope (Camere) :
+    gauche-droite de la camera comme un OVI
+- Class Joueur :
+    - Shape du joueur
+    - vie
+    - score
+    - bestScore
+- Class ToucheCommande :
+    - liste des touches
+    - ajouter touche
+    - supprimer touche
+- ClassMenu :
+    - pause du jeu
+    - liste des boutons dont :
+        * bouton play
+        * bouton option (ToucheCommande pour le moment)
+        * bouton respawn
+        * bouton quitter
+- system d'évolution des ennemis :
+    - évolution dans le temps, les ennemis mutent des qu'on les tue
+    - évolution accélérée si il reste en vie
+    - évolution aléatoire (ajoute de forme, de vitesse, de vie)
+- upgrade du joueur :
+    - différent type de balles (couleur, vitesse, taille, fonction)
+    - achetable avec le score
+- correction bug ball-roll alignement
