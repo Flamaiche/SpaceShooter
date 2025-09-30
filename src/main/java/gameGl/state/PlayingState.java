@@ -174,7 +174,7 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation)));
 
         // Pause
-        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(new PausedState()), null, null));
+        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> {commande.getGameStateManager().setState(new PausedState()); System.out.println("reset");}, null, null));
 
         commande.setTouches(touches);
     }

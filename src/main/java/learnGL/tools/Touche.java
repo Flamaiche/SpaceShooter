@@ -10,6 +10,7 @@ public class Touche {
 
     protected boolean wasPressed = false;
     private boolean active = true;
+    private boolean ignoreNextPress = false;
 
     public Touche(int key, Runnable onPressAction, Runnable onReleaseAction, Runnable onHoldAction) {
         this.key = key;
@@ -22,6 +23,14 @@ public class Touche {
         boolean inAction = false;
         if (!active) return false;
         boolean pressed = GLFW.glfwGetKey(window, key) == GLFW.GLFW_PRESS;
+
+        if (ignoreNextPress) {
+            // on ignore le premier update
+            // utilisé pour éviter que la touche soit activé des le debut
+            wasPressed = pressed;
+            ignoreNextPress = false;
+            return false;
+        }
 
         if (pressed) {
 
@@ -57,4 +66,7 @@ public class Touche {
     public void setActive(boolean active) { this.active = active; }
     public boolean isActive() { return active; }
     public boolean wasPressed() { return wasPressed; }
+    public void setIgnoreNextPress(boolean ignoreNextPress) {
+        this.ignoreNextPress = ignoreNextPress;
+    }
 }
