@@ -8,5 +8,6 @@ A1.0 (08/09/2025): base du jeu Space Shooter avec vaisseau, ennemis, tirs et col
     23/09/2025: semi-fix roll, amelioration Commande, Ajout de touches, modif Crosshair
     24/09/2025: fix roll, amelioration Commande, Ajout de touches, modif Crosshair
     24/09/2025: Creation d'un git juste pour ce projet
+    30/09/2025: Refonte du code (Aucun changement du jeu)
 next : Menus affichage
 A1.1 ()
