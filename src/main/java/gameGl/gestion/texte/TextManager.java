@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class TextManager {
 
-    private final ArrayList<TextHUD> texts = new ArrayList<>();
+    private ArrayList<TextHUD> texts = new ArrayList<>();
     private boolean debugMode = false;
 
     private final int baseWidth = 800;
@@ -15,14 +15,13 @@ public class TextManager {
     private int windowWidth;
     private int windowHeight;
 
-    private final float margin = 20f;
-    private final float lineHeight = 20f;
-    private final float uniformTextScale = 1.5f;
+    public static final float margin = 20f;
+    public static final float lineHeight = 20f;
+    public static final float uniformTextScale = 1.5f;
 
     public TextManager(int initialWidth, int initialHeight) {
         this.windowWidth = initialWidth;
         this.windowHeight = initialHeight;
-        initTexts();
     }
 
     public void setWindowSize(int width, int height) {
@@ -37,23 +36,8 @@ public class TextManager {
         }
     }
 
-    private void initTexts() {
-        // HUD joueur (left/top)
-        texts.add(new TextHUD(TextHUD.TextType.SCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.LIVES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.TIME, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.BALLS, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.ENEMIES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-
-        // Debug (right/top)
-        texts.add(new TextHUD(TextHUD.TextType.FPS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.POSITION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.ORIENTATION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.ACTIVE_BALLS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.ACTIVE_ENEMIES, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.DISTANCE_TARGET, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-
-        setDebugMode(false);
+    public void setTexts(ArrayList<TextHUD> texts) {
+        this.texts = texts;
     }
 
     public void update(float deltaTime, int currentWindowWidth, int currentWindowHeight) {
