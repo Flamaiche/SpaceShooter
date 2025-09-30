@@ -24,7 +24,6 @@ public class PlayingState extends GameState {
     private ArrayList<Ennemis> ennemis;
     private ArrayList<Ball> balls;
     private ArrayList<Entity2D> uiElements;
-    private final ArrayList<TextHUD> texts = new ArrayList<>();
     // Shaders
     private Shader ennemisShader, ballShader, crosshairShader, textShader;
 
@@ -175,7 +174,7 @@ public class PlayingState extends GameState {
     }
 
     public void initHud() {
-        Text.cleanup();
+        ArrayList<TextHUD> texts = new ArrayList<>();
         // HUD joueur (left/top)
         texts.add(new TextHUD(TextHUD.TextType.SCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
         texts.add(new TextHUD(TextHUD.TextType.LIVES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
