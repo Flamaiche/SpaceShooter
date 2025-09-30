@@ -93,7 +93,7 @@ public class SpaceShooter {
         Camera camera = new Camera(new Vector3f(0, 0, 3));
         GameStateManager gsm = null;
         Commande commande = new Commande(camera, window, gsm);
-        gsm = new GameStateManager(commande);
+        gsm = new GameStateManager(commande, width, height);
         commande.setGameStateManager(gsm);
 
         gsm.setState(new MainMenuState());
@@ -107,7 +107,7 @@ public class SpaceShooter {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            gsm.update(deltaTime);
+            gsm.update(deltaTime, width, height);
             gsm.render();
 
             glfwSwapBuffers(window);
