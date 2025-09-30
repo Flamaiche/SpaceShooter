@@ -46,9 +46,4 @@ public class Commande {
     public long getWindow() { return window; }
     public GameStateManager getGameStateManager() { return gsm; }
     public void setGameStateManager(GameStateManager gsm) { this.gsm = gsm; }
-
-    // utilitaire pour menu
-    private int upDownMenu = 0;
-    public void upDownMenu(int delta) { upDownMenu += delta; }
-    public int getUpDownMenu() { return upDownMenu; }
 }

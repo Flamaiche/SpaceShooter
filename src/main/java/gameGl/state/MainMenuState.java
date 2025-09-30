@@ -13,6 +13,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class MainMenuState extends GameState {
     private TextManager hud;
     private Shader textShader;
+    private int menuSelectNum;
 
     @Override
     public void init(Commande commande) {
@@ -21,8 +22,8 @@ public class MainMenuState extends GameState {
         ArrayList<Touche> touches = new ArrayList<>();
 
         // Navigation menu
-        touches.add(new Touche(GLFW_KEY_UP, () -> commande.upDownMenu(1), null, null));
-        touches.add(new Touche(GLFW_KEY_DOWN, () -> commande.upDownMenu(-1), null, null));
+        touches.add(new Touche(GLFW_KEY_UP, () -> menuSelectNum++, null, null));
+        touches.add(new Touche(GLFW_KEY_DOWN, () -> menuSelectNum--, null, null));
         touches.add(new Touche(GLFW_KEY_ENTER, () -> {
             commande.getGameStateManager().setState(new PlayingState());
         }, null, null));
