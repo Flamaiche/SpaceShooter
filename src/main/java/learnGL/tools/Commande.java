@@ -22,6 +22,9 @@ public class Commande {
     public void setTouches(ArrayList<Touche> touches) {
         setActiveAllTouche(false, this.touches);
         this.touches = touches;
+        for (Touche t : touches) {
+            t.setIgnoreNextPress(true);
+        }
         setActiveAllTouche(true, this.touches);
     }
 
