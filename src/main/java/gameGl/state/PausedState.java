@@ -21,7 +21,7 @@ public class PausedState extends GameState {
         ArrayList<Touche> touches = new ArrayList<>();
 
         // Reprendre
-        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> {commande.getGameStateManager().setState(new PlayingState()); System.out.println("play");}, null, null));
+        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(new PlayingState()), null, null));
         // Retour menu
         touches.add(new Touche(GLFW_KEY_ENTER, () -> commande.getGameStateManager().setState(new MainMenuState()), null, null));
 

@@ -18,6 +18,7 @@ public class TextHUD {
     private final float scale;
     private final float r, g, b;
     private boolean active = true;
+    private boolean debugActive = false; // si activé uniquement en debug
 
     public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b) {
         this.type = type;
@@ -29,6 +30,12 @@ public class TextHUD {
         this.b = b;
     }
 
+    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b, boolean debugActive) {
+        this(type, hAlign, vAlign, scale, r, g, b);
+        this.debugActive = debugActive;
+    }
+
+
     public TextType getType() { return type; }
     public HorizontalAlignment getHAlign() { return hAlign; }
     public VerticalAlignment getVAlign() { return vAlign; }
@@ -36,6 +43,7 @@ public class TextHUD {
     public float getR() { return r; }
     public float getG() { return g; }
     public float getB() { return b; }
+    public boolean getDebugActive() { return debugActive; }
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
