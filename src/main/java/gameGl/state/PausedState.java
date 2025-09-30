@@ -1,5 +1,6 @@
 package gameGl.state;
 
+import gameGl.gestion.texte.TextHUD;
 import gameGl.gestion.texte.TextManager;
 import learnGL.tools.Commande;
 import learnGL.tools.Shader;
@@ -35,7 +36,10 @@ public class PausedState extends GameState {
 
     @Override
     public void initHud() {
+        ArrayList<TextHUD> texts = new ArrayList<>();
 
+
+        hud.setTexts(texts);
     }
 
     @Override
