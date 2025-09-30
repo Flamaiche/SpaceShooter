@@ -4,6 +4,8 @@ import gameGl.entites.*;
 import gameGl.gestion.GameData;
 import gameGl.gestion.Manager2D;
 import gameGl.gestion.Manager3D;
+import gameGl.gestion.texte.Text;
+import gameGl.gestion.texte.TextHUD;
 import gameGl.gestion.texte.TextManager;
 import gameGl.utils.PreVerticesTable;
 import learnGL.tools.*;
@@ -12,26 +14,21 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 
+import static gameGl.gestion.texte.TextManager.uniformTextScale;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class PlayingState extends GameState {
 
-    private Commande commande;
-    private int width = 800, height = 600;
-
-    // Jeu
-    private Camera camera;
     private Joueur joueur;
     private ArrayList<Ennemis> ennemis;
     private ArrayList<Ball> balls;
     private ArrayList<Entity2D> uiElements;
-
+    private final ArrayList<TextHUD> texts = new ArrayList<>();
     // Shaders
     private Shader ennemisShader, ballShader, crosshairShader, textShader;
 
     // HUD / debug
-    private TextManager hud;
     private GameData data;
 
     private double lastTime;
@@ -57,9 +54,8 @@ public class PlayingState extends GameState {
     private Touche alt;
 
     @Override
-    public void init(Commande commande) {
-        this.commande = commande;
-        this.camera = commande.getCamera();
+    public void init(Commande commande, int width, int height) {
+        super.init(commande, width, height);
 
         // Verrouillage du curseur au début
         mouseLocked = true;
@@ -118,15 +114,14 @@ public class PlayingState extends GameState {
         uiElements.add(new Crosshair(crosshairShader, camera));
 
         // HUD
-        hud = new TextManager(width, height);
-        hud.setDebugMode(true);
+        initHud();
         data = GameData.getInstance();
 
         // Temps
         lastTime = glfwGetTime();
     }
 
-    private void initTouches() {
+    public void initTouches() {
         ArrayList<Touche> touches = new ArrayList<>();
 
         // CAPS_LOCK -> lock/unlock souris
@@ -177,6 +172,26 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(new PausedState()), null, null));
 
         commande.setTouches(touches);
+    }
+
+    public void initHud() {
+        Text.cleanup();
+        // HUD joueur (left/top)
+        texts.add(new TextHUD(TextHUD.TextType.SCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
+        texts.add(new TextHUD(TextHUD.TextType.LIVES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
+        texts.add(new TextHUD(TextHUD.TextType.TIME, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
+        texts.add(new TextHUD(TextHUD.TextType.BALLS, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
+        texts.add(new TextHUD(TextHUD.TextType.ENEMIES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
+
+        // Debug (right/top)
+        texts.add(new TextHUD(TextHUD.TextType.FPS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
+        texts.add(new TextHUD(TextHUD.TextType.POSITION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
+        texts.add(new TextHUD(TextHUD.TextType.ORIENTATION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
+        texts.add(new TextHUD(TextHUD.TextType.ACTIVE_BALLS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
+        texts.add(new TextHUD(TextHUD.TextType.ACTIVE_ENEMIES, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
+        texts.add(new TextHUD(TextHUD.TextType.DISTANCE_TARGET, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
+        hud.setTexts(texts);
+        hud.setDebugMode(true);
     }
 
     @Override
@@ -251,6 +266,7 @@ public class PlayingState extends GameState {
 
     @Override
     public void cleanup() {
+        super.cleanup();
         Manager3D.cleanupAll(ennemis, balls);
         Manager2D.cleanupAll(uiElements);
         joueur.cleanup();
