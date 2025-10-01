@@ -79,6 +79,23 @@ public class Text {
         return maxX * scale;
     }
 
+    public static float getTextHeight(String text, float scale) {
+        if (text == null || text.isEmpty()) return 0f;
+
+        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * 270);
+        int quads = STBEasyFont.stb_easy_font_print(0, 0, text, null, buffer);
+
+        float maxY = 0f;
+        float minY = Float.MAX_VALUE;
+        for (int i = 0; i < quads * 4; i++) {
+            int pos = i * 16 + 4; // y position
+            float y = buffer.getFloat(pos);
+            if (y > maxY) maxY = y;
+            if (y < minY) minY = y;
+        }
+        return (maxY - minY) * scale;
+    }
+
     public static void cleanup() {
         if (!initialized) return;
         glDeleteBuffers(vbo);

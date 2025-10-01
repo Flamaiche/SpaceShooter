@@ -15,12 +15,13 @@ public class TextHUD {
     private final TextType type;
     private final HorizontalAlignment hAlign;
     private final VerticalAlignment vAlign;
-    private final float scale;
-    private final float r, g, b;
+    private float scale;
+    private float r, g, b;
     private boolean active = true;
-    private boolean debugActive = false; // si activé uniquement en debug
+    private boolean debugActive; // si activé uniquement en debug
+    private String text = null;
 
-    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b) {
+    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b, boolean debugActive) {
         this.type = type;
         this.hAlign = hAlign;
         this.vAlign = vAlign;
@@ -28,28 +29,38 @@ public class TextHUD {
         this.r = r;
         this.g = g;
         this.b = b;
-    }
-
-    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b, boolean debugActive) {
-        this(type, hAlign, vAlign, scale, r, g, b);
         this.debugActive = debugActive;
     }
 
+    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b) {
+        this(type, hAlign, vAlign, scale, r, g, b, true);
+    }
+
+    public TextHUD(TextType type, String text, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b, boolean debugActive) {
+        this(type, hAlign, vAlign, scale, r, g, b, debugActive);
+        this.text = text;
+    }
+
+    public TextHUD(TextType type, String text, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b) {
+        this(type, text, hAlign, vAlign, scale, r, g, b, true);
+    }
 
     public TextType getType() { return type; }
     public HorizontalAlignment getHAlign() { return hAlign; }
     public VerticalAlignment getVAlign() { return vAlign; }
     public float getScale() { return scale; }
+    public void setScale(float scale) { this.scale = scale; }
     public float getR() { return r; }
     public float getG() { return g; }
     public float getB() { return b; }
+    public void setRGB(float r, float g, float b) {this.r = r;this.g = g;this.b = b;}
     public boolean getDebugActive() { return debugActive; }
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
 
-    // Génère le texte à afficher selon le type et GameData
     public String getText(GameData data) {
+        if (type == null) return getText();
         switch (type) {
             case SCORE: return "Score: " + (int)data.getScore();
             case LIVES: return "Vies: " + (int)data.getLives();
@@ -80,6 +91,15 @@ public class TextHUD {
             case DISTANCE_TARGET:
                 return String.format("Distance cible: %.1f", data.getDistanceTarget());
         }
-        return "";
+        return getText();
+    }
+
+    private String getText() {
+        if (text != null) return text;
+        return "Aucun texte : " + type;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }
