@@ -123,21 +123,6 @@ public class PlayingState extends GameState {
     public void initTouches() {
         ArrayList<Touche> touches = new ArrayList<>();
 
-        // CAPS_LOCK -> lock/unlock souris
-        touches.add(new Touche(GLFW_KEY_CAPS_LOCK,
-                () -> {
-                    if (mouseLocked) {
-                        glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                        mouseLocked = false;
-                    } else {
-                        firstMouseInput = true;
-                        glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                        mouseLocked = true;
-                    }
-                },
-                null, null
-        ));
-
         // Espace -> mode orbite
         touches.add(new Touche(GLFW_KEY_SPACE,
                 null,

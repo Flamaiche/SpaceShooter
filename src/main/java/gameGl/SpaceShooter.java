@@ -9,10 +9,7 @@ import gameGl.gestion.texte.TextManager;
 import gameGl.state.GameStateManager;
 import gameGl.state.MainMenuState;
 import gameGl.utils.PreVerticesTable;
-import learnGL.tools.Camera;
-import learnGL.tools.Commande;
-import learnGL.tools.GameState;
-import learnGL.tools.Shader;
+import learnGL.tools.*;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.*;
@@ -34,6 +31,7 @@ public class SpaceShooter {
     private long window;
     private int width = 800;
     private int height = 600;
+    private boolean mouseLocked = true;
 
     public void run() {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
@@ -93,6 +91,9 @@ public class SpaceShooter {
         Camera camera = new Camera(new Vector3f(0, 0, 3));
         GameStateManager gsm = null;
         Commande commande = new Commande(camera, window, gsm);
+        Commande commandeGlobal = new Commande(camera, window, gsm);
+        touchesGlobal(commandeGlobal);
+
         gsm = new GameStateManager(commande, width, height);
         commande.setGameStateManager(gsm);
 
@@ -107,6 +108,7 @@ public class SpaceShooter {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            commandeGlobal.update();
             gsm.update(deltaTime, width, height);
             gsm.render();
 
@@ -114,6 +116,26 @@ public class SpaceShooter {
             glfwPollEvents();
         }
         Text.cleanup();
+    }
+
+    public void touchesGlobal(Commande commandeGlobal) {
+        ArrayList<Touche> touches = new ArrayList<>();
+
+        // CAPS_LOCK -> lock/unlock souris
+        touches.add(new Touche(GLFW_KEY_CAPS_LOCK,
+                () -> {
+                    if (mouseLocked) {
+                        glfwSetInputMode(commandeGlobal.getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                        mouseLocked = false;
+                    } else {
+                        glfwSetInputMode(commandeGlobal.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                        mouseLocked = true;
+                    }
+                },
+                null, null
+        ));
+        commandeGlobal.setActiveAllTouche(true, touches);
+        commandeGlobal.setTouches(touches);
     }
 
     public static void main(String[] args) {
