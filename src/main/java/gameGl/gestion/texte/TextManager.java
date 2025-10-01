@@ -16,7 +16,6 @@ public class TextManager {
     private int windowHeight;
 
     public static final float margin = 20f;
-    public static final float lineHeight = 20f;
     public static final float uniformTextScale = 1.5f;
 
     public TextManager(int initialWidth, int initialHeight) {
@@ -42,7 +41,6 @@ public class TextManager {
 
     public void update(float deltaTime, int currentWindowWidth, int currentWindowHeight) {
         setWindowSize(currentWindowWidth, currentWindowHeight);
-        // Les valeurs des textes sont lues dynamiquement depuis GameData dans getText()
     }
 
     public void render(Shader shader) {
@@ -52,7 +50,6 @@ public class TextManager {
         float scaleY = (float) windowHeight / baseHeight;
         float uniformScale = Math.min(scaleX, scaleY);
 
-        // Séparer les textes par vAlign pour gérer le centrage correctement
         ArrayList<TextHUD> topTexts = new ArrayList<>();
         ArrayList<TextHUD> bottomTexts = new ArrayList<>();
         ArrayList<TextHUD> centerTexts = new ArrayList<>();
@@ -66,7 +63,6 @@ public class TextManager {
             }
         }
 
-        // Offsets pour top et bottom
         float yOffsetTopLeft = margin * uniformScale;
         float yOffsetTopRight = margin * uniformScale;
         float yOffsetBottomLeft = margin * uniformScale;
@@ -76,78 +72,81 @@ public class TextManager {
         for (TextHUD t : topTexts) {
             String content = t.getText(data);
             float textWidth = Text.getTextWidth(content, t.getScale() * uniformScale);
+            float textHeight = Text.getTextHeight(content, t.getScale() * uniformScale);
 
-            float renderX = (t.getHAlign() == TextHUD.HorizontalAlignment.LEFT) ? margin * uniformScale :
-                    (t.getHAlign() == TextHUD.HorizontalAlignment.RIGHT) ? windowWidth - margin * uniformScale - textWidth :
-                            (windowWidth - textWidth) / 2f;
+            float renderX = switch (t.getHAlign()) {
+                case LEFT -> margin * uniformScale;
+                case RIGHT -> windowWidth - margin * uniformScale - textWidth;
+                default -> (windowWidth - textWidth) / 2f;
+            };
 
-            float renderY;
-            if (t.getHAlign() == TextHUD.HorizontalAlignment.LEFT)
-                renderY = yOffsetTopLeft;
-            else if (t.getHAlign() == TextHUD.HorizontalAlignment.RIGHT)
-                renderY = yOffsetTopRight;
-            else
-                renderY = yOffsetTopLeft; // CENTER horizontal utilise top offset
+            float renderY = switch (t.getHAlign()) {
+                case LEFT -> yOffsetTopLeft;
+                case RIGHT -> yOffsetTopRight;
+                default -> yOffsetTopLeft;
+            };
 
             Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
 
-            // incrément offset
-            if (t.getHAlign() == TextHUD.HorizontalAlignment.LEFT)
-                yOffsetTopLeft += lineHeight * uniformScale;
-            else if (t.getHAlign() == TextHUD.HorizontalAlignment.RIGHT)
-                yOffsetTopRight += lineHeight * uniformScale;
-            else
-                yOffsetTopLeft += lineHeight * uniformScale;
+            // incrément offset selon hauteur réelle + margin
+            switch (t.getHAlign()) {
+                case LEFT -> yOffsetTopLeft += textHeight + margin * uniformScale;
+                case RIGHT -> yOffsetTopRight += textHeight + margin * uniformScale;
+                default -> yOffsetTopLeft += textHeight + margin * uniformScale;
+            }
         }
 
         // --- BOTTOM TEXTS ---
         for (TextHUD t : bottomTexts) {
             String content = t.getText(data);
             float textWidth = Text.getTextWidth(content, t.getScale() * uniformScale);
+            float textHeight = Text.getTextHeight(content, t.getScale() * uniformScale);
 
-            float renderX = (t.getHAlign() == TextHUD.HorizontalAlignment.LEFT) ? margin * uniformScale :
-                    (t.getHAlign() == TextHUD.HorizontalAlignment.RIGHT) ? windowWidth - margin * uniformScale - textWidth :
-                            (windowWidth - textWidth) / 2f;
+            float renderX = switch (t.getHAlign()) {
+                case LEFT -> margin * uniformScale;
+                case RIGHT -> windowWidth - margin * uniformScale - textWidth;
+                default -> (windowWidth - textWidth) / 2f;
+            };
 
-            float renderY;
-            if (t.getHAlign() == TextHUD.HorizontalAlignment.LEFT)
-                renderY = windowHeight - yOffsetBottomLeft - lineHeight * uniformScale;
-            else if (t.getHAlign() == TextHUD.HorizontalAlignment.RIGHT)
-                renderY = windowHeight - yOffsetBottomRight - lineHeight * uniformScale;
-            else
-                renderY = windowHeight - yOffsetBottomLeft - lineHeight * uniformScale; // CENTER horizontal
+            float renderY = switch (t.getHAlign()) {
+                case LEFT -> windowHeight - yOffsetBottomLeft - textHeight;
+                case RIGHT -> windowHeight - yOffsetBottomRight - textHeight;
+                default -> windowHeight - yOffsetBottomLeft - textHeight;
+            };
 
             Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
 
-            // incrément offset
-            if (t.getHAlign() == TextHUD.HorizontalAlignment.LEFT)
-                yOffsetBottomLeft += lineHeight * uniformScale;
-            else if (t.getHAlign() == TextHUD.HorizontalAlignment.RIGHT)
-                yOffsetBottomRight += lineHeight * uniformScale;
-            else
-                yOffsetBottomLeft += lineHeight * uniformScale;
+            switch (t.getHAlign()) {
+                case LEFT -> yOffsetBottomLeft += textHeight + margin * uniformScale;
+                case RIGHT -> yOffsetBottomRight += textHeight + margin * uniformScale;
+                default -> yOffsetBottomLeft += textHeight + margin * uniformScale;
+            }
         }
 
         // --- CENTER TEXTS ---
-        // Calcul hauteur totale du bloc
-        float totalHeight = centerTexts.size() * lineHeight * uniformScale;
+        float totalHeight = 0f;
+        for (TextHUD t : centerTexts) {
+            totalHeight += Text.getTextHeight(t.getText(data), t.getScale() * uniformScale) + margin * uniformScale;
+        }
         float startY = (windowHeight - totalHeight) / 2f;
         float centerOffset = 0f;
 
         for (TextHUD t : centerTexts) {
             String content = t.getText(data);
             float textWidth = Text.getTextWidth(content, t.getScale() * uniformScale);
+            float textHeight = Text.getTextHeight(content, t.getScale() * uniformScale);
 
-            float renderX = (t.getHAlign() == TextHUD.HorizontalAlignment.LEFT) ? margin * uniformScale :
-                    (t.getHAlign() == TextHUD.HorizontalAlignment.RIGHT) ? windowWidth - margin * uniformScale - textWidth :
-                            (windowWidth - textWidth) / 2f;
+            float renderX = switch (t.getHAlign()) {
+                case LEFT -> margin * uniformScale;
+                case RIGHT -> windowWidth - margin * uniformScale - textWidth;
+                default -> (windowWidth - textWidth) / 2f;
+            };
 
             float renderY = startY + centerOffset;
 
             Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
 
-            centerOffset += lineHeight * uniformScale;
+            centerOffset += textHeight + margin * uniformScale;
         }
     }
-
 }

@@ -19,7 +19,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class PlayingState extends GameState {
-
+    private ArrayList<TextHUD> texts;
     private Joueur joueur;
     private ArrayList<Ennemis> ennemis;
     private ArrayList<Ball> balls;
@@ -92,6 +92,7 @@ public class PlayingState extends GameState {
 
     @Override
     public void init(Commande commande, int width, int height) {
+        texts = new ArrayList<>();
         super.init(commande, width, height);
 
         // Initialisation touches
@@ -165,7 +166,6 @@ public class PlayingState extends GameState {
     }
 
     public void initHud() {
-        ArrayList<TextHUD> texts = new ArrayList<>();
         // HUD joueur (left/top)
         texts.add(new TextHUD(TextHUD.TextType.SCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
         texts.add(new TextHUD(TextHUD.TextType.LIVES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
