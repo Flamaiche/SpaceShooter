@@ -31,7 +31,7 @@ public class PlayingState extends GameState {
     private GameData data;
 
     private double lastTime;
-    private int score = 0, ballsFiredTotal = 0, enemiesKilledTotal = 0;
+    private int score, ballsFiredTotal, enemiesKilledTotal;
 
     private final int MAX_BALLS = 20;
 
@@ -55,6 +55,8 @@ public class PlayingState extends GameState {
     public PlayingState(Commande commande, int width, int height) {
         super(commande, width, height);
         camera.restValues();
+
+        score = ballsFiredTotal = enemiesKilledTotal = 0;
         // Shaders
         ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
         ballShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
@@ -214,10 +216,15 @@ public class PlayingState extends GameState {
     }
 
     private void updateHUD(float deltaTime) {
-        int activeBalls = (int) balls.stream().filter(Ball::isActive).count();
-        int activeEnemies = (int) ennemis.stream().filter(e -> e.getVie() > 0).count();
+        int activeBalls = 0;
+        for (Ball b : balls) if (b.isActive()) activeBalls++;
+        int activeEnemies = 0;
+        for (Ennemis e : ennemis) if (e.getVie() > 0) activeEnemies++;
+
         float distanceTarget = 0;
-        for (Ennemis e : ennemis) if (e.isHighlighted()) distanceTarget = camera.getPosition().distance(e.getPosition());
+        for (Ennemis e : ennemis) {
+            if (e.isHighlighted()) distanceTarget = camera.getPosition().distance(e.getPosition());
+        }
 
         data.setScore(score);
         data.setLives(joueur.getVie());
