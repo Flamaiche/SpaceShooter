@@ -250,7 +250,6 @@ public class PlayingState extends GameState {
         Matrix4f projection = camera.getProjection(width, height);
 
         // 3D
-        System.out.println(ennemis.size());
         Manager3D.renderAll(ennemis, balls, view, projection);
 
         // 2D
