@@ -11,13 +11,17 @@ public abstract class GameState {
     protected TextManager hud;
     protected int width, height;
 
-    public void init(Commande commande, int width, int height) {
+    public GameState(Commande commande, int width, int height) {
         this.commande = commande;
         this.camera = commande.getCamera();
         this.width = width;
         this.height = height;
 
         hud = new TextManager(width, height);
+    }
+
+    public void init(Commande commande, int width, int height) {
+
     }
 
     public abstract void initTouches();

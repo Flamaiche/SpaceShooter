@@ -15,14 +15,16 @@ public class MainMenuState extends GameState {
     private Shader textShader;
     private int menuSelectNum;
 
-    private boolean mouseLocked = true;
+    public MainMenuState(Commande commande, int width, int height) {
+        super(commande, width, height);
+        textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
+    }
 
     @Override
     public void init(Commande commande, int width, int height) {
         super.init(commande, width, height);
         initTouches();
         initHud();
-        textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
     }
 
     @Override
@@ -33,7 +35,7 @@ public class MainMenuState extends GameState {
         touches.add(new Touche(GLFW_KEY_UP, () -> menuSelectNum++, null, null));
         touches.add(new Touche(GLFW_KEY_DOWN, () -> menuSelectNum--, null, null));
         touches.add(new Touche(GLFW_KEY_ENTER, () -> {
-            commande.getGameStateManager().setState(new PlayingState());
+            commande.getGameStateManager().setState(GameStateManager.GameStateEnum.NEWPLAY);
         }, null, null));
         touches.add(new Touche(GLFW_KEY_ESCAPE, () -> {
             glfwSetWindowShouldClose(commande.getWindow(), true);

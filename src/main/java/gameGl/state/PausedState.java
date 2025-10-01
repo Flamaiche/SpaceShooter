@@ -14,12 +14,16 @@ import static org.lwjgl.opengl.GL11.*;
 public class PausedState extends GameState {
     private Shader textShader;
 
+    public PausedState(Commande commande, int width, int height) {
+        super(commande, width, height);
+        textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
+    }
+
     @Override
     public void init(Commande commande, int width, int height) {
         super.init(commande, width, height);
         initTouches();
         initHud();
-        textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
     }
 
     @Override
@@ -27,9 +31,9 @@ public class PausedState extends GameState {
         ArrayList<Touche> touches = new ArrayList<>();
 
         // Reprendre
-        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(new PlayingState()), null, null));
+        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PLAY), null, null));
         // Retour menu
-        touches.add(new Touche(GLFW_KEY_ENTER, () -> commande.getGameStateManager().setState(new MainMenuState()), null, null));
+        touches.add(new Touche(GLFW_KEY_ENTER, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.NEWPLAY), null, null));
 
         commande.setTouches(touches);
     }
