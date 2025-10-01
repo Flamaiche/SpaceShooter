@@ -52,39 +52,8 @@ public class PlayingState extends GameState {
     // Alt pour combos
     private Touche alt;
 
-    @Override
-    public void init(Commande commande, int width, int height) {
-        super.init(commande, width, height);
-
-        // Verrouillage du curseur au début
-        mouseLocked = true;
-        firstMouseInput = true;
-        glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-        // Callback mouvement souris
-        glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
-            if (!mouseLocked) return;
-            if (firstMouseInput) {
-                lastMouseX = xpos;
-                lastMouseY = ypos;
-                firstMouseInput = false;
-            }
-            double deltaX = xpos - lastMouseX;
-            double deltaY = lastMouseY - ypos;
-            lastMouseX = xpos;
-            lastMouseY = ypos;
-            camera.rotate((float)(deltaX * mouseSensitivity),
-                    (float)(deltaY * mouseSensitivity));
-        });
-
-        // Callback perte focus
-        glfwSetWindowFocusCallback(commande.getWindow(), (window, focused) -> {
-            if (!focused) firstMouseInput = true;
-        });
-
-        // Initialisation touches
-        initTouches();
-
+    public PlayingState(Commande commande, int width, int height) {
+        super(commande, width, height);
         // Shaders
         ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
         ballShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
@@ -112,16 +81,49 @@ public class PlayingState extends GameState {
         uiElements = new ArrayList<>();
         uiElements.add(new Crosshair(crosshairShader, camera));
 
-        // HUD
-        initHud();
         data = GameData.getInstance();
-
         // Temps
         lastTime = glfwGetTime();
     }
 
+    @Override
+    public void init(Commande commande, int width, int height) {
+        super.init(commande, width, height);
+
+        // Initialisation touches
+        initTouches();
+
+        // HUD
+        initHud();
+    }
+
     public void initTouches() {
         ArrayList<Touche> touches = new ArrayList<>();
+
+        // Verrouillage du curseur au début
+
+        glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        // Callback mouvement souris
+        glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
+            if (!mouseLocked) return;
+            if (firstMouseInput) {
+                lastMouseX = xpos;
+                lastMouseY = ypos;
+                firstMouseInput = false;
+            }
+            double deltaX = xpos - lastMouseX;
+            double deltaY = lastMouseY - ypos;
+            lastMouseX = xpos;
+            lastMouseY = ypos;
+            camera.rotate((float)(deltaX * mouseSensitivity),
+                    (float)(deltaY * mouseSensitivity));
+        });
+
+        // Callback perte focus
+        glfwSetWindowFocusCallback(commande.getWindow(), (window, focused) -> {
+            if (!focused) firstMouseInput = true;
+        });
 
         // Espace -> mode orbite
         touches.add(new Touche(GLFW_KEY_SPACE,
@@ -153,7 +155,7 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation)));
 
         // Pause
-        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(new PausedState()), null, null));
+        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE), null, null));
 
         commande.setTouches(touches);
     }
@@ -239,6 +241,7 @@ public class PlayingState extends GameState {
         Matrix4f projection = camera.getProjection(width, height);
 
         // 3D
+        System.out.println(ennemis.size());
         Manager3D.renderAll(ennemis, balls, view, projection);
 
         // 2D

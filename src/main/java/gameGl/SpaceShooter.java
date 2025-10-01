@@ -97,7 +97,7 @@ public class SpaceShooter {
         gsm = new GameStateManager(commande, width, height);
         commande.setGameStateManager(gsm);
 
-        gsm.setState(new MainMenuState());
+        gsm.setState(GameStateManager.GameStateEnum.MAIN);
 
         double lastTime = glfwGetTime();
 
