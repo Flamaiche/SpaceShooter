@@ -26,7 +26,7 @@ public class GameStateManager {
     }
 
     public void setState(GameStateEnum gState) {
-        if (currentState != null) currentState.cleanup();
+        if (currentState != null && currentState != playing) currentState.cleanup();
         choiceGameState(gState);
 
     }
