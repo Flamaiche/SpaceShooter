@@ -1,6 +1,7 @@
 package gameGl.state;
 
 import gameGl.state.GameState;
+import learnGL.tools.Camera;
 import learnGL.tools.Commande;
 
 public class GameStateManager {

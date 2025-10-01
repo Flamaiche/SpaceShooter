@@ -15,6 +15,8 @@ public class MainMenuState extends GameState {
     private Shader textShader;
     private int menuSelectNum;
 
+    private boolean mouseLocked = true;
+
     @Override
     public void init(Commande commande, int width, int height) {
         super.init(commande, width, height);

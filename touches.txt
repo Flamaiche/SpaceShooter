@@ -1,13 +1,13 @@
-MENU PRINCIPAL :
+#MENU PRINCIPAL :
 
 ENTRÉE : Valider / commencer la partie (appui unique)
-MAJ (SHIFT) : Monter dans le menu (tant que pressée)
-CTRL : Descendre dans le menu (tant que pressée)
+Flèche haut : Monter dans le menu (tant que pressée)
+Flèche bas : Descendre dans le menu (tant que pressée)
 ÉCHAP : Quitter le jeu (appui unique)
 
-EN PARTIE :
+#EN PARTIE :
 
-DÉPLACEMENT
+##DÉPLACEMENT
 Z : Avancer (tant que pressée)
 S : Reculer (tant que pressée)
 Q : Aller à gauche (tant que pressée)
@@ -15,30 +15,36 @@ D : Aller à droite (tant que pressée)
 MAJ (SHIFT) : Monter (tant que pressée)
 CTRL : Descendre (tant que pressée)
 
-ROTATION DE LA CAMERA
+##ROTATION DE LA CAMERA
 Flèche gauche : Tourner la caméra à gauche (tant que pressée)
 Flèche droite : Tourner la caméra à droite (tant que pressée)
 Flèche haut : Regarder vers le haut (tant que pressée)
 Flèche bas : Regarder vers le bas (tant que pressée)
 Déplacement de la souris : Tourner la caméra (si curseur capturé)
 
-ROLL DE LA CAMÉRA (ALT + Q/E/R)
+##ROLL DE LA CAMÉRA (ALT + Q/E/R)
 ALT + Q : Faire tourner la caméra / monde à gauche (tant que pressée)
 ALT + E : Faire tourner la caméra / monde à droite (tant que pressée)
 ALT + R : Réinitialiser le roll (appui unique)
 
-MODE CAMÉRA
+##MODE CAMÉRA
 ESPACE : Activer le mode orbite (tant que pressée)
 Relâchement de ESPACE : Désactiver le mode orbite
 
-TIR
+##TIR
 Bouton gauche souris : Tirer (appui unique, cooldown 0,3 s)
 
-CURSEUR
+##CURSEUR
 CAPS LOCK : Activer/désactiver le curseur (verrouillage/déverrouillage de la souris) (appui unique)
 
 GESTION DU JEU
 ÉCHAP : Mettre en pause ou quitter selon le contexte (appui unique)
 
+MENU PAUSE :
+
+
+AUTRE :
 HUD / DEBUG
 (Pas encore défini) : Menu de debug / informations HUD
+
+
