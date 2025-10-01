@@ -5,6 +5,7 @@ Flèche haut : Monter dans le menu (tant que pressée)
 Flèche bas : Descendre dans le menu (tant que pressée)
 ÉCHAP : Quitter le jeu (appui unique)
 
+
 #EN PARTIE :
 
 ##DÉPLACEMENT
@@ -37,13 +38,19 @@ Bouton gauche souris : Tirer (appui unique, cooldown 0,3 s)
 ##CURSEUR
 CAPS LOCK : Activer/désactiver le curseur (verrouillage/déverrouillage de la souris) (appui unique)
 
-GESTION DU JEU
+##GESTION DU JEU
 ÉCHAP : Mettre en pause ou quitter selon le contexte (appui unique)
 
-MENU PAUSE :
+
+#MENU PAUSE :
+
+ENTRÉE : Valider / quitter la partie (appui unique)
+Flèche haut : Monter dans le menu (tant que pressée)
+Flèche bas : Descendre dans le menu (tant que pressée)
+ÉCHAP : Continuer le jeu (appui unique)
 
 
-AUTRE :
+#AUTRE :
 HUD / DEBUG
 (Pas encore défini) : Menu de debug / informations HUD
 
