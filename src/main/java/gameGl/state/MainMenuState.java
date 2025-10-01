@@ -12,6 +12,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class MainMenuState extends GameState {
+    private ArrayList<TextHUD> texts;
     private Shader textShader;
     private int menuSelectNum;
 
@@ -22,6 +23,7 @@ public class MainMenuState extends GameState {
 
     @Override
     public void init(Commande commande, int width, int height) {
+        texts = new ArrayList<>();
         super.init(commande, width, height);
         initTouches();
         initHud();
@@ -47,8 +49,6 @@ public class MainMenuState extends GameState {
 
     @Override
     public void initHud() {
-        ArrayList<TextHUD> texts = new ArrayList<>();
-
 
         hud.setTexts(texts);
     }
