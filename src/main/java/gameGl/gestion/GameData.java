@@ -12,12 +12,12 @@ public class GameData {
     private float elapsedTime = 0f;
 
     // --- Position et orientation ---
-    private final float[] playerPosition = new float[3];   // x, y, z
-    private final float[] playerOrientation = new float[3]; // pitch, yaw, roll
+    private float[] playerPosition = new float[3];   // x, y, z
+    private float[] playerOrientation = new float[3]; // pitch, yaw, roll
 
     // --- Balls / enemies actifs ---
-    private final float[] ballsActive = new float[2];     // active, max
-    private final float[] enemiesActive = new float[2];   // active, max
+    private float[] ballsActive = new float[2];     // active, max
+    private float[] enemiesActive = new float[2];   // active, max
 
     // --- Debug ---
     private float distanceTarget = 0f;
@@ -28,6 +28,26 @@ public class GameData {
     public static GameData getInstance() {
         if (instance == null) instance = new GameData();
         return instance;
+    }
+
+    public void resetVal() {
+        this.score = 0f;
+        this.lives = 0f;
+        this.ballsFired = 0f;
+        this.enemiesKilled = 0f;
+        this.elapsedTime = 0f;
+
+        // --- Position et orientation ---
+        this.playerPosition = new float[3];   // x, y, z
+        this.playerOrientation = new float[3]; // pitch, yaw, roll
+
+        // --- Balls / enemies actifs ---
+        this.ballsActive = new float[2];     // active, max
+        this.enemiesActive = new float[2];   // active, max
+
+        // --- Debug ---
+        this.distanceTarget = 0f;
+        this.fps = 0f;
     }
 
     // --- Setters / getters HUD joueur ---

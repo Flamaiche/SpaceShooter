@@ -85,6 +85,7 @@ public class PlayingState extends GameState {
         uiElements.add(new Crosshair(crosshairShader, camera));
 
         data = GameData.getInstance();
+        data.resetVal();
         // Temps
         lastTime = glfwGetTime();
     }
