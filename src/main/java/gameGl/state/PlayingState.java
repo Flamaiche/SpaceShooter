@@ -54,6 +54,7 @@ public class PlayingState extends GameState {
 
     public PlayingState(Commande commande, int width, int height) {
         super(commande, width, height);
+        camera.restValues();
         // Shaders
         ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
         ballShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");

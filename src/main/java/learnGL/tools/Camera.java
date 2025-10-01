@@ -5,6 +5,7 @@ import org.joml.Vector3f;
 
 public class Camera {
     private Vector3f position;
+    private Vector3f startPosition;
     private Vector3f front;
     private Vector3f up;
     private Vector3f right;
@@ -12,16 +13,16 @@ public class Camera {
 
     private float yaw;
     private float pitch;
-    private float roll = 0f; // degrees
-    private float fov = 60f;
+    private float roll; // degrees
+    private float fov;
 
     private boolean orbitMode = false;
     private boolean rollEnabled = false;
 
-    private Vector3f target = new Vector3f(0, 0, 0);
-    private float orbitTheta = 0f;
-    private float orbitPhi = 0f;
-    private float orbitRadius = 1f;
+    private Vector3f target;
+    private float orbitTheta;
+    private float orbitPhi;
+    private float orbitRadius;
 
     private float renderDistance = 100f;
     private float renderSimulation = 150f;
@@ -30,12 +31,37 @@ public class Camera {
 
     public Camera(Vector3f position) {
         this.position = new Vector3f(position);
+        this.startPosition = position;
         this.front = new Vector3f(0, 0, -1);
         this.up = new Vector3f(0, 1, 0);
         this.worldUp = new Vector3f(0, 1, 0);
         this.right = new Vector3f();
         this.yaw = -90f;
         this.pitch = 0f;
+        this.roll = 0f;
+        this.fov = 60f;
+        this.target = new Vector3f(0, 0, 0);
+        this.orbitTheta = 0f;
+        this.orbitPhi = 0f;
+        this.orbitRadius = 1f;
+        updateAxes();
+        initOrbitFromCurrentState();
+    }
+
+    public void restValues() {
+        this.position = new Vector3f(startPosition);
+        this.front = new Vector3f(0, 0, -1);
+        this.up = new Vector3f(0, 1, 0);
+        this.worldUp = new Vector3f(0, 1, 0);
+        this.right = new Vector3f();
+        this.yaw = -90f;
+        this.pitch = 0f;
+        this.roll = 0f;
+        this.fov = 60f;
+        this.target = new Vector3f(0, 0, 0);
+        this.orbitTheta = 0f;
+        this.orbitPhi = 0f;
+        this.orbitRadius = 1f;
         updateAxes();
         initOrbitFromCurrentState();
     }
