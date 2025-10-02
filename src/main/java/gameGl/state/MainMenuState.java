@@ -119,13 +119,27 @@ public class MainMenuState extends GameState {
         for (int i = 0; i < textsVollatile.size(); i++) {
             circularText(textsVollatile.get(i), totalTime + ((float) (degres * (i + 1)) / 360));
         }
+
+        hud.update(deltaTime, width, height);
+        textManagerVolatille.update(deltaTime, width, height);
     }
 
     private void circularText(TextHUD rotatingText, float totalTime) {
-        double[] pos = gameGl.utils.PosDeltaTime.circle(totalTime, rotationRadius, width / 2.0, height / 2.0, 1); // 1 tour/s
+        float scaleX = (float) width / hud.getBaseWidth();
+        float scaleY = (float) height / hud.getBaseHeight();
+        float uniformScale = Math.min(scaleX, scaleY);
+
+        double[] pos = gameGl.utils.PosDeltaTime.circle(
+                totalTime,
+                rotationRadius * uniformScale, // rayon scalé
+                width / 2.0,
+                height / 2.0,
+                1
+        );
         rotatingText.setX((float) pos[0]);
         rotatingText.setY((float) pos[1]);
     }
+
 
     @Override
     public void update(float deltaTime) {

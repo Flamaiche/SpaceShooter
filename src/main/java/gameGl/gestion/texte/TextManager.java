@@ -141,4 +141,12 @@ public class TextManager {
             if (t.getVAlign() != null) centerOffset += textHeight + margin * uniformScale;
         }
     }
+    public int getBaseWidth() {
+        return baseWidth;
+    }
+
+    public int getBaseHeight() {
+        return baseHeight;
+    }
+
 }
