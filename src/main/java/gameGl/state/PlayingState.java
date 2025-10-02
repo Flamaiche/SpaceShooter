@@ -157,6 +157,9 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation)));
         touches.add(new Touche(GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation)));
 
+        Touche sourisGauche = new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()); // action hold : on appelle la méthode shoot
+        touches.add(sourisGauche);
+
         // Pause
         touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE), null, null));
 
@@ -185,20 +188,6 @@ public class PlayingState extends GameState {
     @Override
     public void update(float deltaTime) {
         commande.update();
-
-        // Tir souris gauche
-        if (glfwGetMouseButton(commande.getWindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS
-                && glfwGetTime() - lastTime >= shootCooldown) {
-            lastTime = glfwGetTime();
-            Vector3f spawnPos = new Vector3f(camera.getPosition()).add(new Vector3f(camera.getFront()).mul(0.5f));
-            for (Ball b : balls) {
-                if (!b.isActive()) {
-                    b.activate(spawnPos, camera.getFront());
-                    ballsFiredTotal++;
-                    break;
-                }
-            }
-        }
 
         // Update 3D
         int point = Manager3D.updateAll(ennemis, balls, joueur, deltaTime, camera.getPosition());
@@ -263,5 +252,20 @@ public class PlayingState extends GameState {
         Manager3D.cleanupAll(ennemis, balls);
         Manager2D.cleanupAll(uiElements);
         joueur.cleanup();
+    }
+
+    private void shoot() {
+        double currentTime = glfwGetTime();
+        if (currentTime - lastTime < shootCooldown) return; // cooldown
+        lastTime = currentTime;
+
+        Vector3f spawnPos = new Vector3f(camera.getPosition()).add(new Vector3f(camera.getFront()).mul(0.5f));
+        for (Ball b : balls) {
+            if (!b.isActive()) {
+                b.activate(spawnPos, camera.getFront());
+                ballsFiredTotal++;
+                break;
+            }
+        }
     }
 }
