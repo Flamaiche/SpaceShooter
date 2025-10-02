@@ -7,13 +7,15 @@ import learnGL.tools.Touche;
 
 import java.util.ArrayList;
 
+import static gameGl.gestion.texte.TextManager.uniformTextScale;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class MainMenuState extends GameState {
     private ArrayList<TextHUD> texts;
+    private String[] textMenu = {"JOUER", "PARAMÈTRE", "QUITTER"};
     private Shader textShader;
-    private int menuSelectNum;
+    private int indexSelection;
 
     public MainMenuState(Commande commande, int width, int height) {
         super(commande, width, height);
@@ -33,14 +35,10 @@ public class MainMenuState extends GameState {
         ArrayList<Touche> touches = new ArrayList<>();
 
         // Navigation menu
-        touches.add(new Touche(GLFW_KEY_UP, () -> menuSelectNum++, null, null));
-        touches.add(new Touche(GLFW_KEY_DOWN, () -> menuSelectNum--, null, null));
-        touches.add(new Touche(GLFW_KEY_ENTER, () -> {
-            commande.getGameStateManager().setState(GameStateManager.GameStateEnum.NEWPLAY);
-        }, null, null));
-        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> {
-            glfwSetWindowShouldClose(commande.getWindow(), true);
-        }, null, null));
+        touches.add(new Touche(GLFW_KEY_UP, () -> indexSelection--, null, null));
+        touches.add(new Touche(GLFW_KEY_DOWN, () -> indexSelection++, null, null));
+        touches.add(new Touche(GLFW_KEY_ENTER, () -> actionBySelection(indexSelection), null, null));
+        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> actionBySelection(2), null, null));
 
         commande.setTouches(touches);
 
@@ -48,13 +46,45 @@ public class MainMenuState extends GameState {
 
     @Override
     public void initHud() {
+        for (String t : textMenu)
+            texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER, (float)(uniformTextScale*1.2), 1.0f, 1.0f, 1.0f));
 
         hud.setTexts(texts);
+    }
+
+    public void actionBySelection(int indexSelection) {
+        switch (indexSelection) {
+            case 0 -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.NEWPLAY);
+            case 1 -> System.out.println("Paramètre");
+            case 2 ->  glfwSetWindowShouldClose(commande.getWindow(), true);
+        }
+    }
+
+    public void updateHUD() {
+        // normalise l'index
+        indexSelection = ((indexSelection % textMenu.length) + textMenu.length) % textMenu.length;
+
+        for (int i = 0; i < texts.size(); i++) {
+            TextHUD t = texts.get(i);
+
+            if (i == indexSelection) {
+                // texte sélectionné : plus grand et couleur jaune
+                t.setText(">> " + textMenu[i]);
+                t.setScale((float)(uniformTextScale * 2.5));
+                t.setRGB(1.0f, 1.0f, 0f);
+            } else {
+                // textes non sélectionnés : scale normal
+                t.setText(textMenu[i]);
+                t.setScale(uniformTextScale * 1.2f);
+                t.setRGB(1.0f, 1.0f, 1.0f);
+            }
+        }
     }
 
     @Override
     public void update(float deltaTime) {
         commande.update();
+        updateHUD();
     }
 
     @Override
