@@ -17,6 +17,10 @@ public class MainMenuState extends GameState {
     private Shader textShader;
     private int indexSelection;
 
+    private TextHUD rotatingText; // HUD qui tourne
+    private float rotationRadius = 100; // rayon du cercle
+    private float totalTime = 0;       // temps écoulé pour l'animation
+
     public MainMenuState(Commande commande, int width, int height) {
         super(commande, width, height);
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
@@ -49,6 +53,10 @@ public class MainMenuState extends GameState {
         for (String t : textMenu)
             texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER, (float)(uniformTextScale*1.2), 1.0f, 1.0f, 1.0f));
 
+        // HUD animé
+        rotatingText = new TextHUD(null, "*", null, null, uniformTextScale, 1.0f, 0f, 0f);
+        texts.add(rotatingText);
+
         hud.setTexts(texts);
     }
 
@@ -60,11 +68,11 @@ public class MainMenuState extends GameState {
         }
     }
 
-    public void updateHUD() {
+    public void updateHUD(float deltaTime) {
         // normalise l'index
         indexSelection = ((indexSelection % textMenu.length) + textMenu.length) % textMenu.length;
 
-        for (int i = 0; i < texts.size(); i++) {
+        for (int i = 0; i < textMenu.length; i++) {
             TextHUD t = texts.get(i);
 
             if (i == indexSelection) {
@@ -79,12 +87,18 @@ public class MainMenuState extends GameState {
                 t.setRGB(1.0f, 1.0f, 1.0f);
             }
         }
+
+        // Animation du HUD tournant
+        totalTime += deltaTime;
+        double[] pos = gameGl.utils.PosDeltaTime.circle(totalTime, rotationRadius, width / 2.0, height / 2.0, 1); // 1 tour/s
+        rotatingText.setX((float) pos[0]);
+        rotatingText.setY((float) pos[1]);
     }
 
     @Override
     public void update(float deltaTime) {
         commande.update();
-        updateHUD();
+        updateHUD(deltaTime);
     }
 
     @Override

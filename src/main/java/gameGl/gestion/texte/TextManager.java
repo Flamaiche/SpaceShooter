@@ -54,10 +54,16 @@ public class TextManager {
 
         for (TextHUD t : texts) {
             if (!t.isActive()) continue;
-            switch (t.getVAlign()) {
-                case TOP -> topTexts.add(t);
-                case BOTTOM -> bottomTexts.add(t);
-                case CENTER -> centerTexts.add(t);
+
+            if (t.getVAlign() == null) {
+                // Texte libre, utiliser x/y
+                centerTexts.add(t);
+            } else {
+                switch (t.getVAlign()) {
+                    case TOP -> topTexts.add(t);
+                    case BOTTOM -> bottomTexts.add(t);
+                    case CENTER -> centerTexts.add(t);
+                }
             }
         }
 
@@ -67,7 +73,6 @@ public class TextManager {
     }
 
     private void renderAlignedTexts(ArrayList<TextHUD> texts, Shader shader, float uniformScale, boolean fromTop) {
-        // index 0 = LEFT, 1 = RIGHT, 2 = CENTER (default)
         float[] yOffsets = { margin * uniformScale, margin * uniformScale, margin * uniformScale };
         GameData data = GameData.getInstance();
 
@@ -76,29 +81,35 @@ public class TextManager {
             float textWidth = Text.getTextWidth(content, t.getScale() * uniformScale);
             float textHeight = Text.getTextHeight(content, t.getScale() * uniformScale);
 
-            int idx = switch (t.getHAlign()) {
-                case LEFT -> 0;
-                case RIGHT -> 1;
-                default -> 2;
-            };
+            int idx = 2; // default CENTER
+            if (t.getHAlign() != null) {
+                idx = switch (t.getHAlign()) {
+                    case LEFT -> 0;
+                    case RIGHT -> 1;
+                    default -> 2;
+                };
+            }
 
-            float renderX = switch (t.getHAlign()) {
+            float renderX = (t.getHAlign() == null) ? t.getX() : switch (t.getHAlign()) {
                 case LEFT -> margin * uniformScale;
                 case RIGHT -> windowWidth - margin * uniformScale - textWidth;
                 default -> (windowWidth - textWidth) / 2f;
             };
 
-            float renderY = fromTop ? yOffsets[idx] : windowHeight - yOffsets[idx] - textHeight;
+            float renderY = (t.getVAlign() == null) ? t.getY() :
+                    (fromTop ? yOffsets[idx] : windowHeight - yOffsets[idx] - textHeight);
 
             Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
 
-            yOffsets[idx] += textHeight + margin * uniformScale;
+            if (t.getHAlign() != null && t.getVAlign() != null) {
+                yOffsets[idx] += textHeight + margin * uniformScale;
+            }
         }
     }
 
     private void renderCenterTexts(ArrayList<TextHUD> texts, Shader shader, float uniformScale) {
         GameData data = GameData.getInstance();
-        float totalHeight = -margin * uniformScale; // correction dernier margin
+        float totalHeight = -margin * uniformScale;
         for (TextHUD t : texts) {
             totalHeight += Text.getTextHeight(t.getText(data), t.getScale() * uniformScale) + margin * uniformScale;
         }
@@ -110,17 +121,17 @@ public class TextManager {
             float textWidth = Text.getTextWidth(content, t.getScale() * uniformScale);
             float textHeight = Text.getTextHeight(content, t.getScale() * uniformScale);
 
-            float renderX = switch (t.getHAlign()) {
+            float renderX = (t.getHAlign() == null) ? t.getX() : switch (t.getHAlign()) {
                 case LEFT -> margin * uniformScale;
                 case RIGHT -> windowWidth - margin * uniformScale - textWidth;
                 default -> (windowWidth - textWidth) / 2f;
             };
 
-            float renderY = startY + centerOffset;
+            float renderY = (t.getVAlign() == null) ? t.getY() : startY + centerOffset;
 
             Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
 
-            centerOffset += textHeight + margin * uniformScale;
+            if (t.getVAlign() != null) centerOffset += textHeight + margin * uniformScale;
         }
     }
 }
