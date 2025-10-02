@@ -14,6 +14,7 @@ import learnGL.tools.Shader;
 public class Text {
     private static int vao, vbo;
     private static boolean initialized = false;
+    private static int bufferAllocationMultiplier = 350;
 
     private static void init() {
         if (initialized) return;
@@ -32,7 +33,7 @@ public class Text {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * 270);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * bufferAllocationMultiplier);
         int quads = STBEasyFont.stb_easy_font_print(0, 0, text, null, buffer);
 
         glBindVertexArray(vao);
@@ -67,7 +68,7 @@ public class Text {
     public static float getTextWidth(String text, float scale) {
         if (text == null || text.isEmpty()) return 0f;
 
-        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * 270);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * bufferAllocationMultiplier);
         int quads = STBEasyFont.stb_easy_font_print(0, 0, text, null, buffer);
 
         float maxX = 0f;
@@ -82,7 +83,7 @@ public class Text {
     public static float getTextHeight(String text, float scale) {
         if (text == null || text.isEmpty()) return 0f;
 
-        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * 270);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * bufferAllocationMultiplier);
         int quads = STBEasyFont.stb_easy_font_print(0, 0, text, null, buffer);
 
         float maxY = 0f;
