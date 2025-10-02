@@ -1,7 +1,9 @@
 package gameGl.state;
 
+import gameGl.gestion.texte.AnimatedText;
 import gameGl.gestion.texte.TextHUD;
 import gameGl.gestion.texte.TextManager;
+import gameGl.utils.PosDeltaTime;
 import learnGL.tools.Commande;
 import learnGL.tools.Shader;
 import learnGL.tools.Touche;
@@ -22,7 +24,10 @@ public class MainMenuState extends GameState {
     private int nbStarCircle1 = 5;
 
     private float rotationRadius = 145; // rayon du cercle
-    private float totalTime = 0;       // temps écoulé pour l'animation
+    private float totalTime = 0;        // temps écoulé pour l'animation
+
+    // Nouveau : texte animé
+    private AnimatedText animatedHello;
 
     public MainMenuState(Commande commande, int width, int height) {
         super(commande, width, height);
@@ -45,7 +50,7 @@ public class MainMenuState extends GameState {
         glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
             for (int i = 0; i < texts.size(); i++) {
                 TextHUD t = texts.get(i);
-                if (TextHUD.isMouseOver(t, (float)xpos, (float)ypos)) {
+                if (TextHUD.isMouseOver(t, (float) xpos, (float) ypos)) {
                     indexSelection = i; // priorité souris
                     break;
                 }
@@ -74,15 +79,28 @@ public class MainMenuState extends GameState {
         // Textes menu
         for (String t : textMenu) {
             texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER,
-                    (float)(uniformTextScale*1.2), 1.0f, 1.0f, 1.0f));
+                    (float) (uniformTextScale * 1.2), 1.0f, 1.0f, 1.0f));
         }
         hud.setTexts(texts);
 
-        // HUD animé
+        // HUD animé (étoiles rouges)
         for (int i = 0; i < nbStarCircle1; i++) {
             textsVollatile.add(new TextHUD(null, "*", null, null, uniformTextScale, 1.0f, 0f, 0f));
         }
         textManagerVolatille.setTexts(textsVollatile);
+
+        // Texte animé "HELLO" en cercle
+        animatedHello = new AnimatedText(
+                "HELLO",
+                uniformTextScale * 1.5f,
+                0f, 1f, 0f, // vert
+                rotationRadius,
+                width / 2.0, height / 2.0,
+                1, // tours par seconde
+                (time, radius, cx, cy, tps, i) -> {
+                    return PosDeltaTime.circle(time + i * 0.1, radius, cx, cy, tps);
+                }
+        );
     }
 
     public void actionBySelection(int indexSelection) {
@@ -103,7 +121,7 @@ public class MainMenuState extends GameState {
             if (i == indexSelection) {
                 // texte sélectionné : plus grand et couleur jaune
                 t.setText(">> " + textMenu[i]);
-                t.setScale((float)(uniformTextScale * 2.5));
+                t.setScale((float) (uniformTextScale * 2.5));
                 t.setRGB(1.0f, 1.0f, 0f);
             } else {
                 // textes non sélectionnés : scale normal
@@ -113,12 +131,15 @@ public class MainMenuState extends GameState {
             }
         }
 
-        // Animation du HUD tournant
+        // Animation du HUD tournant (étoiles rouges)
         totalTime += deltaTime / 2;
         int degres = 360 / textsVollatile.size();
         for (int i = 0; i < textsVollatile.size(); i++) {
             circularText(textsVollatile.get(i), totalTime + ((float) (degres * (i + 1)) / 360));
         }
+
+        // Update du texte animé "HELLO"
+        animatedHello.update(deltaTime);
 
         hud.update(deltaTime, width, height);
         textManagerVolatille.update(deltaTime, width, height);
@@ -129,7 +150,7 @@ public class MainMenuState extends GameState {
         float scaleY = (float) height / hud.getBaseHeight();
         float uniformScale = Math.min(scaleX, scaleY);
 
-        double[] pos = gameGl.utils.PosDeltaTime.circle(
+        double[] pos = PosDeltaTime.circle(
                 totalTime,
                 rotationRadius * uniformScale, // rayon scalé
                 width / 2.0,
@@ -139,7 +160,6 @@ public class MainMenuState extends GameState {
         rotatingText.setX((float) pos[0]);
         rotatingText.setY((float) pos[1]);
     }
-
 
     @Override
     public void update(float deltaTime) {
@@ -152,6 +172,7 @@ public class MainMenuState extends GameState {
         glClearColor(0f, 0f, 0f, 1f);
         hud.render(textShader);
         textManagerVolatille.render(textShader);
+        animatedHello.render(textShader); // rendu du texte animé
     }
 
     @Override
