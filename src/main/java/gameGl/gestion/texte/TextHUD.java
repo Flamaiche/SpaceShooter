@@ -18,10 +18,15 @@ public class TextHUD {
     private float scale;
     private float r, g, b;
     private boolean active = true;
-    private boolean debugActive; // si activé uniquement en debug
+    private boolean debugActive;
     private String text = null;
 
-    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b, boolean debugActive) {
+    // Position libre si l'alignement est null
+    private float x = 0f;
+    private float y = 0f;
+
+    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign,
+                   float scale, float r, float g, float b, boolean debugActive) {
         this.type = type;
         this.hAlign = hAlign;
         this.vAlign = vAlign;
@@ -32,19 +37,30 @@ public class TextHUD {
         this.debugActive = debugActive;
     }
 
-    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b) {
+    public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign,
+                   float scale, float r, float g, float b) {
         this(type, hAlign, vAlign, scale, r, g, b, true);
     }
 
-    public TextHUD(TextType type, String text, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b, boolean debugActive) {
+    public TextHUD(TextType type, String text, HorizontalAlignment hAlign, VerticalAlignment vAlign,
+                   float scale, float r, float g, float b, boolean debugActive) {
         this(type, hAlign, vAlign, scale, r, g, b, debugActive);
         this.text = text;
     }
 
-    public TextHUD(TextType type, String text, HorizontalAlignment hAlign, VerticalAlignment vAlign, float scale, float r, float g, float b) {
+    public TextHUD(TextType type, String text, HorizontalAlignment hAlign, VerticalAlignment vAlign,
+                   float scale, float r, float g, float b) {
         this(type, text, hAlign, vAlign, scale, r, g, b, true);
     }
 
+    // --- Setters et getters pour x et y ---
+    public float getX() { return x; }
+    public void setX(float x) { this.x = x; }
+
+    public float getY() { return y; }
+    public void setY(float y) { this.y = y; }
+
+    // --- Autres getters/setters ---
     public TextType getType() { return type; }
     public HorizontalAlignment getHAlign() { return hAlign; }
     public VerticalAlignment getVAlign() { return vAlign; }
@@ -53,9 +69,8 @@ public class TextHUD {
     public float getR() { return r; }
     public float getG() { return g; }
     public float getB() { return b; }
-    public void setRGB(float r, float g, float b) {this.r = r;this.g = g;this.b = b;}
+    public void setRGB(float r, float g, float b) { this.r = r; this.g = g; this.b = b; }
     public boolean getDebugActive() { return debugActive; }
-
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
 
@@ -95,8 +110,7 @@ public class TextHUD {
     }
 
     private String getText() {
-        if (text != null) return text;
-        return "Aucun texte : " + type;
+        return text != null ? text : "Aucun texte : " + type;
     }
 
     public void setText(String text) {
