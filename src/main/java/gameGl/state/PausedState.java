@@ -1,7 +1,6 @@
 package gameGl.state;
 
 import gameGl.gestion.texte.TextHUD;
-import gameGl.gestion.texte.TextManager;
 import learnGL.tools.Commande;
 import learnGL.tools.Shader;
 import learnGL.tools.Touche;

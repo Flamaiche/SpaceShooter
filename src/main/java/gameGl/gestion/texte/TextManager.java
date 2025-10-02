@@ -44,8 +44,6 @@ public class TextManager {
     }
 
     public void render(Shader shader) {
-        GameData data = GameData.getInstance();
-
         float scaleX = (float) windowWidth / baseWidth;
         float scaleY = (float) windowHeight / baseHeight;
         float uniformScale = Math.min(scaleX, scaleY);
@@ -94,7 +92,6 @@ public class TextManager {
 
             Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
 
-            // incrément offset
             yOffsets[idx] += textHeight + margin * uniformScale;
         }
     }
