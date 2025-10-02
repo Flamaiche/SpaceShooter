@@ -21,9 +21,13 @@ public class TextHUD {
     private boolean debugActive;
     private String text = null;
 
-    // Position libre si l'alignement est null
     private float x = 0f;
     private float y = 0f;
+
+    private float screenX;
+    private float screenY;
+    private float width;
+    private float height;
 
     public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign,
                    float scale, float r, float g, float b, boolean debugActive) {
@@ -53,17 +57,12 @@ public class TextHUD {
         this(type, text, hAlign, vAlign, scale, r, g, b, true);
     }
 
-    // --- Setters et getters pour x et y ---
     public float getX() { return x; }
     public void setX(float x) { this.x = x; }
 
     public float getY() { return y; }
     public void setY(float y) { this.y = y; }
 
-    // --- Autres getters/setters ---
-    public TextType getType() { return type; }
-    public HorizontalAlignment getHAlign() { return hAlign; }
-    public VerticalAlignment getVAlign() { return vAlign; }
     public float getScale() { return scale; }
     public void setScale(float scale) { this.scale = scale; }
     public float getR() { return r; }
@@ -73,6 +72,10 @@ public class TextHUD {
     public boolean getDebugActive() { return debugActive; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public TextType getType() { return type; }
+    public HorizontalAlignment getHAlign() { return hAlign; }
+    public VerticalAlignment getVAlign() { return vAlign; }
 
     public String getText(GameData data) {
         if (type == null) return getText();
@@ -115,5 +118,23 @@ public class TextHUD {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public void setScreenPosition(float x, float y) { this.screenX = x; this.screenY = y; }
+    public float getScreenX() { return screenX; }
+    public float getScreenY() { return screenY; }
+
+    public void setSize(float width, float height) { this.width = width; this.height = height; }
+    public float getWidth() { return width; }
+    public float getHeight() { return height; }
+
+    public static boolean isMouseOver(TextHUD t, float mouseX, float mouseY) {
+        float x = t.getScreenX();
+        float y = t.getScreenY();
+        float w = t.getWidth();
+        float h = t.getHeight();
+
+        return mouseX >= x && mouseX <= x + w &&
+                mouseY >= y && mouseY <= y + h;
     }
 }
