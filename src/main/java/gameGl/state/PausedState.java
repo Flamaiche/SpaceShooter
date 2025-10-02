@@ -61,7 +61,7 @@ public class PausedState extends GameState {
         }
     }
 
-    public void updateHUD() {
+    public void updateHUD(float deltaTime) {
         // normalise l'index
         indexSelection = ((indexSelection % textMenu.length) + textMenu.length) % textMenu.length;
 
@@ -80,12 +80,13 @@ public class PausedState extends GameState {
                 t.setRGB(1.0f, 1.0f, 1.0f);
             }
         }
+        hud.update(deltaTime, width, height);
     }
 
     @Override
     public void update(float deltaTime) {
         commande.update();
-        updateHUD();
+        updateHUD(deltaTime);
     }
 
     @Override
