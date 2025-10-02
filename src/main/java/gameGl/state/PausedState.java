@@ -14,7 +14,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class PausedState extends GameState {
     private ArrayList<TextHUD> texts;
-    private String[] textMenu = {"CONTINUER", "QUITTER"};
+    private String[] textMenu = {"CONTINUER", "RECOMMENCER1234", "QUITTER"};
     private Shader textShader;
     private int indexSelection;
 
@@ -37,9 +37,9 @@ public class PausedState extends GameState {
         ArrayList<Touche> touches = new ArrayList<>();
 
         // Reprendre
-        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PLAY), null, null));
+        touches.add(new Touche(GLFW_KEY_ESCAPE, () -> actionBySelection(0), null, null));
         // Retour menu
-        touches.add(new Touche(GLFW_KEY_ENTER, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.NEWPLAY), null, null));
+        touches.add(new Touche(GLFW_KEY_ENTER, () -> actionBySelection(indexSelection), null, null));
         touches.add(new Touche(GLFW_KEY_UP, () -> indexSelection--, null, null));
         touches.add(new Touche(GLFW_KEY_DOWN, () -> indexSelection++, null, null));
 
@@ -48,10 +48,18 @@ public class PausedState extends GameState {
 
     @Override
     public void initHud() {
-        texts.add(new TextHUD(null, "CONTINUER", TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER, (float)(uniformTextScale*1.2), 1.0f, 1.0f, 1.0f));
-        texts.add(new TextHUD(null, "QUITTER", TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER, (float)(uniformTextScale*1.2), 1.0f, 1.0f, 1.0f));
+        for (String t : textMenu)
+            texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER, (float)(uniformTextScale*1.2), 1.0f, 1.0f, 1.0f));
 
         hud.setTexts(texts);
+    }
+
+    public void actionBySelection(int indexSelection) {
+        switch (indexSelection) {
+            case 0 -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PLAY);
+            case 1 -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.NEWPLAY);
+            case 2 -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.MAIN);
+        }
     }
 
     public void updateHUD() {
@@ -63,13 +71,13 @@ public class PausedState extends GameState {
 
             if (i == indexSelection) {
                 // texte sélectionné : plus grand et couleur jaune
-                t.setScale(uniformTextScale * 3);
                 t.setText(">> " + textMenu[i]);
+                t.setScale((float)(uniformTextScale * 2.5));
                 t.setRGB(1.0f, 1.0f, 0f);
             } else {
                 // textes non sélectionnés : scale normal
-                t.setScale(uniformTextScale * 1.2f);
                 t.setText(textMenu[i]);
+                t.setScale(uniformTextScale * 1.2f);
                 t.setRGB(1.0f, 1.0f, 1.0f);
             }
         }
