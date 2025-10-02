@@ -39,6 +39,8 @@ public class TextManager {
         this.texts = texts;
     }
 
+    public ArrayList<TextHUD> getTexts() { return texts; }
+
     public void update(float deltaTime, int currentWindowWidth, int currentWindowHeight) {
         setWindowSize(currentWindowWidth, currentWindowHeight);
     }
@@ -56,7 +58,6 @@ public class TextManager {
             if (!t.isActive()) continue;
 
             if (t.getVAlign() == null) {
-                // Texte libre, utiliser x/y
                 centerTexts.add(t);
             } else {
                 switch (t.getVAlign()) {
@@ -99,6 +100,9 @@ public class TextManager {
             float renderY = (t.getVAlign() == null) ? t.getY() :
                     (fromTop ? yOffsets[idx] : windowHeight - yOffsets[idx] - textHeight);
 
+            t.setScreenPosition(renderX, renderY);
+            t.setSize(textWidth, textHeight);
+
             Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
 
             if (t.getHAlign() != null && t.getVAlign() != null) {
@@ -128,6 +132,9 @@ public class TextManager {
             };
 
             float renderY = (t.getVAlign() == null) ? t.getY() : startY + centerOffset;
+
+            t.setScreenPosition(renderX, renderY);
+            t.setSize(textWidth, textHeight);
 
             Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
 
