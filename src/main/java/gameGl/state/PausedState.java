@@ -14,7 +14,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class PausedState extends GameState {
     private ArrayList<TextHUD> texts;
-    private String[] textMenu = {"CONTINUER", "RECOMMENCER1234", "QUITTER"};
+    private String[] textMenu = {"CONTINUER", "RECOMMENCER", "QUITTER"};
     private Shader textShader;
     private int indexSelection;
 
