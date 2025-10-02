@@ -1,16 +1,9 @@
 package gameGl;
 
 import gameGl.entites.*;
-import gameGl.gestion.GameData;
-import gameGl.gestion.Manager2D;
-import gameGl.gestion.Manager3D;
 import gameGl.gestion.texte.Text;
-import gameGl.gestion.texte.TextManager;
 import gameGl.state.GameStateManager;
-import gameGl.state.MainMenuState;
-import gameGl.utils.PreVerticesTable;
 import learnGL.tools.*;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
