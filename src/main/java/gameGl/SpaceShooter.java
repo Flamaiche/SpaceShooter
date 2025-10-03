@@ -26,10 +26,12 @@ public class SpaceShooter {
     private int width = 800;
     private int height = 600;
     private boolean mouseLocked = true;
+    private String gameVersion = "A1.0";
 
     public void run() {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
         init();
+        System.out.println("gameVersion : " + gameVersion);
         loop();
 
         // cleanup fenêtre
@@ -130,6 +132,10 @@ public class SpaceShooter {
         ));
         commandeGlobal.setActiveAllTouche(true, touches);
         commandeGlobal.setTouches(touches);
+    }
+
+    public String gameVersion() {
+        return gameVersion;
     }
 
     public static void main(String[] args) {
