@@ -20,7 +20,7 @@ public class Ennemis extends Entity {
     private Vector3f position;
     private Vector3f direction;
     private Vector3f target;
-    public static float speed = 2.5f;
+    public float speed = 2.5f;
     public static float despawnDistance = 150f;
     private boolean highlighted = false;
 
@@ -142,7 +142,7 @@ public class Ennemis extends Entity {
     public void setHighlighted(boolean h) { highlighted = h; }
 
     public static void setDespawnDistance(float d) { despawnDistance = d; }
-    public static void setSpeed(float s) { speed = s; }
+    public void setSpeed(float s) { speed = s; }
 
     public boolean isHighlighted() {
         return highlighted;
