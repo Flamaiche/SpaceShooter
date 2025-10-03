@@ -1,10 +1,12 @@
 package gameGl.state;
 
-import gameGl.gestion.donnees.GameData;
+import gameGl.SpaceShooter;
 import gameGl.gestion.donnees.Sauvegardable;
 import gameGl.gestion.donnees.SaveClassPatron;
 import gameGl.utils.GetDonnee;
 import learnGL.tools.commandes.Commande;
+
+import java.util.List;
 
 public class GameStateManager {
     private GameState currentState;
@@ -12,6 +14,7 @@ public class GameStateManager {
     private int width;
     private int height;
     private GameState playing;
+    private float bestScore;
 
     public enum GameStateEnum {
         MAIN,
@@ -25,6 +28,18 @@ public class GameStateManager {
         this.width = width;
         this.height = height;
         playing = null;
+
+        bestScore = 0f;
+        List<Object> saveObject = GetDonnee.readJson(SpaceShooter.filenameSaveScore);
+        if (saveObject != null) {
+            for (Object obj : saveObject) { // Récupération des lieux
+                if (obj instanceof SaveClassPatron) {
+                    if (((SaveClassPatron) obj).getScore() > bestScore) {
+                        bestScore = ((SaveClassPatron) obj).getScore();
+                    }
+                }
+            }
+        }
     }
 
     public void setState(GameStateEnum gState) {
@@ -38,11 +53,17 @@ public class GameStateManager {
             case PLAY: currentState = playing;
                 break;
             case MAIN:
-                if (playing != null) sauvegarde((Sauvegardable) playing);
+                if (playing != null) {
+                    sauvegarde((Sauvegardable) playing);
+                    if (((Sauvegardable) playing).getGameData().getScore() > bestScore) {
+                        bestScore = ((Sauvegardable) playing).getGameData().getScore();
+                    }
+                }
                 currentState = new MainMenuState(commande, width, height);
                 break;
             case NEWPLAY:
                 playing = new PlayingState(commande, width, height);
+                ((Sauvegardable)playing).getGameData().setBestScore(bestScore);
                 currentState = playing;
                 break;
             case PAUSE: currentState = new PausedState(commande, width, height);
