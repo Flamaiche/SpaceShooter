@@ -10,6 +10,6 @@ Version : (A:Alpha)
     24/09/2025: fix roll, amelioration Commande, Ajout de touches, modif Crosshair
     24/09/2025: creation d'un git juste pour ce projet
     30/09/2025: refonte du code (Aucun changement du jeu)
-    01/09/2025: reset et replay fonctionnels entierement
-    02/09/2025: menu principale et menu pause fonctionnelles !!!
-    03/09/2025: probleme mineur et finition des menus
+    01/10/2025: reset et replay fonctionnels entierement
+    02/10/2025: menu principale et menu pause fonctionnelles !!!
+    03/10/2025: probleme mineur et finition des menus
