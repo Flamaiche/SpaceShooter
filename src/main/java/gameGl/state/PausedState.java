@@ -1,6 +1,8 @@
 package gameGl.state;
 
+import gameGl.entites.Ennemis;
 import gameGl.gestion.texte.TextHUD;
+import gameGl.utils.PreVerticesTable;
 import learnGL.tools.Commande;
 import learnGL.tools.Shader;
 import learnGL.tools.Touche;
@@ -15,15 +17,31 @@ public class PausedState extends GameState {
     private ArrayList<TextHUD> texts;
     private String[] textMenu = {"CONTINUER", "RECOMMENCER", "QUITTER"};
     private Shader textShader;
+    private Shader ennemisShader;
+    private Ennemis[] listeFakeEnnemis;
     private int indexSelection;
+
+    // Gestion du curseur / orbite
+    private boolean mouseLocked = true;
+    private boolean firstMouseInput = true;
+    private double lastMouseX;
+    private double lastMouseY;
+    private final float mouseSensitivity = 0.1f;
 
     public PausedState(Commande commande, int width, int height) {
         super(commande, width, height);
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
+        ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
+        listeFakeEnnemis = new Ennemis[50];
+        for (int i=0; i < listeFakeEnnemis.length; i++) {
+            System.out.println((i/10+1)*2);
+            listeFakeEnnemis[i] = generateEnnemis((i/10+1)*2);
+        }
     }
 
     @Override
     public void init(Commande commande, int width, int height) {
+        firstMouseInput = true;
         texts = new ArrayList<>();
         super.init(commande, width, height);
         initTouches();
@@ -34,6 +52,31 @@ public class PausedState extends GameState {
     @Override
     public void initTouches() {
         ArrayList<Touche> touches = new ArrayList<>();
+
+        // Verrouillage du curseur au début
+
+        glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        // Callback mouvement souris
+        glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
+            if (!mouseLocked) return;
+            if (firstMouseInput) {
+                lastMouseX = xpos;
+                lastMouseY = ypos;
+                firstMouseInput = false;
+            }
+            double deltaX = xpos - lastMouseX;
+            double deltaY = lastMouseY - ypos;
+            lastMouseX = xpos;
+            lastMouseY = ypos;
+            camera.rotate((float)(deltaX * mouseSensitivity),
+                    (float)(deltaY * mouseSensitivity));
+        });
+
+        // Callback perte focus
+        glfwSetWindowFocusCallback(commande.getWindow(), (window, focused) -> {
+            if (!focused) firstMouseInput = true;
+        });
 
         // Reprendre
         touches.add(new Touche(GLFW_KEY_ESCAPE, () -> actionBySelection(0), null, null));
@@ -87,16 +130,28 @@ public class PausedState extends GameState {
     public void update(float deltaTime) {
         commande.update();
         updateHUD(deltaTime);
+        for (int i=0; i < listeFakeEnnemis.length; i++) {
+            listeFakeEnnemis[i].update(deltaTime);
+        }
     }
 
     @Override
     public void render() {
         glClearColor(0.2f, 0.2f, 0.2f, 1f);
         hud.render(textShader);
+        for (int i=0; i < listeFakeEnnemis.length; i++) {
+            listeFakeEnnemis[i].render(camera.getViewMatrix(), camera.getProjection(width, height));
+        }
     }
 
     @Override
     public void cleanup() {
         super.cleanup();
+    }
+
+    public Ennemis generateEnnemis(int speed) {
+        Ennemis e = new Ennemis(ennemisShader, new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z}, PreVerticesTable.generateCubeSimple(1f), camera);
+        e.setSpeed(10);
+        return e;
     }
 }

@@ -43,6 +43,7 @@ public class Commande {
     }
 
     public Camera getCamera() { return camera; }
+    public void setCamera(Camera camera) {this.camera = camera;}
     public long getWindow() { return window; }
     public GameStateManager getGameStateManager() { return gsm; }
     public void setGameStateManager(GameStateManager gsm) { this.gsm = gsm; }
