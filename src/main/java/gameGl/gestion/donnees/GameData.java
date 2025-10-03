@@ -23,6 +23,8 @@ public class GameData {
     private float distanceTarget = 0f;
     private float fps = 0f;
 
+    private float bestScore = 0f;
+
     private GameData() {}
 
     public static GameData getInstance() {
@@ -100,4 +102,8 @@ public class GameData {
 
     public void setFPS(float fps) { this.fps = fps; }
     public float getFPS() { return fps; }
+
+
+    public void setBestScore(float bestScore) { this.bestScore = bestScore; }
+    public float getBestScore() { return bestScore; }
 }

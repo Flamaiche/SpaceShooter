@@ -29,6 +29,10 @@ public class SaveClassPatron {
     public void saveDonnees() {
         ArrayList<SaveClassPatron> array = new ArrayList<>();
         array.add(this);
-        GetDonnee.writeJson("SauvegardeScore", array);
+        GetDonnee.writeJson(SpaceShooter.filenameSaveScore, array);
+    }
+
+    public float getScore() {
+        return score;
     }
 }

@@ -8,7 +8,7 @@ public class TextHUD {
     public enum VerticalAlignment { TOP, CENTER, BOTTOM }
 
     public enum TextType {
-        SCORE, LIVES, TIME, BALLS, ENEMIES,
+        BESTSCORE, SCORE, LIVES, TIME, BALLS, ENEMIES,
         FPS, POSITION, ORIENTATION, ACTIVE_BALLS, ACTIVE_ENEMIES, DISTANCE_TARGET
     }
 
@@ -80,6 +80,7 @@ public class TextHUD {
     public String getText(GameData data) {
         if (type == null) return getText();
         switch (type) {
+            case BESTSCORE: return "Best Score: " + (int)data.getBestScore();
             case SCORE: return "Score: " + (int)data.getScore();
             case LIVES: return "Vies: " + (int)data.getLives();
             case TIME:  {
