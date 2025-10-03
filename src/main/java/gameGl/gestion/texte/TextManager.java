@@ -1,6 +1,6 @@
 package gameGl.gestion.texte;
 
-import gameGl.gestion.GameData;
+import gameGl.gestion.donnees.GameData;
 import learnGL.tools.Shader;
 import java.util.ArrayList;
 

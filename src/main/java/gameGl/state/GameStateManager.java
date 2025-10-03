@@ -1,5 +1,7 @@
 package gameGl.state;
 
+import gameGl.gestion.donnees.GameData;
+import gameGl.gestion.donnees.Sauvegardable;
 import learnGL.tools.commandes.Commande;
 
 public class GameStateManager {
@@ -37,6 +39,7 @@ public class GameStateManager {
                 currentState = new MainMenuState(commande, width, height);
                 break;
             case NEWPLAY:
+                sauvegarde((Sauvegardable) playing);
                 playing = new PlayingState(commande, width, height);
                 currentState = playing;
                 break;
@@ -55,5 +58,10 @@ public class GameStateManager {
 
     public void render() {
         if (currentState != null) currentState.render();
+    }
+
+    public void sauvegarde(Sauvegardable partie) {
+        GameData data = partie.getGameData();
+
     }
 }
