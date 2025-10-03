@@ -43,7 +43,7 @@ public class TextHUD {
 
     public TextHUD(TextType type, HorizontalAlignment hAlign, VerticalAlignment vAlign,
                    float scale, float r, float g, float b) {
-        this(type, hAlign, vAlign, scale, r, g, b, true);
+        this(type, hAlign, vAlign, scale, r, g, b, false);
     }
 
     public TextHUD(TextType type, String text, HorizontalAlignment hAlign, VerticalAlignment vAlign,
@@ -54,7 +54,7 @@ public class TextHUD {
 
     public TextHUD(TextType type, String text, HorizontalAlignment hAlign, VerticalAlignment vAlign,
                    float scale, float r, float g, float b) {
-        this(type, text, hAlign, vAlign, scale, r, g, b, true);
+        this(type, text, hAlign, vAlign, scale, r, g, b, false);
     }
 
     public float getX() { return x; }

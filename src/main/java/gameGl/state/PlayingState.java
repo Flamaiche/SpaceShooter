@@ -50,6 +50,8 @@ public class PlayingState extends GameState {
 
     private double shootCooldown = 0.3;
 
+    private boolean debugMode = false;
+
     // Alt pour combos
     private Touche alt;
 
@@ -168,6 +170,9 @@ public class PlayingState extends GameState {
         // Pause
         touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE), null, null));
 
+        // Debug
+        touches.add(new Touche(GLFW_KEY_U, () -> {debugMode=!debugMode; hud.setDebugMode(!debugMode);}, null, null));
+
         commande.setTouches(touches);
     }
 
@@ -187,7 +192,6 @@ public class PlayingState extends GameState {
         texts.add(new TextHUD(TextHUD.TextType.ACTIVE_ENEMIES, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.DISTANCE_TARGET, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         hud.setTexts(texts);
-        hud.setDebugMode(true);
     }
 
     @Override
