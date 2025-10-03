@@ -159,8 +159,8 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation)));
         touches.add(new Touche(GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation)));
 
-        Touche sourisGauche = new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()); // action hold : on appelle la méthode shoot
-        touches.add(sourisGauche);
+        touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()));
+        touches.add(new Touche(GLFW_KEY_GRAVE_ACCENT, null, null, () -> shoot()));
 
         // Pause
         touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE), null, null));

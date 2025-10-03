@@ -34,7 +34,6 @@ public class PausedState extends GameState {
         ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
         listeFakeEnnemis = new Ennemis[50];
         for (int i=0; i < listeFakeEnnemis.length; i++) {
-            System.out.println((i/10+1)*2);
             listeFakeEnnemis[i] = generateEnnemis((i/10+1)*2);
         }
     }
