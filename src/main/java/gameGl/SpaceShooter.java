@@ -27,6 +27,7 @@ public class SpaceShooter {
     private int height = 600;
     private boolean mouseLocked = true;
     private static String gameVersion = "A1.0";
+    public static String filenameSaveScore = "SauvegardeScore";
 
     public void run() {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
