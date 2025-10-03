@@ -1,57 +1,60 @@
 #MENU PRINCIPAL :
 
-ENTRÉE : Valider / commencer la partie (appui unique)
-Flèche haut : Monter dans le menu (tant que pressée)
-Flèche bas : Descendre dans le menu (tant que pressée)
-ÉCHAP : Quitter le jeu (appui unique)
+ENTRÉE : Valider
+Flèche haut : Monter dans le menu 
+Flèche bas : Descendre dans le menu 
+ÉCHAP : Quitter le jeu
+Bouton gauche souris : (quand elle est libre) selection et validation du menu
 
 
 #EN PARTIE :
 
 ##DÉPLACEMENT
-Z : Avancer (tant que pressée)
-S : Reculer (tant que pressée)
-Q : Aller à gauche (tant que pressée)
-D : Aller à droite (tant que pressée)
-MAJ (SHIFT) : Monter (tant que pressée)
-CTRL : Descendre (tant que pressée)
+Z : Avancer 
+S : Reculer 
+Q : Aller à gauche 
+D : Aller à droite 
+MAJ (SHIFT) : Monter 
+CTRL : Descendre 
 
 ##ROTATION DE LA CAMERA
-Flèche gauche : Tourner la caméra à gauche (tant que pressée)
-Flèche droite : Tourner la caméra à droite (tant que pressée)
-Flèche haut : Regarder vers le haut (tant que pressée)
-Flèche bas : Regarder vers le bas (tant que pressée)
-Déplacement de la souris : Tourner la caméra (si curseur capturé)
+Flèche gauche : Tourner la caméra à gauche 
+Flèche droite : Tourner la caméra à droite 
+Flèche haut : Regarder vers le haut 
+Flèche bas : Regarder vers le bas 
+Déplacement de la souris : Tourner la caméra
 
 ##ROLL DE LA CAMÉRA (ALT + Q/E/R)
-ALT + Q : Faire tourner la caméra / monde à gauche (tant que pressée)
-ALT + E : Faire tourner la caméra / monde à droite (tant que pressée)
-ALT + R : Réinitialiser le roll (appui unique)
+ALT + Q : Faire tourner la caméra à gauche
+ALT + E : Faire tourner la caméra à droite
+ALT + R : Réinitialiser le roll
+ALT + L : Dé/Bloquer le roll (et se reset)
 
 ##MODE CAMÉRA
-ESPACE : Activer le mode orbite (tant que pressée)
+ESPACE : Activer le mode orbite 
 Relâchement de ESPACE : Désactiver le mode orbite
 
 ##TIR
-Bouton gauche souris : Tirer (appui unique, cooldown 0,3 s)
-
-##CURSEUR
-CAPS LOCK : Activer/désactiver le curseur (verrouillage/déverrouillage de la souris) (appui unique)
+² / Bouton gauche souris : Tirer (cooldown 0,3 s)
 
 ##GESTION DU JEU
-ÉCHAP : Mettre en pause ou quitter selon le contexte (appui unique)
+ÉCHAP : Mettre en pause
 
+##DEBUG
+U : Menu de debug
 
 #MENU PAUSE :
 
-ENTRÉE : Valider / quitter la partie (appui unique)
-Flèche haut : Monter dans le menu (tant que pressée)
-Flèche bas : Descendre dans le menu (tant que pressée)
-ÉCHAP : Continuer le jeu (appui unique)
+ENTRÉE : Valider
+Flèche haut : Monter dans le menu 
+Flèche bas : Descendre dans le menu 
+ÉCHAP : Continuer le jeu
+Bouton gauche souris : (quand elle est libre) selection et validation du menu
 
 
 #AUTRE :
-HUD / DEBUG
-(Pas encore défini) : Menu de debug / informations HUD
+
+##CURSEUR
+CAPS LOCK : Activer/désactiver le curseur (verrouillage/déverrouillage de la souris)
 
 
