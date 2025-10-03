@@ -50,7 +50,7 @@ public class MainMenuState extends GameState {
         glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
             for (int i = 0; i < texts.size(); i++) {
                 TextHUD t = texts.get(i);
-                if (TextHUD.isMouseOver(t, (float) xpos, (float) ypos)) {
+                if (TextHUD.coodsMouseOn(t, (float) xpos, (float) ypos)) {
                     indexSelection = i; // priorité souris
                     break;
                 }

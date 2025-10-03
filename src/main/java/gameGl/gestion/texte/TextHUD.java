@@ -128,7 +128,7 @@ public class TextHUD {
     public float getWidth() { return width; }
     public float getHeight() { return height; }
 
-    public static boolean isMouseOver(TextHUD t, float mouseX, float mouseY) {
+    public static boolean coodsMouseOn(TextHUD t, float mouseX, float mouseY) {
         float x = t.getScreenX();
         float y = t.getScreenY();
         float w = t.getWidth();
