@@ -37,13 +37,13 @@ public class PlayingState extends GameState {
     private final float vitesse = 0.05f;
     private final float vitesseRotation = 1.0f;
     private final float rollSpeed = 1.0f;
-    private final float mouseSensitivity = 0.1f;
 
     // Gestion du curseur / orbite
     private boolean mouseLocked = true;
     private boolean firstMouseInput = true;
     private double lastMouseX;
     private double lastMouseY;
+    private final float mouseSensitivity = 0.1f;
 
     private double shootCooldown = 0.3;
 
@@ -90,6 +90,8 @@ public class PlayingState extends GameState {
 
     @Override
     public void init(Commande commande, int width, int height) {
+        firstMouseInput = true;
+
         texts = new ArrayList<>();
         super.init(commande, width, height);
 
