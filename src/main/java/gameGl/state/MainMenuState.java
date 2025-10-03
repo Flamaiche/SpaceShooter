@@ -23,7 +23,7 @@ public class MainMenuState extends GameState {
     private int indexSelection;
     private int nbStarCircle1 = 5;
 
-    private float rotationRadius = 145; // rayon du cercle
+    private float rotationRadius = 175; // rayon du cercle
     private float totalTime = 0;        // temps écoulé pour l'animation
 
     // Nouveau : texte animé
@@ -94,9 +94,9 @@ public class MainMenuState extends GameState {
                 "HELLO",
                 uniformTextScale * 1.5f,
                 0f, 1f, 0f, // vert
-                rotationRadius,
+                145,
                 width / 2.0, height / 2.0,
-                1, // tours par seconde
+                0.5, // tours par seconde
                 (time, radius, cx, cy, tps, i) -> {
                     return PosDeltaTime.circle(time + i * 0.1, radius, cx, cy, tps);
                 }
@@ -138,7 +138,8 @@ public class MainMenuState extends GameState {
             circularText(textsVollatile.get(i), totalTime + ((float) (degres * (i + 1)) / 360));
         }
 
-        // Update du texte animé "HELLO"
+        // Update du texte animé
+        animatedHello.setText(textMenu[indexSelection]);
         animatedHello.update(deltaTime);
 
         hud.update(deltaTime, width, height);
