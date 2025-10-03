@@ -1,9 +1,10 @@
 package gameGl.state;
 
 import gameGl.entites.*;
-import gameGl.gestion.GameData;
+import gameGl.gestion.donnees.GameData;
 import gameGl.gestion.Manager2D;
 import gameGl.gestion.Manager3D;
+import gameGl.gestion.donnees.Sauvegardable;
 import gameGl.gestion.texte.TextHUD;
 import gameGl.utils.PreVerticesTable;
 import learnGL.tools.*;
@@ -19,7 +20,7 @@ import static gameGl.gestion.texte.TextManager.uniformTextScale;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
-public class PlayingState extends GameState {
+public class PlayingState extends GameState implements Sauvegardable {
     private ArrayList<TextHUD> texts;
     private Joueur joueur;
     private ArrayList<Ennemis> ennemis;
@@ -276,5 +277,9 @@ public class PlayingState extends GameState {
                 break;
             }
         }
+    }
+
+    public GameData getGameData() {
+        return  data;
     }
 }
