@@ -4,6 +4,7 @@ import gameGl.gestion.texte.Text;
 import gameGl.gestion.texte.TextManager;
 import learnGL.tools.Camera;
 import learnGL.tools.Commande;
+import org.joml.Vector3f;
 
 public abstract class GameState {
     protected Commande commande;
@@ -13,7 +14,8 @@ public abstract class GameState {
 
     public GameState(Commande commande, int width, int height) {
         this.commande = commande;
-        this.camera = commande.getCamera();
+        this.camera = new Camera(new Vector3f(0, 0, 3));
+        commande.setCamera(camera);
         this.width = width;
         this.height = height;
 
@@ -21,7 +23,11 @@ public abstract class GameState {
     }
 
     public void init(Commande commande, int width, int height) {
+        commande.setCamera(camera);
+        this.width = width;
+        this.height = height;
 
+        hud.setWindowSize(width, height);
     }
 
     public abstract void initTouches();
