@@ -1,6 +1,7 @@
-package learnGL.tools;
+package learnGL.tools.commandes;
 
 import gameGl.state.GameStateManager;
+import learnGL.tools.Camera;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;

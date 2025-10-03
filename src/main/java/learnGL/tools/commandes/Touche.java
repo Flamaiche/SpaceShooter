@@ -1,4 +1,4 @@
-package learnGL.tools;
+package learnGL.tools.commandes;
 
 import org.lwjgl.glfw.GLFW;
 

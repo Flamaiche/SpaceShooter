@@ -1,4 +1,4 @@
-package learnGL.tools;
+package learnGL.tools.commandes;
 
 public class ComboTouche extends Touche {
     private Touche t1;
