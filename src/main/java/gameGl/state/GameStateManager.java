@@ -2,6 +2,8 @@ package gameGl.state;
 
 import gameGl.gestion.donnees.GameData;
 import gameGl.gestion.donnees.Sauvegardable;
+import gameGl.gestion.donnees.SaveClassPatron;
+import gameGl.utils.GetDonnee;
 import learnGL.tools.commandes.Commande;
 
 public class GameStateManager {
@@ -22,7 +24,7 @@ public class GameStateManager {
         this.commande = commande;
         this.width = width;
         this.height = height;
-        playing = new PlayingState(commande, width, height);
+        playing = null;
     }
 
     public void setState(GameStateEnum gState) {
@@ -36,10 +38,10 @@ public class GameStateManager {
             case PLAY: currentState = playing;
                 break;
             case MAIN:
+                if (playing != null) sauvegarde((Sauvegardable) playing);
                 currentState = new MainMenuState(commande, width, height);
                 break;
             case NEWPLAY:
-                sauvegarde((Sauvegardable) playing);
                 playing = new PlayingState(commande, width, height);
                 currentState = playing;
                 break;
@@ -61,7 +63,7 @@ public class GameStateManager {
     }
 
     public void sauvegarde(Sauvegardable partie) {
-        GameData data = partie.getGameData();
-
+        SaveClassPatron SCP = new SaveClassPatron(partie.getGameData());
+        SCP.saveDonnees();
     }
 }

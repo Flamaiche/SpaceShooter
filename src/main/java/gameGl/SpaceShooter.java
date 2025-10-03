@@ -26,7 +26,7 @@ public class SpaceShooter {
     private int width = 800;
     private int height = 600;
     private boolean mouseLocked = true;
-    private String gameVersion = "A1.0";
+    private static String gameVersion = "A1.0";
 
     public void run() {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
@@ -134,7 +134,7 @@ public class SpaceShooter {
         commandeGlobal.setTouches(touches);
     }
 
-    public String gameVersion() {
+    public static String getGameVersion() {
         return gameVersion;
     }
 
