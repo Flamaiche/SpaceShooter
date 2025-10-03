@@ -48,10 +48,12 @@ public class MainMenuState extends GameState {
     private void initMouseCallbacks() {
         // Callback pour suivre la souris et mettre à jour la sélection
         glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
+            if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) return;
+
             for (int i = 0; i < texts.size(); i++) {
                 TextHUD t = texts.get(i);
                 if (TextHUD.coodsMouseOn(t, (float) xpos, (float) ypos)) {
-                    indexSelection = i; // priorité souris
+                    indexSelection = i;
                     break;
                 }
             }
