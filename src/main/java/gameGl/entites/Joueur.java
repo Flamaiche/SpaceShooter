@@ -1,7 +1,7 @@
 package gameGl.entites;
 
 import learnGL.tools.Camera;
-import learnGL.tools.Commande;
+import learnGL.tools.commandes.Commande;
 import learnGL.tools.Shader;
 import learnGL.tools.Shape;
 import gameGl.utils.PreVerticesTable;

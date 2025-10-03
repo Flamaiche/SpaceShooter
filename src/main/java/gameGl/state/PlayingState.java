@@ -7,6 +7,9 @@ import gameGl.gestion.Manager3D;
 import gameGl.gestion.texte.TextHUD;
 import gameGl.utils.PreVerticesTable;
 import learnGL.tools.*;
+import learnGL.tools.commandes.ComboTouche;
+import learnGL.tools.commandes.Commande;
+import learnGL.tools.commandes.Touche;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
