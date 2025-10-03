@@ -130,6 +130,7 @@ public class Camera {
             yaw += offsetYaw;
             pitch += offsetPitch;
             pitch = Math.max(-89.9f, Math.min(89.9f, pitch));
+            yaw = ((yaw % 360) + 360) % 360;
             updateAxes();
         } else {
             orbitTheta += Math.toRadians(offsetYaw);
