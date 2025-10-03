@@ -1,9 +1,10 @@
 package gameGl;
 
-import gameGl.entites.*;
 import gameGl.gestion.texte.Text;
 import gameGl.state.GameStateManager;
 import learnGL.tools.*;
+import learnGL.tools.commandes.Commande;
+import learnGL.tools.commandes.Touche;
 import org.joml.Vector3f;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;

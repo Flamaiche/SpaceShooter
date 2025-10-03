@@ -3,9 +3,9 @@ package gameGl.state;
 import gameGl.entites.Ennemis;
 import gameGl.gestion.texte.TextHUD;
 import gameGl.utils.PreVerticesTable;
-import learnGL.tools.Commande;
+import learnGL.tools.commandes.Commande;
 import learnGL.tools.Shader;
-import learnGL.tools.Touche;
+import learnGL.tools.commandes.Touche;
 
 import java.util.ArrayList;
 

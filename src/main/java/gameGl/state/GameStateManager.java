@@ -1,6 +1,6 @@
 package gameGl.state;
 
-import learnGL.tools.Commande;
+import learnGL.tools.commandes.Commande;
 
 public class GameStateManager {
     private GameState currentState;

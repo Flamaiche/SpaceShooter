@@ -3,7 +3,7 @@ package gameGl.state;
 import gameGl.gestion.texte.Text;
 import gameGl.gestion.texte.TextManager;
 import learnGL.tools.Camera;
-import learnGL.tools.Commande;
+import learnGL.tools.commandes.Commande;
 import org.joml.Vector3f;
 
 public abstract class GameState {
