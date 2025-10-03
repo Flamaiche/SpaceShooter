@@ -1,4 +1,4 @@
-package gameGl.gestion;
+package gameGl.gestion.donnees;
 
 public class GameData {
 
