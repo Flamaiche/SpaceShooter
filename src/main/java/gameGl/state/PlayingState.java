@@ -4,7 +4,6 @@ import gameGl.entites.*;
 import gameGl.gestion.donnees.GameData;
 import gameGl.gestion.Manager2D;
 import gameGl.gestion.Manager3D;
-import gameGl.gestion.donnees.Sauvegardable;
 import gameGl.gestion.texte.TextHUD;
 import gameGl.utils.PreVerticesTable;
 import learnGL.tools.*;
@@ -20,7 +19,7 @@ import static gameGl.gestion.texte.TextManager.uniformTextScale;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
-public class PlayingState extends GameState implements Sauvegardable {
+public class PlayingState extends GameState {
     private ArrayList<TextHUD> texts;
     private Joueur joueur;
     private ArrayList<Ennemis> ennemis;
@@ -28,9 +27,6 @@ public class PlayingState extends GameState implements Sauvegardable {
     private ArrayList<Entity2D> uiElements;
     // Shaders
     private Shader ennemisShader, ballShader, crosshairShader, textShader;
-
-    // HUD / debug
-    private GameData data;
 
     private double lastTime;
     private int score, ballsFiredTotal, enemiesKilledTotal;
@@ -53,6 +49,7 @@ public class PlayingState extends GameState implements Sauvegardable {
     private int nbEnnemis = 25;
 
     private boolean debugMode = false;
+    private GameData data = GameData.getInstance();
 
     // Alt pour combos
     private Touche alt;
@@ -89,7 +86,6 @@ public class PlayingState extends GameState implements Sauvegardable {
         uiElements = new ArrayList<>();
         uiElements.add(new Crosshair(crosshairShader, camera));
 
-        data = GameData.getInstance();
         data.resetVal();
         // Temps
         lastTime = glfwGetTime();
@@ -283,9 +279,5 @@ public class PlayingState extends GameState implements Sauvegardable {
                 break;
             }
         }
-    }
-
-    public GameData getGameData() {
-        return  data;
     }
 }

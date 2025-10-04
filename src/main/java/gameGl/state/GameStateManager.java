@@ -1,7 +1,7 @@
 package gameGl.state;
 
 import gameGl.SpaceShooter;
-import gameGl.gestion.donnees.Sauvegardable;
+import gameGl.gestion.donnees.GameData;
 import gameGl.gestion.donnees.SaveClassPatron;
 import gameGl.utils.GetDonnee;
 import learnGL.tools.commandes.Commande;
@@ -14,7 +14,7 @@ public class GameStateManager {
     private int width;
     private int height;
     private GameState playing;
-    private float bestScore;
+    private GameData gameData;
 
     public enum GameStateEnum {
         MAIN,
@@ -28,14 +28,13 @@ public class GameStateManager {
         this.width = width;
         this.height = height;
         playing = null;
-
-        bestScore = 0f;
+        gameData = GameData.getInstance();
         List<Object> saveObject = GetDonnee.readJson(SpaceShooter.filenameSaveScore);
         if (saveObject != null) {
-            for (Object obj : saveObject) { // Récupération des lieux
+            for (Object obj : saveObject) { // Récupération des saves
                 if (obj instanceof SaveClassPatron) {
-                    if (((SaveClassPatron) obj).getScore() > bestScore) {
-                        bestScore = ((SaveClassPatron) obj).getScore();
+                    if (((SaveClassPatron) obj).getScore() > gameData.getBestScore()) {
+                        gameData.setBestScore(((SaveClassPatron) obj).getScore());
                     }
                 }
             }
@@ -55,18 +54,18 @@ public class GameStateManager {
             case MAIN:
                 MainMenuState mms = new MainMenuState(commande, width, height);
                 if (playing != null) {
-                    Sauvegardable p = (Sauvegardable) playing;
-                    sauvegarde(p);
-                    if (p.getGameData().getScore() > bestScore) {
-                        bestScore = p.getGameData().getScore();
+                    sauvegarde();
+                    gameData.setTotalScore(gameData.getTotalScore() + gameData.getScore());
+                    if (gameData.getScore() > gameData.getBestScore()) {
+                        gameData.setBestScore(gameData.getScore());
                     }
-                    if (p.getGameData().getLives() == 0) mms.setTextTitle(1);
+
+                    if (gameData.getLives() == 0) mms.setTextTitle(1);
                 }
                 currentState = mms;
                 break;
             case NEWPLAY:
                 playing = new PlayingState(commande, width, height);
-                ((Sauvegardable)playing).getGameData().setBestScore(bestScore);
                 currentState = playing;
                 break;
             case PAUSE: currentState = new PausedState(commande, width, height);
@@ -86,8 +85,8 @@ public class GameStateManager {
         if (currentState != null) currentState.render();
     }
 
-    public void sauvegarde(Sauvegardable partie) {
-        SaveClassPatron SCP = new SaveClassPatron(partie.getGameData());
+    public void sauvegarde() {
+        SaveClassPatron SCP = new SaveClassPatron(GameData.getInstance());
         SCP.saveDonnees();
     }
 }
