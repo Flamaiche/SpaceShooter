@@ -85,6 +85,7 @@ public class MainMenuState extends GameState {
             texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER,
                     (float) (uniformTextScale * 1.2), 1.0f, 1.0f, 1.0f));
         }
+        texts.add(new TextHUD(TextHUD.TextType.TOTALSCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1.0f, 1.0f, 1.0f));
         hud.setTexts(texts);
 
         // HUD animé (étoiles rouges)
