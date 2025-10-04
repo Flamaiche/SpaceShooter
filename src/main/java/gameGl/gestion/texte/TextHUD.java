@@ -8,7 +8,7 @@ public class TextHUD {
     public enum VerticalAlignment { TOP, CENTER, BOTTOM }
 
     public enum TextType {
-        BESTSCORE, SCORE, LIVES, TIME, BALLS, ENEMIES,
+        TOTALSCORE, BESTSCORE, SCORE, LIVES, TIME, BALLS, ENEMIES,
         FPS, POSITION, ORIENTATION, ACTIVE_BALLS, ACTIVE_ENEMIES, DISTANCE_TARGET
     }
 
@@ -80,17 +80,25 @@ public class TextHUD {
     public String getText(GameData data) {
         if (type == null) return getText();
         switch (type) {
-            case BESTSCORE: return "Best Score: " + (int)data.getBestScore();
-            case SCORE: return "Score: " + (int)data.getScore();
-            case LIVES: return "Vies: " + (int)data.getLives();
-            case TIME:  {
-                int minutes = (int)(data.getElapsedTime() / 60);
-                int seconds = (int)(data.getElapsedTime() % 60);
+            case TOTALSCORE:
+                return "Total Score: " + (int) data.getTotalScore();
+            case BESTSCORE:
+                return "Best Score: " + (int) data.getBestScore();
+            case SCORE:
+                return "Score: " + (int) data.getScore();
+            case LIVES:
+                return "Vies: " + (int) data.getLives();
+            case TIME: {
+                int minutes = (int) (data.getElapsedTime() / 60);
+                int seconds = (int) (data.getElapsedTime() % 60);
                 return String.format("Temps: %02d:%02d", minutes, seconds);
             }
-            case BALLS: return "Balles: " + (int)data.getBallsFired();
-            case ENEMIES: return "Ennemis: " + (int)data.getEnemiesKilled();
-            case FPS: return "FPS: " + (int)data.getFPS();
+            case BALLS:
+                return "Balles: " + (int) data.getBallsFired();
+            case ENEMIES:
+                return "Ennemis: " + (int) data.getEnemiesKilled();
+            case FPS:
+                return "FPS: " + (int) data.getFPS();
             case POSITION: {
                 float[] pos = data.getPlayerPosition();
                 return String.format("Position: %.1f, %.1f, %.1f", pos[0], pos[1], pos[2]);
@@ -101,11 +109,11 @@ public class TextHUD {
             }
             case ACTIVE_BALLS: {
                 float[] b = data.getActiveBalls();
-                return "Balles actives: " + (int)b[0] + "/" + (int)b[1];
+                return "Balles actives: " + (int) b[0] + "/" + (int) b[1];
             }
             case ACTIVE_ENEMIES: {
                 float[] e = data.getActiveEnemies();
-                return "Ennemis actifs: " + (int)e[0] + "/" + (int)e[1];
+                return "Ennemis actifs: " + (int) e[0] + "/" + (int) e[1];
             }
             case DISTANCE_TARGET:
                 return String.format("Distance cible: %.1f", data.getDistanceTarget());
