@@ -17,6 +17,8 @@ import static org.lwjgl.opengl.GL11.*;
 public class MainMenuState extends GameState {
     private ArrayList<TextHUD> texts;
     private String[] textMenu = {"JOUER", "PARAMETRE", "QUITTER"};
+    private String[] textTitleList = {"", "!!!  PERDU  !!!"};
+    private int textTitle = 0;
     private ArrayList<TextHUD> textsVollatile;
     private TextManager textManagerVolatille;
     private Shader textShader;
@@ -86,6 +88,7 @@ public class MainMenuState extends GameState {
         hud.setTexts(texts);
 
         // HUD animé (étoiles rouges)
+        textsVollatile.add(new TextHUD(null, "TITLE", TextHUD.HorizontalAlignment.CENTER, null, uniformTextScale*3, 1.0f, 0f, 0f));
         for (int i = 0; i < nbStarCircle1; i++) {
             textsVollatile.add(new TextHUD(null, "*", null, null, uniformTextScale, 1.0f, 0f, 0f));
         }
@@ -133,7 +136,8 @@ public class MainMenuState extends GameState {
             }
         }
 
-        // Animation du HUD tournant (étoiles rouges)
+        // Animation du HUD tournant (étoiles rouges) + textTitle
+        textsVollatile.getFirst().setText(textTitleList[textTitle]);
         totalTime += deltaTime / 2;
         int degres = 360 / textsVollatile.size();
         for (int i = 0; i < textsVollatile.size(); i++) {
@@ -181,5 +185,9 @@ public class MainMenuState extends GameState {
     @Override
     public void cleanup() {
         super.cleanup();
+    }
+
+    public void setTextTitle(int textTitle) {
+        this.textTitle = textTitle;
     }
 }

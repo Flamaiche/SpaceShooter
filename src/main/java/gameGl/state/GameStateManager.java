@@ -53,13 +53,16 @@ public class GameStateManager {
             case PLAY: currentState = playing;
                 break;
             case MAIN:
+                MainMenuState mms = new MainMenuState(commande, width, height);
                 if (playing != null) {
-                    sauvegarde((Sauvegardable) playing);
-                    if (((Sauvegardable) playing).getGameData().getScore() > bestScore) {
-                        bestScore = ((Sauvegardable) playing).getGameData().getScore();
+                    Sauvegardable p = (Sauvegardable) playing;
+                    sauvegarde(p);
+                    if (p.getGameData().getScore() > bestScore) {
+                        bestScore = p.getGameData().getScore();
                     }
+                    if (p.getGameData().getLives() == 0) mms.setTextTitle(1);
                 }
-                currentState = new MainMenuState(commande, width, height);
+                currentState = mms;
                 break;
             case NEWPLAY:
                 playing = new PlayingState(commande, width, height);
