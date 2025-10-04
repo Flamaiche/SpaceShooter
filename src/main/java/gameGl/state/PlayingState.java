@@ -212,6 +212,10 @@ public class PlayingState extends GameState implements Sauvegardable {
 
         // HUD
         updateHUD(deltaTime);
+
+        if (data.getLives() == 0) {
+            commande.getGameStateManager().setState(GameStateManager.GameStateEnum.MAIN);
+        }
     }
 
     private void updateHUD(float deltaTime) {
