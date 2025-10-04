@@ -49,7 +49,8 @@ public class PlayingState extends GameState implements Sauvegardable {
     private double lastMouseY;
     private final float mouseSensitivity = 0.1f;
 
-    private double shootCooldown = 0.3;
+    private double shootCooldown = 0.5;
+    private int nbEnnemis = 25;
 
     private boolean debugMode = false;
 
@@ -73,7 +74,7 @@ public class PlayingState extends GameState implements Sauvegardable {
         // Ennemis
         Ennemis.setDespawnDistance(camera.getRenderSimulation());
         ennemis = new ArrayList<>();
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < nbEnnemis; i++) {
             ennemis.add(new Ennemis(ennemisShader,
                     new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z},
                     PreVerticesTable.generateCubeSimple(1f), camera));

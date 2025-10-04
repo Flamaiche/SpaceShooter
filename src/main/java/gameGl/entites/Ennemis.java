@@ -27,7 +27,9 @@ public class Ennemis extends Entity {
     public final int MAX_VIE = 1;
     private int vie = MAX_VIE;
     private int score = 10;
-    private final float RESPAWN_TIME = 5f;
+    private final float RESPAWN_TIME_MIN = 1f;
+    private final float RESPAWN_TIME_MAX = 9f;
+    private float respawn_time = -1f;
     private float deathTime = -1f;
 
     public Ennemis(Shader shader, float[] centerPlayer, float[] verticesShape, Camera camera) {
@@ -70,9 +72,10 @@ public class Ennemis extends Entity {
         if (vie <= 0) {
             if (deathTime < 0) {
                 deathTime = (float) glfwGetTime(); // on note le moment de la mort
+                respawn_time = rand.nextFloat(RESPAWN_TIME_MAX - RESPAWN_TIME_MIN + 1) + RESPAWN_TIME_MIN;
             } else {
                 float currentTime = (float) glfwGetTime();
-                if (currentTime - deathTime >= RESPAWN_TIME) {
+                if (currentTime - deathTime >= respawn_time) {
                     resetVie();
                     deathTime = -1f; // on réinitialise
                 }
