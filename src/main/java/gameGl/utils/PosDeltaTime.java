@@ -1,16 +1,16 @@
 package gameGl.utils;
 
 public class PosDeltaTime {
-    public static double[] circle(double deltaTime, double radius, double centerX, double centerY, double tourPerSecond) {
-        // calcule l'angle en degrés
-        double angleDeg = deltaTime * tourPerSecond * 360;
-        // convertit en radians
+    public static double[] circle(double time, double radius, double centerX, double centerY,
+                                  double toursPerSecond, int index, int total) {
+        // rotation + décalage angulaire par index
+        double angleDeg = (time * toursPerSecond * 360.0) + (360.0 / total) * index;
         double angleRad = Math.toRadians(angleDeg);
 
-        // calcule les coordonnées
         double x = centerX + radius * Math.cos(angleRad);
         double y = centerY + radius * Math.sin(angleRad);
 
         return new double[]{x, y};
     }
+
 }

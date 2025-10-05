@@ -19,10 +19,26 @@ public class AnimatedText {
     private float g;
     private float b;
 
+    private TextHUD.HorizontalAlignment ha = null;
+    private TextHUD.VerticalAlignment va = null;
+
+    private int lettrePack = 1;
+
     public AnimatedText(String text, float scale, float r, float g, float b,
                         double radius, double centerX, double centerY, double toursPerSecond,
                         TextTransformFunction transformFunction,
-                        int initialWindowWidth, int initialWindowHeight) {
+                        int initialWindowWidth, int initialWindowHeight, int lettrePack, TextHUD.HorizontalAlignment ha, TextHUD.VerticalAlignment va) {
+        this(text, scale, r, g, b, radius, centerX, centerY, toursPerSecond, transformFunction, lettrePack, initialWindowWidth, initialWindowHeight);
+        this.ha = ha;
+        this.va = va;
+        setText(text);
+    }
+
+
+    public AnimatedText(String text, float scale, float r, float g, float b,
+                        double radius, double centerX, double centerY, double toursPerSecond,
+                        TextTransformFunction transformFunction,
+                        int initialWindowWidth, int initialWindowHeight, int lettrePack) {
 
         this.scale = scale;
         this.r = r;
@@ -42,11 +58,18 @@ public class AnimatedText {
 
     private ArrayList<TextHUD> destructeurText(String text) {
         ArrayList<TextHUD> listHUD = new ArrayList<>();
+        String c = "";
+
         for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            TextHUD letter = new TextHUD(null, String.valueOf(c), null, null, scale, r, g, b);
-            listHUD.add(letter);
+            c += text.charAt(i);
+
+            if (c.length() == lettrePack || i == text.length() - 1) {
+                TextHUD letter = new TextHUD(null, c, ha, va, scale, r, g, b);
+                listHUD.add(letter);
+                c = "";
+            }
         }
+
         return listHUD;
     }
 
@@ -92,5 +115,9 @@ public class AnimatedText {
 
     public TextManager getTextManager() {
         return textManager;
+    }
+
+    public void setLettrePack(int lettrePack) {
+        this.lettrePack = lettrePack;
     }
 }
