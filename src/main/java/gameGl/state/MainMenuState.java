@@ -105,7 +105,8 @@ public class MainMenuState extends GameState {
                 0.5, // tours par seconde
                 (time, radius, cx, cy, tps, i) -> {
                     return PosDeltaTime.circle(time + i * 0.1, radius, cx, cy, tps);
-                }
+                },
+                width, height
         );
     }
 
@@ -147,7 +148,7 @@ public class MainMenuState extends GameState {
 
         // Update du texte animé
         animatedHello.setText(textMenu[indexSelection]);
-        animatedHello.update(deltaTime);
+        animatedHello.update(deltaTime, width, height);
 
         hud.update(deltaTime, width, height);
         textManagerVolatille.update(deltaTime, width, height);
