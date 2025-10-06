@@ -87,12 +87,14 @@ public class AnimatedText {
         float scaleY = (float) currentWindowHeight / textManager.getBaseHeight();
         float uniformScale = Math.min(scaleX, scaleY);
 
-        double cx = (double) currentWindowWidth / 2.0;
-        double cy = (double) currentWindowHeight / 2.0;
+        // On utilise les centerX et centerY de l'objet, pas le centre de l'écran
+        double cx = this.centerX;
+        double cy = this.centerY;
 
         for (int i = 0; i < letters.size(); i++) {
             TextHUD letter = letters.get(i);
 
+            // Appliquer la fonction de transformation avec le temps et l'échelle
             double[] pos = transformFunction.apply(time, radius * uniformScale, cx, cy, toursPerSecond, i);
             letter.setX((float) pos[0]);
             letter.setY((float) pos[1]);
