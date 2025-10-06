@@ -103,11 +103,11 @@ public class TextHUD {
                 return "FPS: " + (int) data.getFPS();
             case POSITION: {
                 float[] pos = data.getPlayerPosition();
-                return String.format("Position: %.1f, %.1f, %.1f", pos[0], pos[1], pos[2]);
+                return String.format("Position: %.1f / %.1f / %.1f", pos[0], pos[1], pos[2]);
             }
             case ORIENTATION: {
                 float[] ori = data.getPlayerOrientation();
-                return String.format("Orientation: %.1f, %.1f, %.1f", ori[0], ori[1], ori[2]);
+                return String.format("Orientation: %.1f / %.1f / %.1f", ori[0], ori[1], ori[2]);
             }
             case ACTIVE_BALLS: {
                 float[] b = data.getActiveBalls();
