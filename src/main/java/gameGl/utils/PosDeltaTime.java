@@ -13,4 +13,17 @@ public class PosDeltaTime {
         return new double[]{x, y};
     }
 
+    public static double[] wave(double time, double amplitude, double centerX, double centerY,
+                                double wavelength, double speed, int index, int total) {
+        // Décalage de phase par index pour que chaque point/liste de lettres ne soit pas synchronisée
+        double phaseShift = (2 * Math.PI / total) * index;
+
+        // Position horizontale : centrée
+        double x = centerX + (index - total / 2.0) * wavelength;
+
+        // Position verticale : sinus pour créer l'effet de vague
+        double y = centerY + amplitude * Math.sin(time * speed + phaseShift);
+
+        return new double[]{x, y};
+    }
 }
