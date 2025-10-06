@@ -48,7 +48,6 @@ public class PlayingState extends GameState {
     private double shootCooldown = 0.5;
     private int nbEnnemis = 25;
 
-    private boolean debugMode = false;
     private GameData data = GameData.getInstance();
 
     // Alt pour combos
@@ -169,7 +168,7 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_ESCAPE, () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE), null, null));
 
         // Debug
-        touches.add(new Touche(GLFW_KEY_U, () -> {debugMode=!debugMode; hud.setDebugMode(!debugMode);}, null, null));
+        touches.add(new Touche(GLFW_KEY_U, () -> hud.setDebugMode(!hud.getDebugMode()), null, null));
 
         commande.setTouches(touches);
     }
@@ -184,6 +183,7 @@ public class PlayingState extends GameState {
         texts.add(new TextHUD(TextHUD.TextType.ENEMIES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
 
         // Debug (right/top)
+        texts.add(new TextHUD(TextHUD.TextType.VERSION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.FPS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.POSITION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.ORIENTATION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));

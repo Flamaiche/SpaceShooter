@@ -4,6 +4,8 @@ public class GameData {
 
     private static GameData instance;
 
+    private String gameVersion = "";
+
     // --- HUD joueur ---
     private float score = 0f;
     private float lives = 0f;
@@ -109,4 +111,9 @@ public class GameData {
 
     public void setBestScore(float bestScore) { this.bestScore = bestScore; }
     public float getBestScore() { return bestScore; }
+
+    public void setVersion(String gameVersion) {
+        this.gameVersion = gameVersion;
+    }
+    public String getVersion() { return gameVersion; }
 }
