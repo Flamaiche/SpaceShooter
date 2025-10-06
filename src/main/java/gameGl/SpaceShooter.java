@@ -1,5 +1,6 @@
 package gameGl;
 
+import gameGl.gestion.donnees.GameData;
 import gameGl.gestion.texte.Text;
 import gameGl.state.GameStateManager;
 import learnGL.tools.*;
@@ -95,6 +96,8 @@ public class SpaceShooter {
         commande.setGameStateManager(gsm);
 
         gsm.setState(GameStateManager.GameStateEnum.MAIN);
+
+        GameData.getInstance().setVersion(gameVersion);
 
         double lastTime = glfwGetTime();
 
