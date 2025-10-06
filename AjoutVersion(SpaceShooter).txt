@@ -13,3 +13,4 @@ Version : (A:Alpha)
     01/10/2025: reset et replay fonctionnels entierement
     02/10/2025: menu principale et menu pause fonctionnelles !!!
     03/10/2025: probleme mineur et finition des menus et SAVE Score !
+    06/10/2025: correction et modif minim sur hud
