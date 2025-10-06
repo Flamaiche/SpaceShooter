@@ -18,8 +18,8 @@ public class MainMenuState extends GameState {
 
     private ArrayList<TextHUD> texts;
     private String[] textMenu = {"JOUER", "PARAMETRE", "QUITTER"};
-    private String[] textTitleList = {"", "PERDU"};
-    private int textTitle = 0;
+    private String[] textSplashList = {"", "PERDU"};
+    private int textSplash = 0;
 
     private Shader textShader;
 
@@ -85,28 +85,38 @@ public class MainMenuState extends GameState {
         hud.setTexts(texts);
 
         // AnimatedText HELLO (position 0)
-        AnimatedText helloText = new AnimatedText(
+        AnimatedText MenuText = new AnimatedText(
                 textMenu[indexSelection],
                 uniformTextScale * 1.5f,
                 0f, 1f, 0f,
                 145,
                 width / 2.0, height / 2.0,
                 0.5,
-                (time, radius, cx, cy, tps, i) -> PosDeltaTime.circle(time + i * 0.1, radius, cx, cy, tps, 0, 1),
+                (time, amplitude, cx, cy, tps, i) -> {
+                    // Espacement horizontal pour chaque lettre
+                    double letterSpacing = 20;
+                    double x = cx + (i - textMenu[indexSelection].length() / 2.0) * letterSpacing;
+
+                    // Position y selon la vague
+                    double y = cy + amplitude * Math.sin(time * 2 + i * tps);
+
+                    return new double[]{x, y};
+                },
                 width, height, 1
         );
-        animatedTexts.add(helloText);
+        animatedTexts.add(MenuText);
+
 
         // AnimatedText titre "PERDU" (position 1)
         AnimatedText titleText = new AnimatedText(
-                textTitleList[textTitle],
+                textSplashList[textSplash],
                 uniformTextScale * 3f,
                 1f, 0f, 0f,
                 145,
                 width / 2.0, height / 2.0,
                 0.5,
                 (time, radius, cx, cy, tps, i) -> PosDeltaTime.circle(time + i * 0.1, radius, cx, cy, tps, 0, 1),
-                width, height, textTitleList[textTitle].length(), TextHUD.HorizontalAlignment.CENTER, null
+                width, height, textSplashList[textSplash].length(), TextHUD.HorizontalAlignment.CENTER, null
         );
         animatedTexts.add(titleText);
 
@@ -164,8 +174,8 @@ public class MainMenuState extends GameState {
         animatedTexts.get(0).setText(textMenu[indexSelection]);
 
         // Titre (position 1)
-        animatedTexts.get(1).setText(textTitleList[textTitle]);
-        animatedTexts.get(1).setLettrePack(textTitleList[textTitle].length());
+        animatedTexts.get(1).setText(textSplashList[textSplash]);
+        animatedTexts.get(1).setLettrePack(textSplashList[textSplash].length());
 
         for (AnimatedText at : animatedTexts) {
             at.update(deltaTime, width, height);
@@ -194,7 +204,7 @@ public class MainMenuState extends GameState {
         super.cleanup();
     }
 
-    public void setTextTitle(int textTitle) {
-        this.textTitle = textTitle;
+    public void setTextSplash(int textSplash) {
+        this.textSplash = textSplash;
     }
 }
