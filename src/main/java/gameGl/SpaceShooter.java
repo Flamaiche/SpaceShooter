@@ -27,7 +27,7 @@ public class SpaceShooter {
     private int width = 800;
     private int height = 600;
     private boolean mouseLocked = true;
-    private static String gameVersion = "A1.0";
+    private static final String gameVersion = "A1.1";
     public static String filenameSaveScore = "SauvegardeScore";
 
     public void run() {
