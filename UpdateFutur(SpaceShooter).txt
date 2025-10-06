@@ -1,6 +1,9 @@
 Version : ALPHA 1.0
 
 Idée de futur update :
+- difficulté en bougeant :
+    - courbe ou autre direction des balles lors de mouvement
+    - trait en diagonal qui bouge en fonction de la vitesse
 - utilisateur ChangeTouhce :
     - cree un nouveau menu
     - affichage de toutes les touches
