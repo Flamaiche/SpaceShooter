@@ -1,26 +1,12 @@
 Version : ALPHA 1.0
 
 Idée de futur update :
-- souris (Camera) :
-    direction visuelle de la camera
-- gyroscope (Camere) :
-    gauche-droite de la camera comme un OVI
-- Class Joueur :
-    - Shape du joueur
-    - vie
-    - score
-    - bestScore
-- Class ToucheCommande :
-    - liste des touches
-    - ajouter touche
-    - supprimer touche
-- ClassMenu :
-    - pause du jeu
-    - liste des boutons dont :
-        * bouton play
-        * bouton option (ToucheCommande pour le moment)
-        * bouton respawn
-        * bouton quitter
+- utilisateur ChangeTouhce :
+    - cree un nouveau menu
+    - affichage de toutes les touches
+    - changer les touches a laide du click mollette (mouse3)
+    - fichier de sauvegarde des touches (les touches sont en dur dans le code)
+    - generer le fichier de touche utilisateur automatiquement
 - system d'évolution des ennemis :
     - évolution dans le temps, les ennemis mutent des qu'on les tue
     - évolution accélérée si il reste en vie
@@ -28,4 +14,3 @@ Idée de futur update :
 - upgrade du joueur :
     - différent type de balles (couleur, vitesse, taille, fonction)
     - achetable avec le score
-- correction bug ball-roll alignement
