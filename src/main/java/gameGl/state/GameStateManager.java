@@ -59,8 +59,6 @@ public class GameStateManager {
                     if (gameData.getScore() > gameData.getBestScore()) {
                         gameData.setBestScore(gameData.getScore());
                     }
-
-                    if (gameData.getLives() == 0) mms.setTextTitle(1);
                 }
                 currentState = mms;
                 break;
