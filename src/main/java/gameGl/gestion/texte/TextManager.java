@@ -37,6 +37,7 @@ public class TextManager {
 
     public void setTexts(ArrayList<TextHUD> texts) {
         this.texts = texts;
+        setDebugMode(debugMode);
     }
 
     public ArrayList<TextHUD> getTexts() { return texts; }
@@ -149,4 +150,7 @@ public class TextManager {
         return baseHeight;
     }
 
+    public boolean getDebugMode() {
+        return debugMode;
+    }
 }
