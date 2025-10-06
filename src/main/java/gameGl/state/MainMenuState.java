@@ -18,8 +18,6 @@ public class MainMenuState extends GameState {
 
     private ArrayList<TextHUD> texts;
     private String[] textMenu = {"JOUER", "PARAMETRE", "QUITTER"};
-    private String[] textSplashList = {"", "PERDU"};
-    private int textSplash = 0;
 
     private Shader textShader;
 
@@ -106,20 +104,6 @@ public class MainMenuState extends GameState {
         );
         animatedTexts.add(MenuText);
 
-
-        // AnimatedText titre "PERDU" (position 1)
-        AnimatedText titleText = new AnimatedText(
-                textSplashList[textSplash],
-                uniformTextScale * 3f,
-                1f, 0f, 0f,
-                145,
-                width / 2.0, height / 2.0,
-                0.5,
-                (time, radius, cx, cy, tps, i) -> PosDeltaTime.circle(time + i * 0.1, radius, cx, cy, tps, 0, 1),
-                width, height, textSplashList[textSplash].length(), TextHUD.HorizontalAlignment.CENTER, null
-        );
-        animatedTexts.add(titleText);
-
         // Étoiles rouges animées en cercle (solution 2)
         String starsText = "*****";
         int nbStars = starsText.length();
@@ -173,10 +157,6 @@ public class MainMenuState extends GameState {
         // HELLO dynamique (position 0)
         animatedTexts.get(0).setText(textMenu[indexSelection]);
 
-        // Titre (position 1)
-        animatedTexts.get(1).setText(textSplashList[textSplash]);
-        animatedTexts.get(1).setLettrePack(textSplashList[textSplash].length());
-
         for (AnimatedText at : animatedTexts) {
             at.update(deltaTime, width, height);
             animatedTextManager.getTexts().addAll(at.getLetters());
@@ -202,9 +182,5 @@ public class MainMenuState extends GameState {
     @Override
     public void cleanup() {
         super.cleanup();
-    }
-
-    public void setTextSplash(int textSplash) {
-        this.textSplash = textSplash;
     }
 }
