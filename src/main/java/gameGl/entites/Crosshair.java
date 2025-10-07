@@ -98,8 +98,6 @@ public class Crosshair extends Entity2D {
         idx[0] = i;
     }
 
-
-
     /** Ajoute un rectangle dans le tableau de vertices */
     private static void putRect(float[] a, int[] idx, float x1, float y1, float x2, float y2) {
         int i = idx[0];
@@ -189,5 +187,13 @@ public class Crosshair extends Entity2D {
     @Override
     public void cleanup() {
         shape.cleanup();
+    }
+
+    public Vector3f getRayOrigin() {
+        return new Vector3f(rayOrigin);
+    }
+
+    public Vector3f getRayDir() {
+        return new Vector3f(rayDir);
     }
 }
