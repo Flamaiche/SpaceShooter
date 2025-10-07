@@ -100,6 +100,7 @@ public class PausedState extends GameState {
         touches.add(new Touche(GLFW_KEY_ENTER, () -> actionBySelection(indexSelection), null, null));
         touches.add(new Touche(GLFW_KEY_UP, () -> indexSelection--, null, null));
         touches.add(new Touche(GLFW_KEY_DOWN, () -> indexSelection++, null, null));
+        touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, () -> actionBySelection(indexSelection), null, null));
 
         commande.setTouches(touches);
     }
@@ -167,7 +168,7 @@ public class PausedState extends GameState {
 
     public Ennemis generateEnnemis(int speed) {
         Ennemis e = new Ennemis(ennemisShader, new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z}, PreVerticesTable.generateCubeSimple(1f), camera);
-        e.setSpeed(10);
+        e.setSpeed(speed);
         return e;
     }
 }
