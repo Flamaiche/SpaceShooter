@@ -25,6 +25,7 @@ public class PlayingState extends GameState {
     private ArrayList<Ennemis> ennemis;
     private ArrayList<Ball> balls;
     private ArrayList<Entity2D> uiElements;
+    private Crosshair crosshair;
 
     private Shader ennemisShader, ballShader, crosshairShader, textShader;
 
@@ -32,7 +33,7 @@ public class PlayingState extends GameState {
     private int score, ballsFiredTotal, enemiesKilledTotal;
     private final int MAX_BALLS = 20;
 
-    // === Physique du déplacement ===
+    // Physique du déplacement
     private Vector3f velocity = new Vector3f(0, 0, 0);
     private Vector3f moveDirection = new Vector3f(0, 0, 0);
     private final float maxSpeed = 17.5f;
@@ -52,7 +53,7 @@ public class PlayingState extends GameState {
 
     // Autres
     private double shootCooldown = 0.5;
-    private int nbEnnemis = 25;
+    private int nbEnnemis = 35;
     private GameData data = GameData.getInstance();
     private Touche alt;
 
@@ -62,35 +63,44 @@ public class PlayingState extends GameState {
 
         score = ballsFiredTotal = enemiesKilledTotal = 0;
 
-        // === Shaders ===
+        // Shaders
         ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
         ballShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
         crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
-        // === Joueur ===
+        // Joueur
         joueur = new Joueur(ballShader, camera, commande, 0.25f);
 
-        // === Ennemis ===
+        // Ennemis
         Ennemis.setDespawnDistance(camera.getRenderSimulation());
         ennemis = new ArrayList<>();
         for (int i = 0; i < nbEnnemis; i++) {
-            ennemis.add(new Ennemis(
+            Ennemis e = new Ennemis(
                     ennemisShader,
                     new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z},
                     PreVerticesTable.generateCubeSimple(1f),
                     camera
-            ));
+            );
+            float speed = 2.5f * (0.85f + (float)Math.random() * 0.5f); //2.5f *0.85 <= speed <= 2.5f *(0.85+0.5) == 2.125 <= speed <= 3.375
+            if (i > 10) {
+                for (int puissance = 0; puissance < i/10; puissance++)
+                    speed += speed*1.5f;
+            }
+            System.out.println(speed);
+            e.setSpeed(speed);
+            ennemis.add(e);
         }
 
-        // === Balles ===
+        // Balles
         Ball.setMaxDistance(camera.getRenderSimulation());
         balls = new ArrayList<>();
         for (int i = 0; i < MAX_BALLS; i++) balls.add(new Ball(ballShader, 0.35f));
 
-        // === UI ===
+        // UI
         uiElements = new ArrayList<>();
-        uiElements.add(new Crosshair(crosshairShader, camera));
+        crosshair = new Crosshair(crosshairShader, camera);
+        uiElements.add(crosshair);
 
         data.resetVal();
         lastTime = glfwGetTime();
@@ -110,7 +120,7 @@ public class PlayingState extends GameState {
         ArrayList<Touche> touches = new ArrayList<>();
         glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        // === MOUVEMENT SOURIS ===
+        // MOUVEMENT SOURIS
         glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
             if (!mouseLocked) return;
             if (firstMouseInput) {
@@ -129,7 +139,7 @@ public class PlayingState extends GameState {
             if (!focused) firstMouseInput = true;
         });
 
-        // === TOUCHES ===
+        // TOUCHES
         touches.add(new Touche(GLFW_KEY_SPACE, null,
                 () -> camera.setOrbitMode(false),
                 () -> camera.setOrbitMode(true)));
@@ -142,7 +152,7 @@ public class PlayingState extends GameState {
         touches.add(new ComboTouche(alt, GLFW_KEY_R, () -> camera.setRoll(0), null, null));
         touches.add(new ComboTouche(alt, GLFW_KEY_L, () -> camera.setRollEnabled(!camera.isRollEnabled()), null, null));
 
-        // === Déplacements (avec inertie fluide) ===
+        // Déplacements (avec inertie fluide)
         touches.add(new Touche(GLFW_KEY_W, null, null, () -> moveDirection.add(camera.getFront())));
         touches.add(new Touche(GLFW_KEY_S, null, null, () -> moveDirection.sub(camera.getFront())));
         touches.add(new Touche(GLFW_KEY_D, null, null, () -> moveDirection.add(camera.getRight())));
@@ -150,17 +160,17 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_LEFT_SHIFT, null, null, () -> moveDirection.add(camera.getUp())));
         touches.add(new Touche(GLFW_KEY_LEFT_CONTROL, null, null, () -> moveDirection.sub(camera.getUp())));
 
-        // === Rotation flèches ===
+        // Rotation flèches
         touches.add(new Touche(GLFW_KEY_LEFT, null, null, () -> camera.rotate(-vitesseRotation, 0f)));
         touches.add(new Touche(GLFW_KEY_RIGHT, null, null, () -> camera.rotate(vitesseRotation, 0f)));
         touches.add(new Touche(GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation)));
         touches.add(new Touche(GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation)));
 
-        // === Tir ===
+        // Tir
         touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()));
         touches.add(new Touche(GLFW_KEY_GRAVE_ACCENT, null, null, () -> shoot()));
 
-        // === Pause / Debug ===
+        // Pause / Debug
         touches.add(new Touche(GLFW_KEY_ESCAPE,
                 () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE),
                 null, null));
@@ -268,15 +278,21 @@ public class PlayingState extends GameState {
         if (currentTime - lastTime < shootCooldown) return;
         lastTime = currentTime;
 
-        Vector3f spawnPos = new Vector3f(camera.getPosition()).add(new Vector3f(camera.getFront()).mul(0.5f));
+        Vector3f rayOrigin = crosshair.getRayOrigin();
+        Vector3f rayDir = crosshair.getRayDir();
+
+        // Point de spawn légèrement devant la caméra (pour éviter les collisions internes)
+        Vector3f spawnPos = new Vector3f(rayOrigin).add(new Vector3f(rayDir).mul(0.8f));
+
         for (Ball b : balls) {
             if (!b.isActive()) {
-                b.activate(spawnPos, camera.getFront());
+                b.activate(spawnPos, rayDir);
                 ballsFiredTotal++;
                 break;
             }
         }
     }
+
 
     public void initHud() {
         texts = new ArrayList<>();
