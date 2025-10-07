@@ -163,7 +163,6 @@ public class Crosshair extends Entity2D {
         shape.updatePositions(newVerts);
     }
 
-    /** Détecte et met en surbrillance l'ennemi le plus proche au centre de l'écran */
     public void updateHighlightedEnemy(java.util.ArrayList<Ennemis> ennemis) {
         for (Ennemis e : ennemis) e.setHighlighted(false);
 
