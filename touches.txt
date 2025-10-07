@@ -24,8 +24,8 @@ Flèche haut : Regarder vers le haut
 Flèche bas : Regarder vers le bas 
 Déplacement de la souris : Tourner la caméra
 
-##ROLL DE LA CAMÉRA (ALT + Q/E/R)
-ALT + Q : Faire tourner la caméra à gauche
+##ROLL DE LA CAMÉRA (ALT + A/E/R)
+ALT + A : Faire tourner la caméra à gauche
 ALT + E : Faire tourner la caméra à droite
 ALT + R : Réinitialiser le roll
 ALT + L : Dé/Bloquer le roll (et se reset)
