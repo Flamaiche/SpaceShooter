@@ -14,8 +14,8 @@ Z : Avancer
 S : Reculer 
 Q : Aller à gauche 
 D : Aller à droite 
-MAJ (SHIFT) : Monter 
-CTRL : Descendre 
+ESPACE : Monter
+SHIFT : Descendre
 
 ##ROTATION DE LA CAMERA
 Flèche gauche : Tourner la caméra à gauche 
@@ -24,6 +24,11 @@ Flèche haut : Regarder vers le haut
 Flèche bas : Regarder vers le bas 
 Déplacement de la souris : Tourner la caméra
 
+CTRL + Flèche gauche : Tourner 2 fois moins vite la caméra à gauche
+CTRL + Flèche droite : Tourner 2 fois moins vite la caméra à droite
+CTRL + Flèche haut : Regarder 2 fois moins vite vers le haut
+CTRL + Flèche bas : Regarder 2 fois moins vite vers le bas
+
 ##ROLL DE LA CAMÉRA (ALT + A/E/R)
 ALT + A : Faire tourner la caméra à gauche
 ALT + E : Faire tourner la caméra à droite
@@ -31,8 +36,8 @@ ALT + R : Réinitialiser le roll
 ALT + L : Dé/Bloquer le roll (et se reset)
 
 ##MODE CAMÉRA
-ESPACE : Activer le mode orbite 
-Relâchement de ESPACE : Désactiver le mode orbite
+TAB : Activer le mode orbite
+Relâchement de TAB : Désactiver le mode orbite
 
 ##TIR
 ² / Bouton gauche souris : Tirer (cooldown 0,3 s)
