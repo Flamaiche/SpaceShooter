@@ -15,3 +15,4 @@ Version : (A:Alpha)
     03/10/2025: probleme mineur et finition des menus et SAVE Score !
     06/10/2025: correction et modif minim sur hud
 [A1.1]
+    07/10/2025: ajout d'acceleration et deceleration
