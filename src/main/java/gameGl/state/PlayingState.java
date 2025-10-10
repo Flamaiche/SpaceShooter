@@ -56,6 +56,7 @@ public class PlayingState extends GameState {
     private int nbEnnemis = 35;
     private GameData data = GameData.getInstance();
     private Touche alt;
+    private Touche shift;
 
     public PlayingState(Commande commande, int width, int height) {
         super(commande, width, height);
@@ -140,7 +141,7 @@ public class PlayingState extends GameState {
         });
 
         // TOUCHES
-        touches.add(new Touche(GLFW_KEY_SPACE, null,
+        touches.add(new Touche(GLFW_KEY_TAB, null,
                 () -> camera.setOrbitMode(false),
                 () -> camera.setOrbitMode(true)));
 
@@ -157,7 +158,7 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_S, null, null, () -> moveDirection.sub(camera.getFront())));
         touches.add(new Touche(GLFW_KEY_D, null, null, () -> moveDirection.add(camera.getRight())));
         touches.add(new Touche(GLFW_KEY_A, null, null, () -> moveDirection.sub(camera.getRight())));
-        touches.add(new Touche(GLFW_KEY_LEFT_SHIFT, null, null, () -> moveDirection.add(camera.getUp())));
+        touches.add(new Touche(GLFW_KEY_SPACE, null, null, () -> moveDirection.add(camera.getUp())));
         touches.add(new Touche(GLFW_KEY_LEFT_CONTROL, null, null, () -> moveDirection.sub(camera.getUp())));
 
         // Rotation flèches
@@ -165,6 +166,14 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_RIGHT, null, null, () -> camera.rotate(vitesseRotation, 0f)));
         touches.add(new Touche(GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation)));
         touches.add(new Touche(GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation)));
+
+
+        shift = new Touche(GLFW_KEY_LEFT_SHIFT, null, null, null);
+        touches.add(shift);
+        touches.add(new ComboTouche(shift, GLFW_KEY_LEFT, null, null, () -> camera.rotate(vitesseRotation/2.0f, 0f)));
+        touches.add(new ComboTouche(shift, GLFW_KEY_RIGHT, null, null, () -> camera.rotate(-vitesseRotation/2.0f, 0f)));
+        touches.add(new ComboTouche(shift, GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation/2.0f)));
+        touches.add(new ComboTouche(shift, GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation/2.0f)));
 
         // Tir
         touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()));
