@@ -41,7 +41,7 @@ public class Crosshair extends Entity2D {
 
     /** Crosshair avec diagonales réelles inclinées en GL_TRIANGLES */
     private static float[] createCrosshairRotated(float len, float gap, float t) {
-        float[] v = new float[48 * 3]; // 6 rectangles
+        float[] v = new float[6 * 6 * 3]; // 6 rectangles * 6 sommets * 3 coords xyz
         int[] idx = new int[]{0};
 
         float halfT = t * 0.5f;
