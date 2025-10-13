@@ -24,6 +24,7 @@ public class GameData {
     // --- Debug ---
     private float distanceTarget = 0f;
     private float fps = 0f;
+    private float speed = 0f;
 
     private float totalScore = 0f;
     private float bestScore = 0f;
@@ -116,4 +117,7 @@ public class GameData {
         this.gameVersion = gameVersion;
     }
     public String getVersion() { return gameVersion; }
+
+    public float getSpeed() { return speed; }
+    public void setSpeed(float speed) { this.speed = speed; }
 }
