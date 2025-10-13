@@ -199,7 +199,7 @@ public class PlayingState extends GameState {
             enemiesKilledTotal++;
         }
 
-        Manager2D.updateAll(uiElements, width, height, ennemis);
+        Manager2D.updateAll(uiElements, width, height, ennemis, velocity);
         updateHUD(deltaTime);
 
         if (data.getLives() == 0)
