@@ -152,4 +152,26 @@ public class Ennemis extends Entity {
     }
 
     public Vector3f getPosition() { return position;}
+
+    public void mutation() {
+        float MUTATIONVITESSE = 5f;
+        float MUTATIONTAILLE = 0.3f;
+        float MUTATIONSLEEP = 0.5f;
+        float MUTATIONSHAPE = 0.5f;
+
+        if (testMutation(MUTATIONVITESSE)) speed = speed * (1f + (rand.nextFloat()) * 10f);
+        else if (!testMutation(100-MUTATIONVITESSE)) speed = speed * (1f - (rand.nextFloat()) * 10f);
+
+        if (testMutation(MUTATIONTAILLE)) corps.setScale(1f + rand.nextFloat() * 10f);
+        else if (!testMutation(100-MUTATIONTAILLE)) corps.setScale(1f - rand.nextFloat() * 10f);
+
+        if (testMutation(MUTATIONSLEEP)) respawn_time = respawn_time * (1f + (rand.nextFloat()) * 5f);
+        else if (!testMutation(100-MUTATIONSLEEP)) respawn_time = respawn_time * (1f - (rand.nextFloat()) * 5f);
+
+    }
+
+    private boolean testMutation(float chance) {
+        float randMut = rand.nextFloat() * 100;
+        return randMut < chance;
+    }
 }
