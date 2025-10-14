@@ -30,7 +30,7 @@ public class Ball extends Entity {
         this.shader = shader;
         corps = new Shape(Shape.autoAddSlotColor(PreVerticesTable.generatePyramid(baseSize)));
         corps.setShader(shader);
-        corps.setColor(1f,0f,0f,1f);
+        corps.setColor(1f,0f,0f);
     }
 
     public void activate(Vector3f startPos, Vector3f forwardDir) {

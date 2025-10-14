@@ -27,7 +27,7 @@ public class Joueur extends Entity {
 
         this.corps = new Shape(Shape.autoAddSlotColor(PreVerticesTable.generateCubeSimple(tailleCorps)));
         this.corps.setShader(shader);
-        this.corps.setColor(0f, 0f, 0f, 1f); // invisible ou debug
+        this.corps.setColor(0f, 0f, 0f); // invisible ou debug
 
         this.shader = shader;
         this.modelMatrix = new Matrix4f().identity().translate(camera.getPosition());
@@ -53,7 +53,7 @@ public class Joueur extends Entity {
         shader.setUniformMat4f("model", modelMatrix);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        corps.setColor(0f, 0f, 0f, 1f);
+        corps.setColor(0f, 0f, 0f);
         corps.render();
 
         shader.unbind();
