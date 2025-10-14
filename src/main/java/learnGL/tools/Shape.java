@@ -16,8 +16,8 @@ public class Shape {
     private final int vertexCount;
     public static int drawMode = GL_TRIANGLES;
 
-    private static final int FLOATS_PER_VERTEX = 8; // 3 pos + 3 couleur + 2 texture
-    private static final int FLOAT_SIZE_BYTES = 4;
+    protected static final int FLOATS_PER_VERTEX = 8; // 3 pos + 3 couleur + 2 texture
+    protected static final int FLOAT_SIZE_BYTES = 4;
 
     private Shader shader = null;
     private Texture texture = null;  // Texture associée
