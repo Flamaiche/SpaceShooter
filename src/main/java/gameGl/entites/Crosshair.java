@@ -32,11 +32,11 @@ public class Crosshair extends Entity2D {
         this.camera = camera;
 
         shapeCross = new Shape(Shape.autoAddSlotColor(createCrosshairRectangle(longueurSegment, espaceCentral, epaisseurLigne)));
-        shapeCross.setColor(1f, 0f, 1f, 1f);
+        shapeCross.setColor(1f, 0f, 1f);
         shapeCross.setShader(shader);
 
         shapeOblique = new Shape(Shape.autoAddSlotColor(createCrosshairOblique(longueurSegment, espaceCentral, epaisseurLigne)));
-        shapeOblique.setColor(1f, 0f, 1f, 1f);
+        shapeOblique.setColor(1f, 0f, 1f);
         shapeOblique.setShader(shader);
     }
 

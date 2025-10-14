@@ -35,7 +35,7 @@ public class Ennemis extends Entity {
     public Ennemis(Shader shader, float[] centerPlayer, float[] verticesShape, Camera camera) {
         corps = new Shape(Shape.autoAddSlotColor(verticesShape));
         corps.setShader(shader);
-        corps.setColor(0f,0f,0f,1f);
+        corps.setColor(0f,0f,0f);
         this.shader = shader;
         setDeplacement(centerPlayer);
         updateModelMatrix();
@@ -103,7 +103,7 @@ public class Ennemis extends Entity {
         shader.setUniformMat4f("model", modelMatrix);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        corps.setColor(0f,0f,0f,1f);
+        corps.setColor(0f,0f,0f);
         corps.render();
 
         if (highlighted) {
@@ -114,7 +114,7 @@ public class Ennemis extends Entity {
             glDepthMask(false);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glLineWidth(2.5f);
-            corps.setColor(1f,0f,0f,1f);
+            corps.setColor(1f,0f,0f);
             corps.render();
 
             glDepthMask(true);

@@ -3,6 +3,8 @@ package learnGL.tools;
 import static org.lwjgl.opengl.GL30.*;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -10,10 +12,11 @@ import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
 
 public class Shape {
-    private final float[] vertices;
+    private float[] vertices;
+    private VertexStructure vertexStructure;
     private final int vaoId;
     private final int vboId;
-    private final int vertexCount;
+    private int vertexCount;
     public static int drawMode = GL_TRIANGLES;
 
     protected static final int FLOATS_PER_VERTEX = 8; // 3 pos + 3 couleur + 2 texture
@@ -25,6 +28,7 @@ public class Shape {
     public Shape(float[] vertices) {
         this.vertexCount = vertices.length / FLOATS_PER_VERTEX;
         this.vertices = vertices;
+        vertexStructure = new VertexStructure(vertices);
 
         // Création VAO
         vaoId = glGenVertexArrays();
@@ -32,26 +36,9 @@ public class Shape {
 
         // Création VBO
         vboId = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
 
-        // Remplissage VBO
-        FloatBuffer buffer = MemoryUtil.memAllocFloat(vertices.length);
-        buffer.put(vertices).flip();
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
-        MemoryUtil.memFree(buffer);
-
-        // Attributs
-        // 0 : position (x, y, z)
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, FLOATS_PER_VERTEX * FLOAT_SIZE_BYTES, 0);
-        glEnableVertexAttribArray(0);
-
-        // 1 : couleur (r, g, b)
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, FLOATS_PER_VERTEX * FLOAT_SIZE_BYTES, 3 * FLOAT_SIZE_BYTES);
-        glEnableVertexAttribArray(1);
-
-        // 2 : texture (u, v)
-        glVertexAttribPointer(2, 2, GL_FLOAT, false, FLOATS_PER_VERTEX * FLOAT_SIZE_BYTES, 6 * FLOAT_SIZE_BYTES);
-        glEnableVertexAttribArray(2);
+        // Upload des données et configuration des attributs
+        updateBuffers();
 
         // Nettoyage
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -142,6 +129,60 @@ public class Shape {
         glBindVertexArray(0);
         glDeleteVertexArrays(vaoId);
         // Shader et texture gérés séparément
+    }
+
+    private boolean same() {
+        if (vertexCount != vertexStructure.vertexCount()) return false;
+        for (int i = 0; i < vertexCount; i++) {
+            Vector3f v = vertexStructure.getVertex(i);
+            if (v.x != vertices[i * FLOATS_PER_VERTEX] ||
+                    v.y != vertices[i * FLOATS_PER_VERTEX + 1] ||
+                    v.z != vertices[i * FLOATS_PER_VERTEX + 2]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public List<Vector3f> getPoints() {
+        List<Vector3f> list = new ArrayList<>();
+        for (int i = 0; i < vertexStructure.vertexCount(); i++) {
+            list.add(vertexStructure.getVertex(i));
+        }
+        return list;
+    }
+
+    public void addPoint(Vector3f v, List<Vector3f> connectTo) {
+        vertexStructure.addVertex(v, connectTo);
+        vertexStructure.rebuildVoisins();
+        updateBuffers();
+    }
+
+    public void removePoint(Vector3f v) {
+        vertexStructure.removeVertex(v);
+        vertexStructure.rebuildVoisins();
+        updateBuffers();
+    }
+
+    public void updateBuffers() {
+        vertices = vertexStructure.toFlatVertexArray();
+        vertexCount = vertices.length / FLOATS_PER_VERTEX;
+
+        glBindVertexArray(vaoId);
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+
+        // Attributs : position(3), couleur(3), UV(2)
+        int stride = FLOATS_PER_VERTEX * Float.BYTES;
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, 3 * Float.BYTES);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, 6 * Float.BYTES);
+        glEnableVertexAttribArray(2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
     }
 
     public float[] center() {
@@ -476,52 +517,36 @@ public class Shape {
         return transformed;
     }
 
-    public void setColor(float v, float v1, float v2, float v3) {
-        for (int i = 0; i < vertexCount; i++) {
-            vertices[i * FLOATS_PER_VERTEX + 3] = v; // R
-            vertices[i * FLOATS_PER_VERTEX + 4] = v1; // G
-            vertices[i * FLOATS_PER_VERTEX + 5] = v2; // B
-            vertices[i * FLOATS_PER_VERTEX + 6] = v3; // A
-        }
-        // Recréer le VBO avec les nouvelles couleurs
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        FloatBuffer buffer = MemoryUtil.memAllocFloat(vertices.length);
-        buffer.put(vertices).flip();
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
-        MemoryUtil.memFree(buffer);
+    public void setColor(float r, float g, float b) {
+        vertexStructure.setAllColors(r, g, b);
+        updateBuffers();
     }
 
     public void updatePositions(float[] newVertices) {
-        // set les coordonnées x,y,z uniquement
-        if (newVertices.length != vertices.length) {
-            throw new IllegalArgumentException("Le tableau de vertices doit avoir la même taille !");
+        int vc = newVertices.length / FLOATS_PER_VERTEX;
+
+        if (vc != vertexStructure.vertexCount()) {
+            System.out.println("Nouveau vertex count : " + vc +
+                    ", Ancien vertex count : " + vertexStructure.vertexCount());
         }
 
-        for (int i = 0; i < vertexCount; i++) {
-            vertices[i * FLOATS_PER_VERTEX]     = newVertices[i * FLOATS_PER_VERTEX];     // X
-            vertices[i * FLOATS_PER_VERTEX + 1] = newVertices[i * FLOATS_PER_VERTEX + 1]; // Y
-            vertices[i * FLOATS_PER_VERTEX + 2] = newVertices[i * FLOATS_PER_VERTEX + 2]; // Z
+        for (int i = 0; i < vc; i++) {
+            Vector3f v = vertexStructure.getVertex(i);
+            v.set(
+                    newVertices[i * FLOATS_PER_VERTEX],
+                    newVertices[i * FLOATS_PER_VERTEX + 1],
+                    newVertices[i * FLOATS_PER_VERTEX + 2]
+            );
         }
 
-        // Recharge le VBO avec les nouvelles positions
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        FloatBuffer buffer = MemoryUtil.memAllocFloat(vertices.length);
-        buffer.put(vertices).flip();
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
-        MemoryUtil.memFree(buffer);
+        updateBuffers();
     }
 
-    public void setScale(float v) {
-    for (int i = 0; i < vertexCount; i++) {
-            vertices[i * FLOATS_PER_VERTEX] *= v; // X
-            vertices[i * FLOATS_PER_VERTEX + 1] *= v; // Y
-            vertices[i * FLOATS_PER_VERTEX + 2] *= v; // Z
+    public void setScale(float scale) {
+        for (int i = 0; i < vertexStructure.vertexCount(); i++) {
+            Vector3f v = vertexStructure.getVertex(i);
+            v.mul(scale);
         }
-        // Recréer le VBO avec les nouvelles échelles
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        FloatBuffer buffer = MemoryUtil.memAllocFloat(vertices.length);
-        buffer.put(vertices).flip();
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
-        MemoryUtil.memFree(buffer);
+        updateBuffers();
     }
 }
