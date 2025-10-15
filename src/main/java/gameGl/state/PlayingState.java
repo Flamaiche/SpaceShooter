@@ -88,7 +88,6 @@ public class PlayingState extends GameState {
                 for (int puissance = 0; puissance < i/10; puissance++)
                     speed += speed*1.5f;
             }
-            System.out.println(speed);
             e.setSpeed(speed);
             ennemis.add(e);
         }

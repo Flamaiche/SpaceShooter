@@ -2,14 +2,12 @@ package learnGL.tools;
 
 import static org.lwjgl.opengl.GL30.*;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.system.MemoryUtil;
 
 public class Shape {
     private float[] vertices;
@@ -131,17 +129,8 @@ public class Shape {
         // Shader et texture gérés séparément
     }
 
-    private boolean same() {
-        if (vertexCount != vertexStructure.vertexCount()) return false;
-        for (int i = 0; i < vertexCount; i++) {
-            Vector3f v = vertexStructure.getVertex(i);
-            if (v.x != vertices[i * FLOATS_PER_VERTEX] ||
-                    v.y != vertices[i * FLOATS_PER_VERTEX + 1] ||
-                    v.z != vertices[i * FLOATS_PER_VERTEX + 2]) {
-                return false;
-            }
-        }
-        return true;
+    public VertexStructure getVertexStructure() {
+        return vertexStructure;
     }
 
     public List<Vector3f> getPoints() {
