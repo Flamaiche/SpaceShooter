@@ -5,7 +5,8 @@ import learnGL.tools.Shader;
 import learnGL.tools.Shape;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import java.util.Random;
+
+import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11C.*;
@@ -31,6 +32,8 @@ public class Ennemis extends Entity {
     private final float RESPAWN_TIME_MAX = 9f;
     private float respawn_time = -1f;
     private float deathTime = -1f;
+
+    private final int moduloMutationDeltaTime = 6;
 
     public Ennemis(Shader shader, float[] centerPlayer, float[] verticesShape, Camera camera) {
         corps = new Shape(Shape.autoAddSlotColor(verticesShape));
@@ -69,6 +72,7 @@ public class Ennemis extends Entity {
     }
 
     public void update(float deltaTime) {
+        if (deltaTime%moduloMutationDeltaTime == 0) mutation();
         if (vie <= 0) {
             if (deathTime < 0) {
                 deathTime = (float) glfwGetTime(); // on note le moment de la mort
@@ -154,24 +158,95 @@ public class Ennemis extends Entity {
     public Vector3f getPosition() { return position;}
 
     public void mutation() {
-        float MUTATIONVITESSE = 5f;
-        float MUTATIONTAILLE = 0.3f;
-        float MUTATIONSLEEP = 0.5f;
-        float MUTATIONSHAPE = 0.5f;
+        float MUTATIONVITESSE = 0.02f;
+        float MUTATIONTAILLE = 0.02f;
+        float MUTATIONSLEEP = 0.03f;
+        float MUTATIONSHAPE = 0.01f;
 
-        if (testMutation(MUTATIONVITESSE)) speed = speed * (1f + (rand.nextFloat()) * 10f);
-        else if (!testMutation(100-MUTATIONVITESSE)) speed = speed * (1f - (rand.nextFloat()) * 10f);
+        if (testMutation(MUTATIONVITESSE))
+            speed *= 1f + rand.nextFloat() * rand.nextFloat();
+        else if (!testMutation(100 - MUTATIONVITESSE))
+            speed *= 1f - rand.nextFloat() * rand.nextFloat();
 
-        if (testMutation(MUTATIONTAILLE)) corps.setScale(1f + rand.nextFloat() * 10f);
-        else if (!testMutation(100-MUTATIONTAILLE)) corps.setScale(1f - rand.nextFloat() * 10f);
+        if (testMutation(MUTATIONTAILLE))
+            corps.setScale((1f + rand.nextFloat() / 6f));
+        else if (!testMutation(100 - MUTATIONTAILLE))
+            corps.setScale((1f - rand.nextFloat() / 6f));
 
-        if (testMutation(MUTATIONSLEEP)) respawn_time = respawn_time * (1f + (rand.nextFloat()) * 5f);
-        else if (!testMutation(100-MUTATIONSLEEP)) respawn_time = respawn_time * (1f - (rand.nextFloat()) * 5f);
+        if (testMutation(MUTATIONSLEEP))
+            respawn_time *= 1f + rand.nextFloat();
+        else if (!testMutation(100 - MUTATIONSLEEP))
+            respawn_time *= Math.min(0.00001f, 1f - rand.nextFloat());
 
+        if (testMutation(MUTATIONSHAPE)) {
+            ArrayList<Vector3f> points = new ArrayList<>(corps.getPoints());
+            int n = points.size();
+            if (n >= 3) {
+                // Choisir un point de base aléatoire
+                int baseIndex = rand.nextInt(n);
+                Vector3f basePoint = points.get(baseIndex);
+
+                // Créer sommet de la pyramide au-dessus du point de base
+                float[] centerArray = corps.center();
+                Vector3f center = new Vector3f(centerArray[0], centerArray[1], centerArray[2]);
+                Vector3f dir = new Vector3f(basePoint).sub(center);
+                if (dir.length() < 1e-6f)
+                    dir.set(rand.nextFloat() - 0.5f, rand.nextFloat() - 0.5f, rand.nextFloat() - 0.5f);
+                dir.normalize();
+                Vector3f newVertex = new Vector3f(basePoint).add(dir.mul(Math.max(0.25f, basePoint.distance(center) * rand.nextFloat() * 0.10f)));
+
+                // Construire faces de la pyramide
+                Set<Integer> voisinsListVisite = new HashSet<>();
+                Set<Integer> voisinsList;
+                int parcours = 2;
+                int lastIndex = baseIndex;
+                float proba = 0.1f;
+                voisinsListVisite.add(baseIndex);
+                while (parcours > 0 || proba > rand.nextFloat()) {
+                    points = new ArrayList<>(corps.getPoints());
+                    voisinsList = giveVoisin(lastIndex, voisinsListVisite);
+                    parcours --;
+                    if (voisinsList.isEmpty()) break;
+
+                    List<Integer> voisinsAsList = new ArrayList<>(voisinsList);
+                    int v = voisinsAsList.get(rand.nextInt(voisinsAsList.size()));
+
+                    ArrayList<Vector3f> connectTo = new ArrayList<>();
+                    connectTo.add(points.get(lastIndex));   // point précédent
+                    connectTo.add(points.get(v));           // voisin actuel
+                    connectTo.add(newVertex);               // sommet de la pyramide
+                    corps.addPoint(newVertex, connectTo);
+                    lastIndex = v;
+                    voisinsListVisite.add(v);
+                }
+
+                // Fermer la dernière face pour former un cycle
+                ArrayList<Vector3f> connectTo = new ArrayList<>();
+                connectTo.add(points.get(lastIndex));
+                connectTo.add(basePoint);
+                connectTo.add(newVertex);
+                corps.addPoint(newVertex, connectTo);
+            }
+        } else if (!testMutation(100 - MUTATIONSHAPE)) {
+            ArrayList<Vector3f> points = new ArrayList<>(corps.getPoints());
+            int n = points.size();
+            if (n > 4) {
+                int i = rand.nextInt(n);
+                Vector3f p = points.get(i);
+                if (p.distance(new Vector3f(corps.center()[0], corps.center()[1], corps.center()[2])) > 1e-6f) {
+                    corps.removePoint(p);
+                }
+            }
+        }
+    }
+
+    private Set<Integer> giveVoisin(int indexPoint, Set<Integer> dejaPris) {
+        Set<Integer> voisinsSet = corps.getVertexStructure().getVoisins(indexPoint);
+        for (int dp : dejaPris) voisinsSet.remove(dp);
+        return voisinsSet;
     }
 
     private boolean testMutation(float chance) {
-        float randMut = rand.nextFloat() * 100;
-        return randMut < chance;
+        return rand.nextFloat() * 100 < chance;
     }
 }
