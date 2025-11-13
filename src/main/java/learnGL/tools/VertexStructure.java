@@ -54,48 +54,6 @@ public class VertexStructure {
         voisins.get(c).add(a); voisins.get(c).add(b);
     }
 
-    public void removeVertex(Vector3f v) {
-        int index = -1;
-        for (int i = 0; i < vertices.size(); i++) {
-            if (vertices.get(i).distance(v) < EPSILON) {
-                index = i;
-                break;
-            }
-        }
-        if (index != -1) {
-            removeVertex(index);
-        }
-    }
-
-    public void removeVertex(int vertexIndex) {
-        if (vertexIndex < 0 || vertexIndex >= vertices.size()) return;
-
-        triangles.removeIf(t -> t[0] == vertexIndex || t[1] == vertexIndex || t[2] == vertexIndex);
-
-        vertices.remove(vertexIndex);
-        colors.remove(vertexIndex);
-        voisins.remove(vertexIndex);
-
-        for (int[] t : triangles) {
-            for (int i = 0; i < 3; i++) {
-                if (t[i] > vertexIndex) t[i]--;
-            }
-        }
-
-        Map<Integer, Set<Integer>> newVoisins = new HashMap<>();
-        for (Map.Entry<Integer, Set<Integer>> entry : voisins.entrySet()) {
-            int idx = entry.getKey();
-            if (idx > vertexIndex) idx--;
-            Set<Integer> newSet = new HashSet<>();
-            for (int v : entry.getValue()) {
-                if (v > vertexIndex) v--;
-                newSet.add(v);
-            }
-            newVoisins.put(idx, newSet);
-        }
-        voisins = newVoisins;
-    }
-
     public void addVertex(Vector3f v, List<Vector3f> connectTo) {
         int idx = vertices.size();
         vertices.add(v);

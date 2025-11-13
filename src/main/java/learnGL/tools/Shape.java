@@ -141,18 +141,6 @@ public class Shape {
         return list;
     }
 
-    public void addPoint(Vector3f v, List<Vector3f> connectTo) {
-        vertexStructure.addVertex(v, connectTo);
-        vertexStructure.rebuildVoisins();
-        updateBuffers();
-    }
-
-    public void removePoint(Vector3f v) {
-        vertexStructure.removeVertex(v);
-        vertexStructure.rebuildVoisins();
-        updateBuffers();
-    }
-
     public void updateBuffers() {
         vertices = vertexStructure.toFlatVertexArray();
         vertexCount = vertices.length / FLOATS_PER_VERTEX;
