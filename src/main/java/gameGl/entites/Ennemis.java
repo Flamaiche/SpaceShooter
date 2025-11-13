@@ -179,64 +179,7 @@ public class Ennemis extends Entity {
             respawn_time *= Math.min(0.00001f, 1f - rand.nextFloat());
 
         if (testMutation(MUTATIONSHAPE)) {
-            ArrayList<Vector3f> points = new ArrayList<>(corps.getPoints());
-            int n = points.size();
-            if (n >= 3) {
-                // Choisir un point de base aléatoire
-                int baseIndex = rand.nextInt(n);
-                Vector3f basePoint = points.get(baseIndex);
-
-                // Créer sommet de la pyramide au-dessus du point de base
-                float[] centerArray = corps.center();
-                Vector3f center = new Vector3f(centerArray[0], centerArray[1], centerArray[2]);
-                Vector3f dir = new Vector3f(basePoint).sub(center);
-                if (dir.length() < 1e-6f)
-                    dir.set(rand.nextFloat() - 0.5f, rand.nextFloat() - 0.5f, rand.nextFloat() - 0.5f);
-                dir.normalize();
-                Vector3f newVertex = new Vector3f(basePoint).add(dir.mul(Math.max(0.25f, basePoint.distance(center) * rand.nextFloat() * 0.10f)));
-
-                // Construire faces de la pyramide
-                Set<Integer> voisinsListVisite = new HashSet<>();
-                Set<Integer> voisinsList;
-                int parcours = 2;
-                int lastIndex = baseIndex;
-                float proba = 0.1f;
-                voisinsListVisite.add(baseIndex);
-                while (parcours > 0 || proba > rand.nextFloat()) {
-                    points = new ArrayList<>(corps.getPoints());
-                    voisinsList = giveVoisin(lastIndex, voisinsListVisite);
-                    parcours --;
-                    if (voisinsList.isEmpty()) break;
-
-                    List<Integer> voisinsAsList = new ArrayList<>(voisinsList);
-                    int v = voisinsAsList.get(rand.nextInt(voisinsAsList.size()));
-
-                    ArrayList<Vector3f> connectTo = new ArrayList<>();
-                    connectTo.add(points.get(lastIndex));   // point précédent
-                    connectTo.add(points.get(v));           // voisin actuel
-                    connectTo.add(newVertex);               // sommet de la pyramide
-                    corps.addPoint(newVertex, connectTo);
-                    lastIndex = v;
-                    voisinsListVisite.add(v);
-                }
-
-                // Fermer la dernière face pour former un cycle
-                ArrayList<Vector3f> connectTo = new ArrayList<>();
-                connectTo.add(points.get(lastIndex));
-                connectTo.add(basePoint);
-                connectTo.add(newVertex);
-                corps.addPoint(newVertex, connectTo);
-            }
-        } else if (!testMutation(100 - MUTATIONSHAPE)) {
-            ArrayList<Vector3f> points = new ArrayList<>(corps.getPoints());
-            int n = points.size();
-            if (n > 4) {
-                int i = rand.nextInt(n);
-                Vector3f p = points.get(i);
-                if (p.distance(new Vector3f(corps.center()[0], corps.center()[1], corps.center()[2])) > 1e-6f) {
-                    corps.removePoint(p);
-                }
-            }
+            // muter en fonction des sous classes de Ennemis
         }
     }
 
