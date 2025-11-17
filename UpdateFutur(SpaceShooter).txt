@@ -17,3 +17,5 @@ Idée de futur update :
 - upgrade du joueur :
     - différent type de balles (couleur, vitesse, taille, fonction)
     - achetable avec le score
+- vue 3eme personne :
+    - camera derriere le joueur
