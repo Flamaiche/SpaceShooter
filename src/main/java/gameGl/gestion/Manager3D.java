@@ -2,7 +2,7 @@ package gameGl.gestion;
 
 import gameGl.entites.Joueur;
 import gameGl.entites.Ball;
-import gameGl.entites.Ennemis;
+import gameGl.entites.Ennemis.Ennemis;
 import gameGl.entites.Entity;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
