@@ -1,6 +1,8 @@
 package gameGl.state;
 
 import gameGl.entites.*;
+import gameGl.entites.Balls.Balls;
+import gameGl.entites.Balls.BallsBasic;
 import gameGl.entites.Ennemis.Ennemis;
 import gameGl.entites.Ennemis.EnnemisBasic;
 import gameGl.gestion.donnees.GameData;
@@ -25,7 +27,7 @@ public class PlayingState extends GameState {
     private ArrayList<TextHUD> texts;
     private Joueur joueur;
     private ArrayList<Ennemis> ennemis;
-    private ArrayList<Ball> balls;
+    private ArrayList<Balls> balls;
     private ArrayList<Entity2D> uiElements;
     private Crosshair crosshair;
 
@@ -95,9 +97,9 @@ public class PlayingState extends GameState {
         }
 
         // Balles
-        Ball.setMaxDistance(camera.getRenderSimulation());
+        Balls.setMaxDistance(camera.getRenderSimulation());
         balls = new ArrayList<>();
-        for (int i = 0; i < MAX_BALLS; i++) balls.add(new Ball(ballShader, 0.35f));
+        for (int i = 0; i < MAX_BALLS; i++) balls.add(new BallsBasic(ballShader, 0.35f));
 
         // UI
         uiElements = new ArrayList<>();
@@ -237,7 +239,7 @@ public class PlayingState extends GameState {
 
     private void updateHUD(float deltaTime) {
         int activeBalls = 0;
-        for (Ball b : balls) if (b.isActive()) activeBalls++;
+        for (Balls b : balls) if (b.isActive()) activeBalls++;
         int activeEnemies = 0;
         for (Ennemis e : ennemis) if (e.getVie() > 0) activeEnemies++;
 
@@ -297,7 +299,7 @@ public class PlayingState extends GameState {
         // Point de spawn légèrement devant la caméra (pour éviter les collisions internes)
         Vector3f spawnPos = new Vector3f(rayOrigin).add(new Vector3f(rayDir).mul(0.8f));
 
-        for (Ball b : balls) {
+        for (Balls b : balls) {
             if (!b.isActive()) {
                 b.activate(spawnPos, rayDir);
                 ballsFiredTotal++;
