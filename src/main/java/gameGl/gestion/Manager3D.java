@@ -1,7 +1,7 @@
 package gameGl.gestion;
 
 import gameGl.entites.Joueur;
-import gameGl.entites.Ball;
+import gameGl.entites.Balls.Balls;
 import gameGl.entites.Ennemis.Ennemis;
 import gameGl.entites.Entity;
 import org.joml.Matrix4f;
@@ -14,7 +14,7 @@ public class Manager3D {
     private Manager3D() {}
 
     // Update toutes les entités et retourne le score gagné
-    public static int updateAll(ArrayList<Ennemis> ennemis, ArrayList<Ball> balls, Joueur joueur, float deltaTime, Vector3f playerPos) {
+    public static int updateAll(ArrayList<Ennemis> ennemis, ArrayList<Balls> balls, Joueur joueur, float deltaTime, Vector3f playerPos) {
         int score = 0;
 
         for (Ennemis e : ennemis) {
@@ -34,7 +34,7 @@ public class Manager3D {
             }
         }
 
-        for (Ball b : balls) {
+        for (Balls b : balls) {
             if (!b.isActive()) continue;
 
             b.update(deltaTime);
@@ -45,13 +45,13 @@ public class Manager3D {
         return score;
     }
 
-    public static void renderAll(ArrayList<Ennemis> ennemis, ArrayList<Ball> balls, Matrix4f view, Matrix4f projection) {
+    public static void renderAll(ArrayList<Ennemis> ennemis, ArrayList<Balls> balls, Matrix4f view, Matrix4f projection) {
         for (Ennemis e : ennemis) e.render(view, projection);
-        for (Ball b : balls) b.render(view, projection);
+        for (Balls b : balls) b.render(view, projection);
     }
 
-    public static void cleanupAll(ArrayList<Ennemis> ennemis, ArrayList<Ball> balls) {
+    public static void cleanupAll(ArrayList<Ennemis> ennemis, ArrayList<Balls> balls) {
         for (Ennemis e : ennemis) e.cleanup();
-        for (Ball b : balls) b.cleanup();
+        for (Balls b : balls) b.cleanup();
     }
 }

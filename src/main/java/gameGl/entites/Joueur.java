@@ -1,5 +1,6 @@
 package gameGl.entites;
 
+import gameGl.entites.Balls.Balls;
 import learnGL.tools.Camera;
 import learnGL.tools.commandes.Commande;
 import learnGL.tools.Shader;
@@ -76,7 +77,7 @@ public class Joueur extends Entity {
 
     public Entity checkCollision(ArrayList<Entity> entities) {
         for (Entity e : entities) {
-            if (!(e instanceof Joueur) && !(e instanceof Ball)) {
+            if (!(e instanceof Joueur) && !(e instanceof Balls)) {
                 if (corps.intersectsOptimized(e.getCorps(), modelMatrix, e.getModelMatrix()))
                     return e;
             }

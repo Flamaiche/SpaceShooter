@@ -1,6 +1,7 @@
-package gameGl.entites;
+package gameGl.entites.Balls;
 
 import gameGl.entites.Ennemis.Ennemis;
+import gameGl.entites.Entity;
 import gameGl.utils.PreVerticesTable;
 import learnGL.tools.Shader;
 import learnGL.tools.Shape;
@@ -10,24 +11,24 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Ball extends Entity {
-    private Shape corps;
-    private Shader shader;
-    private Vector3f position = new Vector3f();
-    private Vector3f direction = new Vector3f();
-    private Vector3f rotation = new Vector3f();
-    private Vector3f rotationSpeed = new Vector3f();
+public abstract class Balls extends Entity {
+    protected Shape corps;
+    protected Shader shader;
+    protected Vector3f position = new Vector3f();
+    protected Vector3f direction = new Vector3f();
+    protected Vector3f rotation = new Vector3f();
+    protected Vector3f rotationSpeed = new Vector3f();
 
-    public static float speed = 25f;
-    public static float maxDistance = 150f;
-    public static float rotationMultiplier = 2f;
+    protected static float speed = 25f;
+    protected static float maxDistance = 150f;
+    protected static float rotationMultiplier = 2f;
 
-    private boolean active = false;
-    private Random rand = new Random();
-    private boolean modelDirty = true;
-    private Vector3f spawnPos;
+    protected boolean active = false;
+    protected Random rand = new Random();
+    protected boolean modelDirty = true;
+    protected Vector3f spawnPos;
 
-    public Ball(Shader shader, float baseSize) {
+    public Balls(Shader shader, float baseSize) {
         this.shader = shader;
         corps = new Shape(Shape.autoAddSlotColor(PreVerticesTable.generatePyramid(baseSize)));
         corps.setShader(shader);
@@ -76,7 +77,7 @@ public class Ball extends Entity {
         updateModelMatrix();
     }
 
-    private void updateModelMatrix() {
+    protected void updateModelMatrix() {
         if (!modelDirty) return;
         modelMatrix.identity()
                 .translate(position)
