@@ -1,6 +1,7 @@
 package gameGl.state;
 
-import gameGl.entites.Ennemis;
+import gameGl.entites.Ennemis.Ennemis;
+import gameGl.entites.Ennemis.EnnemisBasic;
 import gameGl.gestion.texte.TextHUD;
 import gameGl.utils.PreVerticesTable;
 import learnGL.tools.commandes.Commande;
@@ -167,7 +168,7 @@ public class PausedState extends GameState {
     }
 
     public Ennemis generateEnnemis(int speed) {
-        Ennemis e = new Ennemis(ennemisShader, new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z}, PreVerticesTable.generateCubeSimple(1f), camera);
+        Ennemis e = new EnnemisBasic(ennemisShader, new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z}, PreVerticesTable.generateCubeSimple(1f), camera);
         e.setSpeed(speed);
         return e;
     }

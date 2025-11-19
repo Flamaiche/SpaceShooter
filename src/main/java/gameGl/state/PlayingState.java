@@ -1,6 +1,8 @@
 package gameGl.state;
 
 import gameGl.entites.*;
+import gameGl.entites.Ennemis.Ennemis;
+import gameGl.entites.Ennemis.EnnemisBasic;
 import gameGl.gestion.donnees.GameData;
 import gameGl.gestion.Manager2D;
 import gameGl.gestion.Manager3D;
@@ -77,7 +79,7 @@ public class PlayingState extends GameState {
         Ennemis.setDespawnDistance(camera.getRenderSimulation());
         ennemis = new ArrayList<>();
         for (int i = 0; i < nbEnnemis; i++) {
-            Ennemis e = new Ennemis(
+            Ennemis e = new EnnemisBasic(
                     ennemisShader,
                     new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z},
                     PreVerticesTable.generateCubeSimple(1f),

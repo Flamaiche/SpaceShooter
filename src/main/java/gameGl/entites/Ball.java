@@ -1,5 +1,6 @@
 package gameGl.entites;
 
+import gameGl.entites.Ennemis.Ennemis;
 import gameGl.utils.PreVerticesTable;
 import learnGL.tools.Shader;
 import learnGL.tools.Shape;

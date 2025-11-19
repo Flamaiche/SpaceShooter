@@ -1,5 +1,6 @@
-package gameGl.entites;
+package gameGl.entites.Ennemis;
 
+import gameGl.entites.Entity;
 import learnGL.tools.Camera;
 import learnGL.tools.Shader;
 import learnGL.tools.Shape;
@@ -11,29 +12,29 @@ import java.util.*;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11C.*;
 
-public class Ennemis extends Entity {
-    private static Random rand = new Random();
-    private float spawnSize = 10f;
-    private float exclusionSize = 5f;
+public abstract class Ennemis extends Entity {
+    protected static Random rand = new Random();
+    protected float spawnSize = 10f;
+    protected float exclusionSize = 5f;
 
-    private Shape corps;
-    private Shader shader;
-    private Vector3f position;
-    private Vector3f direction;
-    private Vector3f target;
-    public float speed = 2.5f;
-    public static float despawnDistance = 150f;
-    private boolean highlighted = false;
+    protected Shape corps;
+    protected Shader shader;
+    protected Vector3f position;
+    protected Vector3f direction;
+    protected Vector3f target;
+    protected float speed = 2.5f;
+    protected static float despawnDistance = 150f;
+    protected boolean highlighted = false;
 
-    public final int MAX_VIE = 1;
-    private int vie = MAX_VIE;
-    private int score = 10;
-    private final float RESPAWN_TIME_MIN = 1f;
-    private final float RESPAWN_TIME_MAX = 9f;
-    private float respawn_time = -1f;
-    private float deathTime = -1f;
+    protected final int MAX_VIE = 1;
+    protected int vie = MAX_VIE;
+    protected int score = 10;
+    protected final float RESPAWN_TIME_MIN = 1f;
+    protected final float RESPAWN_TIME_MAX = 9f;
+    protected float respawn_time = -1f;
+    protected float deathTime = -1f;
 
-    private final int moduloMutationDeltaTime = 6;
+    protected final int moduloMutationDeltaTime = 6;
 
     public Ennemis(Shader shader, float[] centerPlayer, float[] verticesShape, Camera camera) {
         corps = new Shape(Shape.autoAddSlotColor(verticesShape));
@@ -191,5 +192,9 @@ public class Ennemis extends Entity {
 
     private boolean testMutation(float chance) {
         return rand.nextFloat() * 100 < chance;
+    }
+
+    public int getMAX_VIE() {
+        return MAX_VIE;
     }
 }
