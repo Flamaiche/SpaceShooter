@@ -43,8 +43,6 @@ public class Joueur extends Entity {
         System.out.println(" | Camera Pos: " + pos);
         for (int i = 0 ; i < corps.getVertices().length; i++) System.out.print(((i+3)%3==0?"| ":"") + corps.getVertices()[i] + " ");
         System.out.println();
-        for (Vector3f v : corps.getPoints()) System.out.print(v.x + " " + v.y + " " + v.z + " | ");
-        System.out.println();
         float yaw   = camera.getYaw();
         float pitch = camera.getPitch();
         float roll  = camera.getRoll();
