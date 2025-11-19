@@ -11,7 +11,6 @@ import org.joml.Vector4f;
 
 public class Shape {
     private float[] vertices;
-    private VertexStructure vertexStructure;
     private final int vaoId;
     private final int vboId;
     private int vertexCount;
@@ -26,7 +25,6 @@ public class Shape {
     public Shape(float[] vertices) {
         this.vertexCount = vertices.length / FLOATS_PER_VERTEX;
         this.vertices = vertices;
-        vertexStructure = new VertexStructure(vertices);
 
         // Création VAO
         vaoId = glGenVertexArrays();
@@ -129,22 +127,7 @@ public class Shape {
         // Shader et texture gérés séparément
     }
 
-    public VertexStructure getVertexStructure() {
-        return vertexStructure;
-    }
-
-    public List<Vector3f> getPoints() {
-        List<Vector3f> list = new ArrayList<>();
-        for (int i = 0; i < vertexStructure.vertexCount(); i++) {
-            list.add(vertexStructure.getVertex(i));
-        }
-        return list;
-    }
-
     public void updateBuffers() {
-        vertices = vertexStructure.toFlatVertexArray();
-        vertexCount = vertices.length / FLOATS_PER_VERTEX;
-
         glBindVertexArray(vaoId);
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
@@ -495,34 +478,32 @@ public class Shape {
     }
 
     public void setColor(float r, float g, float b) {
-        vertexStructure.setAllColors(r, g, b);
+        for (int i = 0; i < vertexCount; i++) {
+            vertices[i * FLOATS_PER_VERTEX + 3] = r;
+            vertices[i * FLOATS_PER_VERTEX + 4] = g;
+            vertices[i * FLOATS_PER_VERTEX + 5] = b;
+        }
         updateBuffers();
     }
 
     public void updatePositions(float[] newVertices) {
-        int vc = newVertices.length / FLOATS_PER_VERTEX;
-
-        if (vc != vertexStructure.vertexCount()) {
-            System.out.println("Nouveau vertex count : " + vc +
-                    ", Ancien vertex count : " + vertexStructure.vertexCount());
+        // set les coordonnées x,y,z uniquement
+        if (newVertices.length != vertices.length) {
+            throw new IllegalArgumentException("Le tableau de vertices doit avoir la même taille !");
         }
-
-        for (int i = 0; i < vc; i++) {
-            Vector3f v = vertexStructure.getVertex(i);
-            v.set(
-                    newVertices[i * FLOATS_PER_VERTEX],
-                    newVertices[i * FLOATS_PER_VERTEX + 1],
-                    newVertices[i * FLOATS_PER_VERTEX + 2]
-            );
+        for (int i = 0; i < vertexCount; i++) {
+            vertices[i * FLOATS_PER_VERTEX] = newVertices[i * FLOATS_PER_VERTEX];     // X
+            vertices[i * FLOATS_PER_VERTEX + 1] = newVertices[i * FLOATS_PER_VERTEX + 1]; // Y
+            vertices[i * FLOATS_PER_VERTEX + 2] = newVertices[i * FLOATS_PER_VERTEX + 2]; // Z
         }
-
         updateBuffers();
     }
 
     public void setScale(float scale) {
-        for (int i = 0; i < vertexStructure.vertexCount(); i++) {
-            Vector3f v = vertexStructure.getVertex(i);
-            v.mul(scale);
+        for (int i = 0; i < vertexCount; i++) {
+            vertices[i * FLOATS_PER_VERTEX] *= scale; // X
+            vertices[i * FLOATS_PER_VERTEX + 1] *= scale; // Y
+            vertices[i * FLOATS_PER_VERTEX + 2] *= scale; // Z
         }
         updateBuffers();
     }

@@ -57,7 +57,7 @@ public class PlayingState extends GameState {
 
     // Autres
     private double shootCooldown = 0.5;
-    private int nbEnnemis = 35*0;
+    private int nbEnnemis = 35;
     private GameData data = GameData.getInstance();
     private Touche alt;
     private Touche shift;
