@@ -53,7 +53,7 @@ public class PlayingState extends GameState {
 
     // Autres
     private double shootCooldown = 0.5;
-    private int nbEnnemis = 35;
+    private int nbEnnemis = 35*0;
     private GameData data = GameData.getInstance();
     private Touche alt;
     private Touche shift;
@@ -272,6 +272,8 @@ public class PlayingState extends GameState {
         Manager2D.renderAll(uiElements, ortho);
 
         hud.render(textShader);
+
+        joueur.render(view, projection);
     }
 
     @Override
