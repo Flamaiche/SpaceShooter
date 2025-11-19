@@ -1,5 +1,6 @@
 package gameGl.entites;
 
+import gameGl.entites.Ennemis.Ennemis;
 import learnGL.tools.Camera;
 import learnGL.tools.Shader;
 import learnGL.tools.Shape;

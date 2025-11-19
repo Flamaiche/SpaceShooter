@@ -1,7 +1,7 @@
 package gameGl.gestion;
 
 import gameGl.entites.Crosshair;
-import gameGl.entites.Ennemis;
+import gameGl.entites.Ennemis.Ennemis;
 import gameGl.entites.Entity2D;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
