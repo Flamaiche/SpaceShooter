@@ -184,12 +184,6 @@ public abstract class Ennemis extends Entity {
         }
     }
 
-    private Set<Integer> giveVoisin(int indexPoint, Set<Integer> dejaPris) {
-        Set<Integer> voisinsSet = corps.getVertexStructure().getVoisins(indexPoint);
-        for (int dp : dejaPris) voisinsSet.remove(dp);
-        return voisinsSet;
-    }
-
     private boolean testMutation(float chance) {
         return rand.nextFloat() * 100 < chance;
     }
