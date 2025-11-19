@@ -27,7 +27,6 @@ public class Joueur extends Entity {
 
         this.corps = new Shape(Shape.autoAddSlotColor(PreVerticesTable.generateCubeSimple(tailleCorps)));
         this.corps.setShader(shader);
-        this.corps.setColor(0f, 0f, 0f); // invisible ou debug
 
         this.shader = shader;
         this.modelMatrix = new Matrix4f().identity().translate(camera.getPosition());
@@ -36,12 +35,24 @@ public class Joueur extends Entity {
     }
 
     public void update(float deltaTime) {
-        // mise à jour des inputs
         cmd.update();
 
-        // synchroniser la position du joueur avec la caméra
         Vector3f pos = camera.getPosition();
-        modelMatrix.identity().translate(pos);
+        for (float c : corps.center()) System.out.print(c + " ");
+        System.out.println(" | Camera Pos: " + pos);
+        for (int i = 0 ; i < corps.getVertices().length; i++) System.out.print(((i+3)%3==0?"| ":"") + corps.getVertices()[i] + " ");
+        System.out.println();
+        for (Vector3f v : corps.getPoints()) System.out.print(v.x + " " + v.y + " " + v.z + " | ");
+        System.out.println();
+        float yaw   = camera.getYaw();
+        float pitch = camera.getPitch();
+        float roll  = camera.getRoll();
+
+        modelMatrix.identity()
+                .translate(pos)
+                .rotateX((float) Math.toRadians(pitch))
+                .rotateY((float) Math.toRadians(yaw))
+                .rotateZ((float) Math.toRadians(roll));
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
@@ -53,7 +64,7 @@ public class Joueur extends Entity {
         shader.setUniformMat4f("model", modelMatrix);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        corps.setColor(0f, 0f, 0f);
+        corps.setColor(0f, 1f, 0f);
         corps.render();
 
         shader.unbind();
