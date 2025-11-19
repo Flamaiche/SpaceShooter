@@ -41,3 +41,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/gradlew.bat
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/discord.xml
+/gradlew.txt
+/settings.gradle
