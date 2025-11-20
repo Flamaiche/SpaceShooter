@@ -16,3 +16,4 @@ Version : (A:Alpha)
     06/10/2025: correction et modif minim sur hud
 [A1.1]
     07/10/2025: ajout d'acceleration et deceleration
+    20/11/2025: modulation du code pour futur ajout de fonctionnalités
