@@ -39,19 +39,7 @@ public class Joueur extends Entity {
         cmd.update();
 
         Vector3f pos = camera.getPosition();
-        for (float c : corps.center()) System.out.print(c + " ");
-        System.out.println(" | Camera Pos: " + pos);
-        for (int i = 0 ; i < corps.getVertices().length; i++) System.out.print(((i+3)%3==0?"| ":"") + corps.getVertices()[i] + " ");
-        System.out.println();
-        float yaw   = camera.getYaw();
-        float pitch = camera.getPitch();
-        float roll  = camera.getRoll();
-
-        modelMatrix.identity()
-                .translate(pos)
-                .rotateX((float) Math.toRadians(pitch))
-                .rotateY((float) Math.toRadians(yaw))
-                .rotateZ((float) Math.toRadians(roll));
+        modelMatrix.identity().translate(pos);
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
