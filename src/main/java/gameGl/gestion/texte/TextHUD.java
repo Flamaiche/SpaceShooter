@@ -9,7 +9,7 @@ public class TextHUD {
 
     public enum TextType {
         SPEED, VERSION, TOTALSCORE, BESTSCORE, SCORE, LIVES, TIME, BALLS, ENEMIES,
-        FPS, POSITION, ORIENTATION, ACTIVE_BALLS, ACTIVE_ENEMIES, DISTANCE_TARGET
+        FPS, POSITION_CAMERA, POSITION_JOUEUR, ORIENTATION, ACTIVE_BALLS, ACTIVE_ENEMIES, DISTANCE_TARGET
     }
 
     private final TextType type;
@@ -103,12 +103,16 @@ public class TextHUD {
                 return "Ennemis: " + (int) data.getEnemiesKilled();
             case FPS:
                 return "FPS: " + (int) data.getFPS();
-            case POSITION: {
+            case POSITION_CAMERA: {
+                float[] pos = data.getCameraPosition();
+                return String.format("Position Caméra: %.1f / %.1f / %.1f", pos[0], pos[1], pos[2]);
+            }
+            case POSITION_JOUEUR: {
                 float[] pos = data.getPlayerPosition();
-                return String.format("Position: %.1f / %.1f / %.1f", pos[0], pos[1], pos[2]);
+                return String.format("Position Joueur: %.1f / %.1f / %.1f", pos[0], pos[1], pos[2]);
             }
             case ORIENTATION: {
-                float[] ori = data.getPlayerOrientation();
+                float[] ori = data.getCameraOrientation();
                 return String.format("Orientation: %.1f / %.1f / %.1f", ori[0], ori[1], ori[2]);
             }
             case ACTIVE_BALLS: {

@@ -200,6 +200,9 @@ public class Camera {
     }
 
     public float distanceTo(Vector3f point) { return position.distance(point); }
+    public Vector3f distanceVectorTo(Vector3f point) {
+        return new Vector3f(point).sub(position);
+    }
 
     public float getRenderDistance() { return renderDistance; }
     public void setRenderDistance(float d) { renderDistance = d; }

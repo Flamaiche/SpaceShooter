@@ -15,7 +15,8 @@ public class GameData {
 
     // --- Position et orientation ---
     private float[] playerPosition = new float[3];   // x, y, z
-    private float[] playerOrientation = new float[3]; // pitch, yaw, roll
+    private float[] cameraPosition = new float[3];  // x, y, z
+    private float[] cameraOrientation = new float[3]; // pitch, yaw, roll
 
     // --- Balls / enemies actifs ---
     private float[] ballsActive = new float[2];     // active, max
@@ -45,7 +46,8 @@ public class GameData {
 
         // --- Position et orientation ---
         this.playerPosition = new float[3];   // x, y, z
-        this.playerOrientation = new float[3]; // pitch, yaw, roll
+        this.cameraPosition = new float[3];   // x, y, z
+        this.cameraOrientation = new float[3]; // pitch, yaw, roll
 
         // --- Balls / enemies actifs ---
         this.ballsActive = new float[2];     // active, max
@@ -80,12 +82,19 @@ public class GameData {
     }
     public float[] getPlayerPosition() { return playerPosition; }
 
-    public void setPlayerOrientation(float pitch, float yaw, float roll) {
-        playerOrientation[0] = pitch;
-        playerOrientation[1] = yaw;
-        playerOrientation[2] = roll;
+    public void setCameraPosition(float x, float y, float z) {
+        playerPosition[0] = x;
+        playerPosition[1] = y;
+        playerPosition[2] = z;
     }
-    public float[] getPlayerOrientation() { return playerOrientation; }
+    public float[] getCameraPosition() { return cameraPosition; }
+
+    public void setCameraOrientation(float pitch, float yaw, float roll) {
+        cameraPosition[0] = pitch;
+        cameraPosition[1] = yaw;
+        cameraPosition[2] = roll;
+    }
+    public float[] getCameraOrientation() { return cameraOrientation; }
 
     // --- Balls / enemies ---
     public void setActiveBalls(float active, float max) {
