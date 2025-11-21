@@ -5,6 +5,7 @@ import gameGl.entites.Balls.Balls;
 import gameGl.entites.Balls.BallsBasic;
 import gameGl.entites.Ennemis.Ennemis;
 import gameGl.entites.Ennemis.EnnemisBasic;
+import gameGl.gestion.VueSwitch;
 import gameGl.gestion.donnees.GameData;
 import gameGl.gestion.Manager2D;
 import gameGl.gestion.Manager3D;
@@ -108,6 +109,8 @@ public class PlayingState extends GameState {
 
         data.resetVal();
         lastTime = glfwGetTime();
+
+
     }
 
     @Override
@@ -187,6 +190,8 @@ public class PlayingState extends GameState {
                 () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE),
                 null, null));
         touches.add(new Touche(GLFW_KEY_U, () -> hud.setDebugMode(!hud.getDebugMode()), null, null));
+
+        touches.add(new Touche(GLFW_KEY_F5, null, () -> VueSwitch.getInstance().switchMode(camera, joueur), null));
 
         commande.setTouches(touches);
     }

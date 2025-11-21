@@ -85,4 +85,5 @@ public class Joueur extends Entity {
         return new Vector3f(point).sub(lastPos);
     }
     public Vector3f getLastPos() {return lastPos; }
+    public Vector3f setLastPos(Vector3f pos) { return lastPos = pos;}
 }
