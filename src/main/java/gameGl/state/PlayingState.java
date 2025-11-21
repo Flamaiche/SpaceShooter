@@ -251,8 +251,8 @@ public class PlayingState extends GameState {
         data.setLives(joueur.getVie());
         data.setBallsFired(ballsFiredTotal);
         data.setEnemiesKilled(enemiesKilledTotal);
-        data.setPlayerPosition(joueur.getLastPos().x, joueur.getLastPos().y, joueur.getLastPos().z);
         data.setCameraPosition(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+        data.setPlayerPosition(joueur.getLastPos().x, joueur.getLastPos().y, joueur.getLastPos().z);
         data.setCameraOrientation(camera.getPitch(), camera.getYaw(), camera.getRoll());
         data.setActiveBalls(activeBalls, balls.size());
         data.setActiveEnemies(activeEnemies, ennemis.size());
@@ -323,9 +323,9 @@ public class PlayingState extends GameState {
         texts.add(new TextHUD(TextHUD.TextType.VERSION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.FPS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.POSITION_CAMERA, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
+        texts.add(new TextHUD(TextHUD.TextType.ORIENTATION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.POSITION_JOUEUR, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.SPEED, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.ORIENTATION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.ACTIVE_BALLS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.ACTIVE_ENEMIES, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
         texts.add(new TextHUD(TextHUD.TextType.DISTANCE_TARGET, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));

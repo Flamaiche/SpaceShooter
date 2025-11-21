@@ -83,16 +83,16 @@ public class GameData {
     public float[] getPlayerPosition() { return playerPosition; }
 
     public void setCameraPosition(float x, float y, float z) {
-        playerPosition[0] = x;
-        playerPosition[1] = y;
-        playerPosition[2] = z;
+        cameraPosition[0] = x;
+        cameraPosition[1] = y;
+        cameraPosition[2] = z;
     }
     public float[] getCameraPosition() { return cameraPosition; }
 
     public void setCameraOrientation(float pitch, float yaw, float roll) {
-        cameraPosition[0] = pitch;
-        cameraPosition[1] = yaw;
-        cameraPosition[2] = roll;
+        cameraOrientation[0] = pitch;
+        cameraOrientation[1] = yaw;
+        cameraOrientation[2] = roll;
     }
     public float[] getCameraOrientation() { return cameraOrientation; }
 

@@ -40,8 +40,8 @@ public class Joueur extends Entity {
 
     public void update(float deltaTime) {
         cmd.update();
-
-        modelMatrix.identity().translate(distanceVectorTo(camera.getPosition()));
+        modelMatrix.translate(distanceVectorTo(camera.getPosition()));
+        lastPos.set(camera.getPosition());
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
