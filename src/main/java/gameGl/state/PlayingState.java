@@ -144,16 +144,6 @@ public class PlayingState extends GameState {
             if (!focused) firstMouseInput = true;
         });
 
-        // TOUCHES
-        touches.add(new Touche(GLFW_KEY_TAB, null,
-                () -> {camera.setOrbitMode(false);
-
-                joueur.setTpCamera(true);},
-                () -> {camera.setOrbitMode(true);
-                    camera.setTarget(joueur.getLastPos());
-                    joueur.setTpCamera(false);}
-        ));
-
         // ALT + Roll
         alt = new Touche(GLFW_KEY_LEFT_ALT, null, null, null);
         touches.add(alt);
@@ -218,8 +208,6 @@ public class PlayingState extends GameState {
     }
 
     private void updateCameraPhysics(float deltaTime) {
-        if (camera.isOrbitMode()) return;
-
         if (moveDirection.lengthSquared() > 0) {
             moveDirection.normalize();
 

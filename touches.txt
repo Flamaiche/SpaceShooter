@@ -36,8 +36,7 @@ ALT + R : Réinitialiser le roll
 ALT + L : Dé/Bloquer le roll (et se reset)
 
 ##MODE CAMÉRA
-TAB : Activer le mode orbite
-Relâchement de TAB : Désactiver le mode orbite
+F5 : Passer en mode 1er personne / 3e personne
 
 ##TIR
 ² / Bouton gauche souris : Tirer (cooldown 0,3 s)

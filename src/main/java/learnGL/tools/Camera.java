@@ -16,13 +16,7 @@ public class Camera {
     private float roll; // degrees
     private float fov;
 
-    private boolean orbitMode = false;
     private boolean rollEnabled = false;
-
-    private Vector3f target;
-    private float orbitTheta;
-    private float orbitPhi;
-    private float orbitRadius;
 
     private float renderDistance = 100f;
     private float renderSimulation = 150f;
@@ -40,12 +34,7 @@ public class Camera {
         this.pitch = 0f;
         this.roll = 0f;
         this.fov = 60f;
-        this.target = new Vector3f(0, 0, 0);
-        this.orbitTheta = 0f;
-        this.orbitPhi = 0f;
-        this.orbitRadius = 1f;
         updateAxes();
-        initOrbitFromCurrentState();
     }
 
     public void restValues() {
@@ -58,30 +47,8 @@ public class Camera {
         this.pitch = 0f;
         this.roll = 0f;
         this.fov = 60f;
-        this.target = new Vector3f(0, 0, 0);
-        this.orbitTheta = 0f;
-        this.orbitPhi = 0f;
-        this.orbitRadius = 1f;
         updateAxes();
-        initOrbitFromCurrentState();
     }
-
-    // ---------------- Orbit Mode ----------------
-    public void setOrbitMode(boolean active) {
-        if (active == orbitMode) return;
-        if (active) {
-            initOrbitFromCurrentState();
-            updateAxesToTarget();
-        } else {
-            Vector3f dir = new Vector3f(target).sub(position).normalize();
-            pitch = (float) Math.toDegrees(Math.asin(dir.y));
-            yaw = (float) Math.toDegrees(Math.atan2(dir.z, dir.x));
-            updateAxes();
-        }
-        orbitMode = active;
-    }
-
-    public boolean isOrbitMode() { return orbitMode; }
 
     // ---------------- Roll ----------------
     public void setRollEnabled(boolean active) {
@@ -106,8 +73,6 @@ public class Camera {
 
     // ---------------- View / Projection ----------------
     public Matrix4f getViewMatrix() {
-        if (orbitMode) updateAxesToTarget();
-
         Vector3f rolledUp = new Vector3f(up);
         if (rollEnabled && Math.abs(roll) > EPSILON)
             rolledUp.rotateAxis((float)Math.toRadians(roll), front.x, front.y, front.z);
@@ -122,33 +87,15 @@ public class Camera {
 
     // ---------------- Movement / Rotation ----------------
     public void move(Vector3f offset) {
-        if (!orbitMode) position.add(offset);
+        position.add(offset);
     }
 
     public void rotate(float offsetYaw, float offsetPitch) {
-        if (!orbitMode) {
-            yaw += offsetYaw;
-            pitch += offsetPitch;
-            pitch = Math.max(-89.9f, Math.min(89.9f, pitch));
-            yaw = ((yaw % 360) + 360) % 360;
-            updateAxes();
-        } else {
-            orbitTheta += Math.toRadians(offsetYaw);
-            orbitPhi += Math.toRadians(offsetPitch);
-            float limit = (float) (Math.PI / 2 - 0.001);
-            orbitPhi = Math.max(-limit, Math.min(limit, orbitPhi));
-
-            float cosPhi = (float)Math.cos(orbitPhi);
-            float sinPhi = (float)Math.sin(orbitPhi);
-            float cosTh = (float)Math.cos(orbitTheta);
-            float sinTh = (float)Math.sin(orbitTheta);
-
-            position.x = target.x + orbitRadius * cosPhi * cosTh;
-            position.y = target.y + orbitRadius * sinPhi;
-            position.z = target.z + orbitRadius * cosPhi * sinTh;
-
-            updateAxesToTarget();
-        }
+        yaw += offsetYaw;
+        pitch += offsetPitch;
+        pitch = Math.max(-89.9f, Math.min(89.9f, pitch));
+        yaw = ((yaw % 360) + 360) % 360;
+        updateAxes();
     }
 
     // ---------------- Axes Calculation ----------------
@@ -166,23 +113,6 @@ public class Camera {
         if (right.lengthSquared() < 1e-8f)
             right.set(new Vector3f(1, 0, 0).cross(front).normalize());
         up.set(new Vector3f(right).cross(front).normalize());
-    }
-
-    private void updateAxesToTarget() {
-        front.set(new Vector3f(target).sub(position).normalize());
-        right.set(new Vector3f(front).cross(worldUp).normalize());
-        if (right.lengthSquared() < 1e-8f)
-            right.set(new Vector3f(1, 0, 0).cross(front).normalize());
-        up.set(new Vector3f(right).cross(front).normalize());
-    }
-
-    private void initOrbitFromCurrentState() {
-        Vector3f rel = new Vector3f(position).sub(target);
-        orbitRadius = rel.length();
-        if (orbitRadius < 0.1f) orbitRadius = 0.1f; // seuil plus réaliste
-        rel.div(orbitRadius);
-        orbitTheta = (float) Math.atan2(rel.z, rel.x);
-        orbitPhi = (float) Math.asin(rel.y);
     }
 
     // ---------------- Getters / Setters ----------------
@@ -212,7 +142,4 @@ public class Camera {
 
     public float getFov() { return fov; }
     public void setFov(float fovDeg) { fov = fovDeg; }
-
-    public Vector3f getTarget() { return new Vector3f(target); }
-    public void setTarget(Vector3f t) { target = new Vector3f(t); }
 }
