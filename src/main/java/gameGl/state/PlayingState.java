@@ -109,8 +109,6 @@ public class PlayingState extends GameState {
 
         data.resetVal();
         lastTime = glfwGetTime();
-
-
     }
 
     @Override
@@ -148,8 +146,13 @@ public class PlayingState extends GameState {
 
         // TOUCHES
         touches.add(new Touche(GLFW_KEY_TAB, null,
-                () -> camera.setOrbitMode(false),
-                () -> camera.setOrbitMode(true)));
+                () -> {camera.setOrbitMode(false);
+
+                joueur.setTpCamera(true);},
+                () -> {camera.setOrbitMode(true);
+                    camera.setTarget(joueur.getLastPos());
+                    joueur.setTpCamera(false);}
+        ));
 
         // ALT + Roll
         alt = new Touche(GLFW_KEY_LEFT_ALT, null, null, null);

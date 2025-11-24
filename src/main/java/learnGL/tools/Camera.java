@@ -212,4 +212,7 @@ public class Camera {
 
     public float getFov() { return fov; }
     public void setFov(float fovDeg) { fov = fovDeg; }
+
+    public Vector3f getTarget() { return new Vector3f(target); }
+    public void setTarget(Vector3f t) { target = new Vector3f(t); }
 }

@@ -20,7 +20,8 @@ public class Joueur extends Entity {
     private int vie;
 
     private Camera camera;
-    private Vector3f lastPos = new Vector3f();
+    private Vector3f lastPos;
+    private boolean tpCamera;
     public Commande cmd;
 
     public Joueur(Shader shader, Camera camera, Commande cmd, float tailleCorps) {
@@ -34,14 +35,17 @@ public class Joueur extends Entity {
         this.modelMatrix = new Matrix4f().identity().translate(camera.getPosition());
 
         this.lastPos = camera.getPosition();
+        this.tpCamera = true;
 
         this.vie = 3;
     }
 
     public void update(float deltaTime) {
         cmd.update();
-        modelMatrix.translate(distanceVectorTo(camera.getPosition()));
-        lastPos.set(camera.getPosition());
+        if (tpCamera) {
+            modelMatrix.translate(distanceVectorTo(camera.getPosition()));
+            lastPos.set(camera.getPosition());
+        }
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
@@ -86,4 +90,7 @@ public class Joueur extends Entity {
     }
     public Vector3f getLastPos() {return lastPos; }
     public Vector3f setLastPos(Vector3f pos) { return lastPos = pos;}
+
+    public boolean getTpCamera() { return tpCamera; }
+    public void setTpCamera(boolean tp) { this.tpCamera = tp; }
 }
