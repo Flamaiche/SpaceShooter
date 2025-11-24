@@ -11,7 +11,7 @@ public class VueSwitch {
         THIRD_PERSON;
 
         public Vector3f getDistance() {
-            return this == FIRST_PERSON ? new Vector3f(0f, 0f, 0f) : new Vector3f(0f, 2f, 5f);
+            return this == FIRST_PERSON ? new Vector3f(0f, 0f, 0f) : new Vector3f(0f, 0.75f, 3f);
         }
     }
 
@@ -27,6 +27,7 @@ public class VueSwitch {
     public void switchMode(Camera camera, Joueur joueur) {
         Vector3f playerPos = joueur.getLastPos();
         camera.move(new Vector3f(playerPos).sub(camera.getPosition()));
+        camera.move(new Vector3f(mode.getDistance()).mul(-1f));
 
         if (mode == Mode.FIRST_PERSON) {
             mode = Mode.THIRD_PERSON;
