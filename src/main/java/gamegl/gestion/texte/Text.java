@@ -14,15 +14,25 @@ import learngl.tools.Shader;
 public class Text {
     private static int vao, vbo;
     private static boolean initialized = false;
-    private static int bufferAllocationMultiplier = 350;
+    private static ByteBuffer textBuffer;
     private static int lastVpW = -1, lastVpH = -1;
     private static Matrix4f orthoMatrix = new Matrix4f();
+    private static final int[] vp = new int[4];
 
     private static void init() {
         if (initialized) return;
         vao = glGenVertexArrays();
         vbo = glGenBuffers();
         initialized = true;
+    }
+
+    private static ByteBuffer ensureBuffer(int textLength) {
+        int needed = textLength * 300;
+        if (textBuffer == null || textBuffer.capacity() < needed) {
+            textBuffer = BufferUtils.createByteBuffer(needed);
+        }
+        textBuffer.clear();
+        return textBuffer;
     }
 
     public static void drawText(Shader shader, String text,
@@ -35,7 +45,7 @@ public class Text {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * bufferAllocationMultiplier);
+        ByteBuffer buffer = ensureBuffer(text.length());
         int quads = STBEasyFont.stb_easy_font_print(0, 0, text, null, buffer);
 
         glBindVertexArray(vao);
@@ -47,7 +57,6 @@ public class Text {
 
         shader.bind();
 
-        int[] vp = new int[4];
         glGetIntegerv(GL_VIEWPORT, vp);
         int winW = vp[2], winH = vp[3];
         if (winW != lastVpW || winH != lastVpH) {
@@ -75,7 +84,7 @@ public class Text {
     public static float[] getTextExtent(String text, float scale) {
         if (text == null || text.isEmpty()) return new float[]{0f, 0f};
 
-        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * bufferAllocationMultiplier);
+        ByteBuffer buffer = ensureBuffer(text.length());
         int quads = STBEasyFont.stb_easy_font_print(0, 0, text, null, buffer);
 
         float maxX = 0f;
@@ -99,5 +108,6 @@ public class Text {
         initialized = false;
         lastVpW = -1;
         lastVpH = -1;
+        textBuffer = null;
     }
 }

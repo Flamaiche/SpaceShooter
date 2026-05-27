@@ -9,6 +9,9 @@ public class TextManager {
     private final GameData data;
     private ArrayList<TextHUD> texts = new ArrayList<>();
     private boolean debugMode = false;
+    private final ArrayList<TextHUD> topTexts = new ArrayList<>();
+    private final ArrayList<TextHUD> bottomTexts = new ArrayList<>();
+    private final ArrayList<TextHUD> centerTexts = new ArrayList<>();
 
     private final int baseWidth = 800;
     private final int baseHeight = 600;
@@ -53,9 +56,9 @@ public class TextManager {
         float scaleY = (float) windowHeight / baseHeight;
         float uniformScale = Math.min(scaleX, scaleY);
 
-        ArrayList<TextHUD> topTexts = new ArrayList<>();
-        ArrayList<TextHUD> bottomTexts = new ArrayList<>();
-        ArrayList<TextHUD> centerTexts = new ArrayList<>();
+        topTexts.clear();
+        bottomTexts.clear();
+        centerTexts.clear();
 
         for (TextHUD t : texts) {
             if (!t.isActive()) continue;
