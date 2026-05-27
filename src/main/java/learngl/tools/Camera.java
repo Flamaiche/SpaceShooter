@@ -19,10 +19,7 @@ public class Camera {
     private boolean orbitMode = false;
     private boolean rollEnabled = false;
 
-    private Vector3f target;
-    private float orbitTheta;
-    private float orbitPhi;
-    private float orbitRadius;
+    private final OrbitController orbitController = new OrbitController();
 
     private float renderDistance = 100f;
     private float renderSimulation = 150f;
@@ -40,12 +37,8 @@ public class Camera {
         this.pitch = 0f;
         this.roll = 0f;
         this.fov = 60f;
-        this.target = new Vector3f(0, 0, 0);
-        this.orbitTheta = 0f;
-        this.orbitPhi = 0f;
-        this.orbitRadius = 1f;
         updateAxes();
-        initOrbitFromCurrentState();
+        orbitController.init(position, new Vector3f(0, 0, 0));
     }
 
     public void resetValues() {
@@ -58,22 +51,18 @@ public class Camera {
         this.pitch = 0f;
         this.roll = 0f;
         this.fov = 60f;
-        this.target = new Vector3f(0, 0, 0);
-        this.orbitTheta = 0f;
-        this.orbitPhi = 0f;
-        this.orbitRadius = 1f;
         updateAxes();
-        initOrbitFromCurrentState();
+        orbitController.init(position, new Vector3f(0, 0, 0));
     }
 
     // ---------------- Orbit Mode ----------------
     public void setOrbitMode(boolean active) {
         if (active == orbitMode) return;
         if (active) {
-            initOrbitFromCurrentState();
+            orbitController.init(position, orbitController.getTarget());
             updateAxesToTarget();
         } else {
-            Vector3f dir = new Vector3f(target).sub(position);
+            Vector3f dir = new Vector3f(orbitController.getTarget()).sub(position);
             if (dir.lengthSquared() > 1e-8f) {
                 dir.normalize();
                 pitch = (float) Math.toDegrees(Math.asin(dir.y));
@@ -137,56 +126,18 @@ public class Camera {
             yaw = ((yaw % 360) + 360) % 360;
             updateAxes();
         } else {
-            orbitTheta += Math.toRadians(offsetYaw);
-            orbitPhi += Math.toRadians(offsetPitch);
-            float limit = (float) (Math.PI / 2);
-            orbitPhi = Math.max(-limit, Math.min(limit, orbitPhi));
-
-            float cosPhi = (float)Math.cos(orbitPhi);
-            float sinPhi = (float)Math.sin(orbitPhi);
-            float cosTh = (float)Math.cos(orbitTheta);
-            float sinTh = (float)Math.sin(orbitTheta);
-
-            position.x = target.x + orbitRadius * cosPhi * cosTh;
-            position.y = target.y + orbitRadius * sinPhi;
-            position.z = target.z + orbitRadius * cosPhi * sinTh;
-
+            orbitController.rotate(offsetYaw, offsetPitch, position);
             updateAxesToTarget();
         }
     }
 
     // ---------------- Axes Calculation ----------------
     private void updateAxes() {
-        // Pré-calcul des sinus/cosinus pour optimisation
-        double yawRad = Math.toRadians(yaw);
-        double pitchRad = Math.toRadians(pitch);
-        double cosPitch = Math.cos(pitchRad);
-        double sinPitch = Math.sin(pitchRad);
-        double cosYaw = Math.cos(yawRad);
-        double sinYaw = Math.sin(yawRad);
-
-        front.set((float)(cosYaw * cosPitch), (float) sinPitch, (float)(sinYaw * cosPitch)).normalize();
-        right.set(new Vector3f(front).cross(worldUp).normalize());
-        if (right.lengthSquared() < 1e-8f)
-            right.set(new Vector3f(1, 0, 0).cross(front).normalize());
-        up.set(new Vector3f(right).cross(front).normalize());
+        AxesCalculator.fromYawPitch(yaw, pitch, worldUp, front, right, up);
     }
 
     private void updateAxesToTarget() {
-        front.set(new Vector3f(target).sub(position).normalize());
-        right.set(new Vector3f(front).cross(worldUp).normalize());
-        if (right.lengthSquared() < 1e-8f)
-            right.set(new Vector3f(1, 0, 0).cross(front).normalize());
-        up.set(new Vector3f(right).cross(front).normalize());
-    }
-
-    private void initOrbitFromCurrentState() {
-        Vector3f rel = new Vector3f(position).sub(target);
-        orbitRadius = rel.length();
-        if (orbitRadius < 0.1f) orbitRadius = 0.1f; // seuil plus réaliste
-        rel.div(orbitRadius);
-        orbitTheta = (float) Math.atan2(rel.z, rel.x);
-        orbitPhi = (float) Math.asin(rel.y);
+        AxesCalculator.fromTarget(position, orbitController.getTarget(), worldUp, front, right, up);
     }
 
     // ---------------- Getters / Setters ----------------
