@@ -7,7 +7,11 @@ version = '1.0-SNAPSHOT'
 
 project.ext.lwjglVersion = "3.3.6"
 project.ext.jomlVersion = "1.10.7"
-project.ext.lwjglNatives = "natives-windows"
+project.ext.lwjglNatives = System.getProperty("os.name").toLowerCase().contains("win")
+        ? "natives-windows"
+        : System.getProperty("os.name").toLowerCase().contains("mac")
+            ? "natives-macos"
+            : "natives-linux"
 
 repositories {
     mavenCentral()

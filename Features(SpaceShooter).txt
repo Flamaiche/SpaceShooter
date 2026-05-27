@@ -1,0 +1,138 @@
+=== INVENTAIRE VISUEL DU JEU SPACE SHOOTER ===
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. MENU PRINCIPAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ce qu'on voit :
+- Fond noir
+- Texte animé "HELLO" / "JOUER" qui suit le choix (vague)
+- Étoiles rouges animées tournant en cercle
+- 3 options de menu centrées :
+    ">> JOUER"   (sélectionné, jaune, plus gros)
+    "PARAMETRE"  (blanc, normal)
+    "QUITTER"    (blanc, normal)
+- "Total Score: X" en haut à gauche
+- "Version: A1.1" en haut à droite
+
+Ce qu'on peut faire :
+- Flèche haut/bas : naviguer dans le menu
+- Souris (curseur libre) : survoler une option
+- Entrée ou clic gauche : valider l'option
+- Échap : "QUITTER" (index 2)
+- Caps Lock : verrouiller/déverrouiller la souris
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. EN JEU (PLAY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ce qu'on voit :
+- Fond jaune
+- Joueur (cube vert, 1ère personne) placé à la position de la caméra
+- 35 ennemis (cubes noirs) qui se déplacent en ligne droite vers un point aléatoire
+- Ennemis highlightés (contour rouge) quand visés par le crosshair
+- Crosshair (viseur magenta en forme de croix avec branches obliques)
+- L'écart des branches obliques s'agrandit avec la vitesse du joueur
+- Balles (pyramides rouges qui tournent sur elles-mêmes)
+- HUD gauche (toujours visible) :
+    "Best Score: X"
+    "Score: X"
+    "Vies: X"
+    "Temps: MM:SS"
+    "Balles: X"
+    "Ennemis: X"
+- HUD droite (debug, visible avec U) :
+    "Version: A1.1"
+    "FPS: XX"
+    "Position: X / Y / Z"
+    "Orientation: Pitch / Yaw / Roll"
+    "Balles actives: X/20"
+    "Ennemis actifs: X/35"
+    "Distance cible: X.X"
+
+Ce qu'on peut faire :
+
+DÉPLACEMENT CAMÉRA/JOUEUR (1ère personne) :
+- Z : Avancer
+- S : Reculer
+- Q : Aller à gauche
+- D : Aller à droite
+- ESPACE : Monter
+- SHIFT (gauche) : Descendre
+- Mouvement avec accélération/décélération progressive
+
+ROTATION :
+- Souris (curseur verrouillé) : Tourner la caméra
+- Flèches directionnelles : Rotation pas-à-pas
+- CTRL + Flèches : Rotation 2× plus lente
+
+ROLL :
+- ALT + A : Rouler à gauche
+- ALT + E : Rouler à droite
+- ALT + R : Réinitialiser le roll
+- ALT + L : Activer/désactiver le roll (et reset)
+
+MODE ORBITE :
+- TAB (maintenu) : Active le mode orbite (caméra orbite autour de la cible)
+- Relâcher TAB : Retour en mode libre
+
+TIR :
+- ² (touche à côté de 1) ou Clic gauche : Tirer (cooldown 0,3 s)
+- La balle part du bout du crosshair (raycasting)
+- Les balles se désactivent après 150 unités
+
+AUTRE :
+- Échap : Mettre en pause
+- U : Activer/désactiver le HUD de debug
+- Caps Lock : Verrouiller/déverrouiller le curseur souris
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. MENU PAUSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ce qu'on voit :
+- Fond gris
+- 50 ennemis (fakes) qui continuent de se déplacer en arrière-plan
+- 3 options de menu centrées :
+    ">> CONTINUER"  (sélectionné, jaune, plus gros)
+    "RECOMMENCER"   (blanc, normal)
+    "QUITTER"       (blanc, normal)
+- Possibilité de bouger la caméra avec la souris
+
+Ce qu'on peut faire :
+- Flèche haut/bas : naviguer
+- Souris (curseur libre si déverrouillé) : survoler
+- Entrée ou clic gauche : valider
+- Échap : CONTINUER
+- Caps Lock : verrouiller/déverrouiller la souris
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. SYSTÈMES VISIBLES EN JEU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Système d'évolution des ennemis (mutations) :
+- Toutes les 6 frames, mutation possible :
+  - Vitesse augmentée/réduite
+  - Taille augmentée/réduite
+  - Temps de respawn augmenté/réduit
+- Les ennemis meurent en 1 hit
+- Respawn automatique après 1 à 9 secondes
+- Highlight rouge quand visé
+
+Collisions :
+- Joueur ↔ Ennemi → perte de vie et mort de l'ennemi
+- Balle ↔ Ennemi → mort de l'ennemi, score +10
+
+Sauvegarde :
+- Score sauvegardé dans fichier JSON (data/SauvegardeScore)
+- Meilleur score persistant
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. TOUCHES GLOBALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Caps Lock : Verrouiller/déverrouiller le curseur souris
+  (fonctionne dans tous les états : menu, jeu, pause)

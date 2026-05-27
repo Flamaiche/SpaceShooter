@@ -1,0 +1,52 @@
+package gamegl.state;
+
+import gamegl.gestion.donnees.GameData;
+import gamegl.gestion.texte.Text;
+import gamegl.gestion.texte.TextManager;
+import learngl.tools.Camera;
+import learngl.tools.commandes.Commande;
+import org.joml.Vector3f;
+
+public abstract class GameState {
+    protected Commande commande;
+    protected Camera camera;
+    protected TextManager hud;
+    protected GameData data;
+    protected int width, height;
+
+    public GameState(Commande commande, GameData data, int width, int height) {
+        this.commande = commande;
+        this.data = data;
+        this.camera = new Camera(new Vector3f(0, 0, 3));
+        commande.setCamera(camera);
+        this.width = width;
+        this.height = height;
+
+        hud = new TextManager(data, width, height);
+    }
+
+    public void init(Commande commande, int width, int height) {
+        commande.setCamera(camera);
+        this.width = width;
+        this.height = height;
+
+        hud.setWindowSize(width, height);
+    }
+
+    public abstract void initTouches();
+
+    public abstract void initHud();
+
+    public abstract void update(float deltaTime);
+
+    public abstract void render();
+
+    public void cleanup() {
+        Text.cleanup();
+    }
+
+    public void setWidthHeight(int width, int height) {
+        this.height = height;
+        this.width = width;
+    }
+}
