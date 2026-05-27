@@ -240,7 +240,7 @@ public class PlayingState extends GameState {
     public void render() {
         glClearColor(1f, 1f, 0f, 0f);
 
-        Matrix4f view = camera.getViewMatrix();
+        Matrix4f view = gestionnaireVue.obtenirVue(camera, joueur.getPosition());
         Matrix4f projection = camera.getProjection(width, height);
 
         joueur.render(view, projection);
