@@ -4,6 +4,7 @@ import gamegl.entites.Entity;
 import learngl.tools.Camera;
 import learngl.tools.Shader;
 import learngl.tools.Shape;
+import learngl.tools.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -37,7 +38,7 @@ public abstract class Ennemis extends Entity {
     protected final int moduloMutationDeltaTime = 6;
 
     public Ennemis(Shader shader, float[] centerPlayer, float[] verticesShape, Camera camera) {
-        corps = new Shape(Shape.autoAddSlotColor(verticesShape));
+        corps = new Shape(VertexUtils.autoAddSlotColor(verticesShape));
         corps.setShader(shader);
         corps.setColor(0f,0f,0f);
         this.shader = shader;

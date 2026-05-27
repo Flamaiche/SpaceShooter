@@ -5,6 +5,7 @@ import learngl.tools.Camera;
 import learngl.tools.commandes.Commande;
 import learngl.tools.Shader;
 import learngl.tools.Shape;
+import learngl.tools.VertexUtils;
 import gamegl.utils.PreVerticesTable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -26,7 +27,7 @@ public class Joueur extends Entity {
         this.camera = camera;
         this.cmd = cmd;
 
-        this.corps = new Shape(Shape.autoAddSlotColor(PreVerticesTable.generateCubeSimple(tailleCorps)));
+        this.corps = new Shape(VertexUtils.autoAddSlotColor(PreVerticesTable.generateCubeSimple(tailleCorps)));
         this.corps.setShader(shader);
 
         this.shader = shader;
