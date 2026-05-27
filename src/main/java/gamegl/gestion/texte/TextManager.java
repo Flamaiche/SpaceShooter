@@ -84,7 +84,7 @@ public class TextManager {
             float rx = calcRenderX(t, extent[0], uniformScale);
             int idx = alignmentIndex(t.getHAlign());
             float ry = calcRenderYAligned(extent[1], yOffsets, fromTop, idx);
-            drawText(t, shader, content, extent, rx, ry);
+            drawText(t, shader, content, extent, rx, ry, uniformScale);
             if (t.getHAlign() != null && t.getVAlign() != null) {
                 yOffsets[alignmentIndex(t.getHAlign())] += extent[1] + margin * uniformScale;
             }
@@ -105,12 +105,12 @@ public class TextManager {
             float[] extent = Text.getTextExtent(content, t.getScale() * uniformScale);
             float rx = calcRenderX(t, extent[0], uniformScale);
             float ry = (t.getVAlign() == null) ? t.getY() : startY + centerOffset;
-            drawText(t, shader, content, extent, rx, ry);
+            drawText(t, shader, content, extent, rx, ry, uniformScale);
             if (t.getVAlign() != null) centerOffset += extent[1] + margin * uniformScale;
         }
     }
 
-    private void drawText(TextHUD t, Shader shader, String content, float[] extent, float renderX, float renderY) {
+    private void drawText(TextHUD t, Shader shader, String content, float[] extent, float renderX, float renderY, float uniformScale) {
         t.setScreenPosition(renderX, renderY);
         t.setSize(extent[0], extent[1]);
         Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale,
