@@ -17,3 +17,8 @@ Version : (A:Alpha)
 [A1.1]
     07/10/2025: ajout d'acceleration et deceleration
     20/11/2025: modulation du code pour futur ajout de fonctionnalités
+    27/05/2026: refonte complete du code : packages lowercase, singleton supprime, managers instances, CameraPhysics extrait
+    27/05/2026: extraction de Camera.java vers AxesCalculator + OrbitController
+    27/05/2026: extraction de Shape.java vers MeshCollider + VertexUtils (509 a 169 lignes)
+    27/05/2026: refonte Text : getTextExtent, cache ortho, deduplication, switch vers Map+Builder
+    27/05/2026: buffer texte auto-redimensionnable, ArrayLists reutilisees, plus de lettres coupees
