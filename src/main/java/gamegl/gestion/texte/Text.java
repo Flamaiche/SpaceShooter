@@ -15,6 +15,8 @@ public class Text {
     private static int vao, vbo;
     private static boolean initialized = false;
     private static int bufferAllocationMultiplier = 350;
+    private static int lastVpW = -1, lastVpH = -1;
+    private static Matrix4f orthoMatrix = new Matrix4f();
 
     private static void init() {
         if (initialized) return;
@@ -48,7 +50,12 @@ public class Text {
         int[] vp = new int[4];
         glGetIntegerv(GL_VIEWPORT, vp);
         int winW = vp[2], winH = vp[3];
-        shader.setUniformMat4f("projection", new Matrix4f().ortho2D(0f, winW, winH, 0f));
+        if (winW != lastVpW || winH != lastVpH) {
+            orthoMatrix.identity().ortho2D(0f, winW, winH, 0f);
+            lastVpW = winW;
+            lastVpH = winH;
+        }
+        shader.setUniformMat4f("projection", orthoMatrix);
 
         shader.setUniform2f("offset", x, y);
         shader.setUniform1f("scale", scale);
@@ -65,36 +72,24 @@ public class Text {
         glEnable(GL_DEPTH_TEST);
     }
 
-    public static float getTextWidth(String text, float scale) {
-        if (text == null || text.isEmpty()) return 0f;
+    public static float[] getTextExtent(String text, float scale) {
+        if (text == null || text.isEmpty()) return new float[]{0f, 0f};
 
         ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * bufferAllocationMultiplier);
         int quads = STBEasyFont.stb_easy_font_print(0, 0, text, null, buffer);
 
         float maxX = 0f;
-        for (int i = 0; i < quads * 4; i++) {
-            int pos = i * 16;
-            float x = buffer.getFloat(pos);
-            if (x > maxX) maxX = x;
-        }
-        return maxX * scale;
-    }
-
-    public static float getTextHeight(String text, float scale) {
-        if (text == null || text.isEmpty()) return 0f;
-
-        ByteBuffer buffer = BufferUtils.createByteBuffer(text.length() * bufferAllocationMultiplier);
-        int quads = STBEasyFont.stb_easy_font_print(0, 0, text, null, buffer);
-
         float maxY = 0f;
         float minY = Float.MAX_VALUE;
         for (int i = 0; i < quads * 4; i++) {
-            int pos = i * 16 + 4; // y position
-            float y = buffer.getFloat(pos);
+            int pos = i * 16;
+            float x = buffer.getFloat(pos);
+            float y = buffer.getFloat(pos + 4);
+            if (x > maxX) maxX = x;
             if (y > maxY) maxY = y;
             if (y < minY) minY = y;
         }
-        return (maxY - minY) * scale;
+        return new float[]{maxX * scale, (maxY - minY) * scale};
     }
 
     public static void cleanup() {
@@ -102,5 +97,7 @@ public class Text {
         glDeleteBuffers(vbo);
         glDeleteVertexArrays(vao);
         initialized = false;
+        lastVpW = -1;
+        lastVpH = -1;
     }
 }

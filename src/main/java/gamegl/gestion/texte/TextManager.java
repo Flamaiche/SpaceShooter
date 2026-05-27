@@ -80,34 +80,13 @@ public class TextManager {
         float[] yOffsets = { margin * uniformScale, margin * uniformScale, margin * uniformScale };
         for (TextHUD t : texts) {
             String content = t.getText(data);
-            float textWidth = Text.getTextWidth(content, t.getScale() * uniformScale);
-            float textHeight = Text.getTextHeight(content, t.getScale() * uniformScale);
-
-            int idx = 2; // default CENTER
-            if (t.getHAlign() != null) {
-                idx = switch (t.getHAlign()) {
-                    case LEFT -> 0;
-                    case RIGHT -> 1;
-                    default -> 2;
-                };
-            }
-
-            float renderX = (t.getHAlign() == null) ? t.getX() : switch (t.getHAlign()) {
-                case LEFT -> margin * uniformScale;
-                case RIGHT -> windowWidth - margin * uniformScale - textWidth;
-                default -> (windowWidth - textWidth) / 2f;
-            };
-
-            float renderY = (t.getVAlign() == null) ? t.getY() :
-                    (fromTop ? yOffsets[idx] : windowHeight - yOffsets[idx] - textHeight);
-
-            t.setScreenPosition(renderX, renderY);
-            t.setSize(textWidth, textHeight);
-
-            Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
-
+            float[] extent = Text.getTextExtent(content, t.getScale() * uniformScale);
+            float rx = calcRenderX(t, extent[0], uniformScale);
+            int idx = alignmentIndex(t.getHAlign());
+            float ry = calcRenderYAligned(extent[1], yOffsets, fromTop, idx);
+            drawText(t, shader, content, extent, rx, ry);
             if (t.getHAlign() != null && t.getVAlign() != null) {
-                yOffsets[idx] += textHeight + margin * uniformScale;
+                yOffsets[alignmentIndex(t.getHAlign())] += extent[1] + margin * uniformScale;
             }
         }
     }
@@ -115,32 +94,51 @@ public class TextManager {
     private void renderCenterTexts(ArrayList<TextHUD> texts, Shader shader, float uniformScale) {
         float totalHeight = -margin * uniformScale;
         for (TextHUD t : texts) {
-            totalHeight += Text.getTextHeight(t.getText(data), t.getScale() * uniformScale) + margin * uniformScale;
+            totalHeight += Text.getTextExtent(t.getText(data), t.getScale() * uniformScale)[1]
+                    + margin * uniformScale;
         }
         float startY = (windowHeight - totalHeight) / 2f;
         float centerOffset = 0f;
 
         for (TextHUD t : texts) {
             String content = t.getText(data);
-            float textWidth = Text.getTextWidth(content, t.getScale() * uniformScale);
-            float textHeight = Text.getTextHeight(content, t.getScale() * uniformScale);
-
-            float renderX = (t.getHAlign() == null) ? t.getX() : switch (t.getHAlign()) {
-                case LEFT -> margin * uniformScale;
-                case RIGHT -> windowWidth - margin * uniformScale - textWidth;
-                default -> (windowWidth - textWidth) / 2f;
-            };
-
-            float renderY = (t.getVAlign() == null) ? t.getY() : startY + centerOffset;
-
-            t.setScreenPosition(renderX, renderY);
-            t.setSize(textWidth, textHeight);
-
-            Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale, t.getR(), t.getG(), t.getB());
-
-            if (t.getVAlign() != null) centerOffset += textHeight + margin * uniformScale;
+            float[] extent = Text.getTextExtent(content, t.getScale() * uniformScale);
+            float rx = calcRenderX(t, extent[0], uniformScale);
+            float ry = (t.getVAlign() == null) ? t.getY() : startY + centerOffset;
+            drawText(t, shader, content, extent, rx, ry);
+            if (t.getVAlign() != null) centerOffset += extent[1] + margin * uniformScale;
         }
     }
+
+    private void drawText(TextHUD t, Shader shader, String content, float[] extent, float renderX, float renderY) {
+        t.setScreenPosition(renderX, renderY);
+        t.setSize(extent[0], extent[1]);
+        Text.drawText(shader, content, renderX, renderY, t.getScale() * uniformScale,
+                t.getR(), t.getG(), t.getB());
+    }
+
+    private float calcRenderX(TextHUD t, float textWidth, float uniformScale) {
+        if (t.getHAlign() == null) return t.getX();
+        return switch (t.getHAlign()) {
+            case LEFT -> margin * uniformScale;
+            case RIGHT -> windowWidth - margin * uniformScale - textWidth;
+            case CENTER -> (windowWidth - textWidth) / 2f;
+        };
+    }
+
+    private float calcRenderYAligned(float textHeight, float[] yOffsets, boolean fromTop, int idx) {
+        return fromTop ? yOffsets[idx] : windowHeight - yOffsets[idx] - textHeight;
+    }
+
+    private int alignmentIndex(TextHUD.HorizontalAlignment hAlign) {
+        if (hAlign == null) return 2;
+        return switch (hAlign) {
+            case LEFT -> 0;
+            case RIGHT -> 1;
+            case CENTER -> 2;
+        };
+    }
+
     public int getBaseWidth() {
         return baseWidth;
     }
