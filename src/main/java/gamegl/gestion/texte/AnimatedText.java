@@ -61,15 +61,15 @@ public class AnimatedText {
 
     private ArrayList<TextHUD> destructeurText(String text) {
         ArrayList<TextHUD> listHUD = new ArrayList<>();
-        String c = "";
+        StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < text.length(); i++) {
-            c += text.charAt(i);
+            sb.append(text.charAt(i));
 
-            if (c.length() == lettrePack || i == text.length() - 1) {
-                TextHUD letter = new TextHUD(null, c, ha, va, scale, r, g, b);
+            if (sb.length() == lettrePack || i == text.length() - 1) {
+                TextHUD letter = new TextHUD(null, sb.toString(), ha, va, scale, r, g, b);
                 listHUD.add(letter);
-                c = "";
+                sb.setLength(0);
             }
         }
 
@@ -90,14 +90,12 @@ public class AnimatedText {
         float scaleY = (float) currentWindowHeight / textManager.getBaseHeight();
         float uniformScale = Math.min(scaleX, scaleY);
 
-        // On utilise les centerX et centerY de l'objet, pas le centre de l'écran
         double cx = this.centerX;
         double cy = this.centerY;
 
         for (int i = 0; i < letters.size(); i++) {
             TextHUD letter = letters.get(i);
 
-            // Appliquer la fonction de transformation avec le temps et l'échelle
             double[] pos = transformFunction.apply(time, radius * uniformScale, cx, cy, toursPerSecond, i);
             letter.setX((float) pos[0]);
             letter.setY((float) pos[1]);

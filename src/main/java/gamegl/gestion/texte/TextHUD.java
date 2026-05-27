@@ -2,6 +2,10 @@ package gamegl.gestion.texte;
 
 import gamegl.gestion.donnees.GameData;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 public class TextHUD {
 
     public enum HorizontalAlignment { LEFT, CENTER, RIGHT }
@@ -10,6 +14,43 @@ public class TextHUD {
     public enum TextType {
         SPEED, VERSION, TOTALSCORE, BESTSCORE, SCORE, LIVES, TIME, BALLS, ENEMIES,
         FPS, POSITION, ORIENTATION, ACTIVE_BALLS, ACTIVE_ENEMIES, DISTANCE_TARGET
+    }
+
+    private static final Map<TextType, Function<GameData, String>> FORMATTERS = new LinkedHashMap<>();
+
+    static {
+        FORMATTERS.put(TextType.SPEED, data -> String.format("Vitesse: %.1f", data.getSpeed()));
+        FORMATTERS.put(TextType.VERSION, data -> "Version: " + data.getVersion());
+        FORMATTERS.put(TextType.TOTALSCORE, data -> "Total Score: " + (int) data.getTotalScore());
+        FORMATTERS.put(TextType.BESTSCORE, data -> "Best Score: " + (int) data.getBestScore());
+        FORMATTERS.put(TextType.SCORE, data -> "Score: " + (int) data.getScore());
+        FORMATTERS.put(TextType.LIVES, data -> "Vies: " + (int) data.getLives());
+        FORMATTERS.put(TextType.TIME, data -> {
+            int minutes = (int) (data.getElapsedTime() / 60);
+            int seconds = (int) (data.getElapsedTime() % 60);
+            return String.format("Temps: %02d:%02d", minutes, seconds);
+        });
+        FORMATTERS.put(TextType.BALLS, data -> "Balles: " + (int) data.getBallsFired());
+        FORMATTERS.put(TextType.ENEMIES, data -> "Ennemis: " + (int) data.getEnemiesKilled());
+        FORMATTERS.put(TextType.FPS, data -> "FPS: " + (int) data.getFPS());
+        FORMATTERS.put(TextType.POSITION, data -> {
+            float[] pos = data.getPlayerPosition();
+            return String.format("Position: %.1f / %.1f / %.1f", pos[0], pos[1], pos[2]);
+        });
+        FORMATTERS.put(TextType.ORIENTATION, data -> {
+            float[] ori = data.getPlayerOrientation();
+            return String.format("Orientation: %.1f / %.1f / %.1f", ori[0], ori[1], ori[2]);
+        });
+        FORMATTERS.put(TextType.ACTIVE_BALLS, data -> {
+            float[] b = data.getActiveBalls();
+            return "Balles actives: " + (int) b[0] + "/" + (int) b[1];
+        });
+        FORMATTERS.put(TextType.ACTIVE_ENEMIES, data -> {
+            float[] e = data.getActiveEnemies();
+            return "Ennemis actifs: " + (int) e[0] + "/" + (int) e[1];
+        });
+        FORMATTERS.put(TextType.DISTANCE_TARGET, data ->
+                String.format("Distance cible: %.1f", data.getDistanceTarget()));
     }
 
     private final TextType type;
@@ -78,54 +119,13 @@ public class TextHUD {
     public VerticalAlignment getVAlign() { return vAlign; }
 
     public String getText(GameData data) {
-        if (type == null) return getText();
-        switch (type) {
-            case SPEED:
-                return String.format("Vitesse: %.1f", data.getSpeed());
-            case VERSION:
-                return "Version: " + data.getVersion();
-            case TOTALSCORE:
-                return "Total Score: " + (int) data.getTotalScore();
-            case BESTSCORE:
-                return "Best Score: " + (int) data.getBestScore();
-            case SCORE:
-                return "Score: " + (int) data.getScore();
-            case LIVES:
-                return "Vies: " + (int) data.getLives();
-            case TIME: {
-                int minutes = (int) (data.getElapsedTime() / 60);
-                int seconds = (int) (data.getElapsedTime() % 60);
-                return String.format("Temps: %02d:%02d", minutes, seconds);
-            }
-            case BALLS:
-                return "Balles: " + (int) data.getBallsFired();
-            case ENEMIES:
-                return "Ennemis: " + (int) data.getEnemiesKilled();
-            case FPS:
-                return "FPS: " + (int) data.getFPS();
-            case POSITION: {
-                float[] pos = data.getPlayerPosition();
-                return String.format("Position: %.1f / %.1f / %.1f", pos[0], pos[1], pos[2]);
-            }
-            case ORIENTATION: {
-                float[] ori = data.getPlayerOrientation();
-                return String.format("Orientation: %.1f / %.1f / %.1f", ori[0], ori[1], ori[2]);
-            }
-            case ACTIVE_BALLS: {
-                float[] b = data.getActiveBalls();
-                return "Balles actives: " + (int) b[0] + "/" + (int) b[1];
-            }
-            case ACTIVE_ENEMIES: {
-                float[] e = data.getActiveEnemies();
-                return "Ennemis actifs: " + (int) e[0] + "/" + (int) e[1];
-            }
-            case DISTANCE_TARGET:
-                return String.format("Distance cible: %.1f", data.getDistanceTarget());
-        }
-        return getText();
+        if (type == null) return getStaticText();
+        Function<GameData, String> formatter = FORMATTERS.get(type);
+        if (formatter != null) return formatter.apply(data);
+        return getStaticText();
     }
 
-    private String getText() {
+    private String getStaticText() {
         return text != null ? text : "Aucun texte : " + type;
     }
 
@@ -149,5 +149,29 @@ public class TextHUD {
 
         return mouseX >= x && mouseX <= x + w &&
                 mouseY >= y && mouseY <= y + h;
+    }
+
+    public static class Builder {
+        private final TextType type;
+        private String text;
+        private HorizontalAlignment hAlign;
+        private VerticalAlignment vAlign;
+        private float scale = 1.0f;
+        private float r = 1f, g = 1f, b = 1f;
+        private boolean debugActive = false;
+
+        public Builder(TextType type) { this.type = type; }
+        public Builder text(String text) { this.text = text; return this; }
+        public Builder hAlign(HorizontalAlignment hAlign) { this.hAlign = hAlign; return this; }
+        public Builder vAlign(VerticalAlignment vAlign) { this.vAlign = vAlign; return this; }
+        public Builder scale(float scale) { this.scale = scale; return this; }
+        public Builder color(float r, float g, float b) { this.r = r; this.g = g; this.b = b; return this; }
+        public Builder debug(boolean debug) { this.debugActive = debug; return this; }
+
+        public TextHUD build() {
+            TextHUD hud = new TextHUD(type, hAlign, vAlign, scale, r, g, b, debugActive);
+            hud.text = text;
+            return hud;
+        }
     }
 }
