@@ -4,28 +4,36 @@ import learngl.tools.camera.Camera;
 import org.joml.Vector3f;
 
 public class GestionnaireVue {
-    private ModeVue modeActuel = ModeVue.PREMIERE_PERSONNE;
 
-    public void suivant() {
-        int prochain = (modeActuel.ordinal() + 1) % ModeVue.values().length;
-        modeActuel = ModeVue.values()[prochain];
+    public enum ModeVue {
+        PREMIERE_PERSONNE {
+            public Vector3f params() { return new Vector3f(); }
+        },
+        TROISIEME_PERSONNE {
+            public Vector3f params() { return new Vector3f(3.0f, 1.0f, 0); }
+        };
+
+        public abstract Vector3f params();
+
+        public ModeVue suivant(int pas) {
+            ModeVue[] vals = values();
+            return vals[((ordinal() + pas) % vals.length + vals.length) % vals.length];
+        }
     }
 
+    private ModeVue modeActuel = ModeVue.PREMIERE_PERSONNE;
+
     public void mettreAJour(Camera camera, Vector3f posJoueur) {
-        switch (modeActuel) {
-            case PREMIERE_PERSONNE:
-                camera.setPosition(posJoueur);
-                break;
-            case TROISIEME_PERSONNE: {
-                float distance = modeActuel.donnees().params().x;
-                float hauteur = modeActuel.donnees().params().y;
-                Vector3f offset = new Vector3f(camera.getFront())
-                        .negate().mul(distance)
-                        .add(0, hauteur, 0);
-                camera.setPosition(new Vector3f(posJoueur).add(offset));
-                break;
-            }
-        }
+        mettreAJour(camera, posJoueur, 1);
+    }
+
+    public void mettreAJour(Camera camera, Vector3f posJoueur, int pas) {
+        modeActuel = modeActuel.suivant(pas);
+        Vector3f p = modeActuel.params();
+        Vector3f offset = new Vector3f(camera.getFront())
+                .negate().mul(p.x)
+                .add(0, p.y, 0);
+        camera.setPosition(new Vector3f(posJoueur).add(offset));
     }
 
     public boolean estPremierePersonne() {

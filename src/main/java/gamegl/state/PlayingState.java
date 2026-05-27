@@ -175,7 +175,7 @@ public class PlayingState extends GameState {
                 null, null));
         touches.add(new Touche(GLFW_KEY_U, () -> hud.setDebugMode(!hud.getDebugMode()), null, null));
 
-        touches.add(new Touche(GLFW_KEY_V, () -> gestionnaireVue.suivant(), null, null));
+        touches.add(new Touche(GLFW_KEY_V, () -> gestionnaireVue.mettreAJour(camera, joueur.getPosition()), null, null));
 
         commande.setTouches(touches);
     }
@@ -185,7 +185,7 @@ public class PlayingState extends GameState {
         commande.update();
 
         cameraPhysics.update(joueur.getPosition(), camera, deltaTime);
-        gestionnaireVue.mettreAJour(camera, joueur.getPosition());
+        gestionnaireVue.mettreAJour(camera, joueur.getPosition(), 0);
 
         joueur.update(deltaTime, camera);
         joueur.setVisible(!gestionnaireVue.estPremierePersonne());
