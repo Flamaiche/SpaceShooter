@@ -20,7 +20,4 @@ Idée de futur update :
 - vue 3eme personne :
     - camera derriere le joueur
 - bugs connus à corriger :
-    - Ennemis.mutation() jamais appelé (deltaTime % 6 == 0 sur un float)
-    - Ennemis.touched() spawn à {300,300,300} au lieu de la position du joueur
-    - PausedState souris cassée (double cursor callback)
     - fuites mémoire shaders (jamais cleanup dans les états)
