@@ -11,12 +11,20 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Utilitaire de lecture et écriture de données JSON et de fichiers bruts.
+ */
 public class GetDonnee {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static final String DATA_DIR = System.getProperty("user.dir") + File.separator + "data" + File.separator;
 
-    // Écrire une liste d'objets dans un JSON (mise à jour si doublons)
+    /**
+     * Écrit une liste d'objets dans un fichier JSON, en mettant à jour les doublons existants.
+     *
+     * @param nomFichier      nom du fichier de destination
+     * @param nouvellesDonnees liste des objets à écrire
+     */
     public static void writeJson(String nomFichier, ArrayList<?> nouvellesDonnees) {
         File dir = new File(DATA_DIR);
         if (!dir.exists()) dir.mkdirs();
@@ -26,8 +34,8 @@ public class GetDonnee {
 
         for (Object nouvelleDonnee : nouvellesDonnees) {
             int index = donneesExistantes.indexOf(nouvelleDonnee);
-            if (index != -1) donneesExistantes.set(index, nouvelleDonnee); // remplace si existe
-            else donneesExistantes.add(nouvelleDonnee); // sinon ajoute
+            if (index != -1) donneesExistantes.set(index, nouvelleDonnee);
+            else donneesExistantes.add(nouvelleDonnee);
         }
 
         String typeName = nouvellesDonnees.isEmpty() ? "Unknown" : nouvellesDonnees.get(0).getClass().getName();
@@ -42,7 +50,13 @@ public class GetDonnee {
         }
     }
 
-    // Lire une liste d'objets depuis un JSON
+    /**
+     * Lit une liste d'objets depuis un fichier JSON.
+     *
+     * @param nomFichier nom du fichier à lire
+     * @return liste d'objets, ou null si le fichier n'existe pas
+     * @param <T> type des objets
+     */
     public static <T> List<T> readJson(String nomFichier) {
         File file = new File(DATA_DIR + nomFichier);
         if (!file.exists()) return null;
@@ -62,7 +76,12 @@ public class GetDonnee {
         }
     }
 
-    // Lire un fichier texte brut
+    /**
+     * Lit le contenu brut d'un fichier texte.
+     *
+     * @param filename nom du fichier à lire
+     * @return contenu du fichier, ou un message d'erreur
+     */
     public static String readFile(String filename) {
         File file = new File(DATA_DIR + filename);
         if (!file.exists()) return "Fichier non trouvé : " + filename;

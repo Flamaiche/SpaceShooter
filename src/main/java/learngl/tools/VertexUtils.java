@@ -1,11 +1,26 @@
 package learngl.tools;
 
+/**
+ * Utility class for vertex data manipulation.
+ * Provides methods to convert between vertex formats and to transform
+ * logical (screen-space) coordinates into normalized device coordinates.
+ */
 public final class VertexUtils {
 
+    /**
+     * The number of float components per vertex: 3 position + 3 color + 2 texture coordinates.
+     */
     public static final int FLOATS_PER_VERTEX = 8;
 
     private VertexUtils() {}
 
+    /**
+     * Expands a position-only vertex array (x, y, z) into the full vertex format
+     * by adding default white color (1, 1, 1) and leaving texture coordinates as 0.
+     *
+     * @param vertices array of (x, y, z) triplets
+     * @return a new array in the format [x, y, z, 1, 1, 1, 0, 0]
+     */
     public static float[] autoAddSlotColor(float[] vertices) {
         int vertexCount = vertices.length / 3;
         float[] full = new float[vertexCount * FLOATS_PER_VERTEX];
@@ -20,6 +35,13 @@ public final class VertexUtils {
         return full;
     }
 
+    /**
+     * Expands a position+color vertex array (x, y, z, r, g, b) into the full
+     * vertex format by adding default texture coordinates (0, 0).
+     *
+     * @param vertices array of (x, y, z, r, g, b) sextuplets
+     * @return a new array in the format [x, y, z, r, g, b, 0, 0]
+     */
     public static float[] autoAddSlotTexture(float[] vertices) {
         int vertexCount = vertices.length / 6;
         float[] full = new float[vertexCount * FLOATS_PER_VERTEX];
@@ -36,6 +58,15 @@ public final class VertexUtils {
         return full;
     }
 
+    /**
+     * Converts vertex data from logical (screen-space) pixel coordinates to
+     * normalized device coordinates (range [-1, 1]).
+     *
+     * @param logicalVertices vertex data in logical pixel coordinates
+     * @param logicalWidth    the logical reference width
+     * @param logicalHeight   the logical reference height
+     * @return a new array with normalized coordinates
+     */
     public static float[] convertLogicalToNormalized(float[] logicalVertices, int logicalWidth, int logicalHeight) {
         float[] normalized = new float[logicalVertices.length];
         int vertexCount = logicalVertices.length / FLOATS_PER_VERTEX;

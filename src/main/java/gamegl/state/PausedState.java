@@ -4,7 +4,7 @@ import gamegl.entites.ennemis.Ennemis;
 import gamegl.entites.ennemis.EnnemisBasic;
 import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.TextHUD;
-import gamegl.utils.PreVerticesTable;
+import learngl.tools.shape.PreVerticesTable;
 import learngl.tools.commandes.Commande;
 import learngl.tools.Shader;
 import learngl.tools.commandes.Touche;
@@ -15,6 +15,12 @@ import static gamegl.gestion.texte.TextManager.uniformTextScale;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
+/**
+ * The paused state shown when the game is interrupted.
+ * Displays a menu (CONTINUER, RECOMMENCER, QUITTER) and renders
+ * decorative fake enemies rotating in the background.
+ * Supports both mouse and keyboard navigation with camera orbit control.
+ */
 public class PausedState extends GameState {
     private ArrayList<TextHUD> texts;
     private String[] textMenu = {"CONTINUER", "RECOMMENCER", "QUITTER"};
@@ -23,13 +29,20 @@ public class PausedState extends GameState {
     private Ennemis[] listeFakeEnnemis;
     private int indexSelection;
 
-    // Gestion du curseur / orbite
     private boolean mouseLocked = true;
     private boolean firstMouseInput = true;
     private double lastMouseX;
     private double lastMouseY;
     private final float mouseSensitivity = 0.1f;
 
+    /**
+     * Constructs the paused state, loading shaders and generating fake enemies.
+     *
+     * @param commande the command handler for input
+     * @param data     the shared game data
+     * @param width    the initial window width
+     * @param height   the initial window height
+     */
     public PausedState(Commande commande, GameData data, int width, int height) {
         super(commande, data, width, height);
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
@@ -41,6 +54,13 @@ public class PausedState extends GameState {
     }
 
     @Override
+    /**
+     * Initializes the paused state, including input bindings, HUD, and mouse callbacks.
+     *
+     * @param commande the command handler for input
+     * @param width    the window width
+     * @param height   the window height
+     */
     public void init(Commande commande, int width, int height) {
         firstMouseInput = true;
         texts = new ArrayList<>();
@@ -52,7 +72,6 @@ public class PausedState extends GameState {
     }
 
     private void initMouseCallbacks() {
-        // Callback pour suivre la souris et mettre à jour la sélection
         glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
             if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) return;
 
@@ -68,14 +87,15 @@ public class PausedState extends GameState {
 
 
     @Override
+    /**
+     * Initializes keyboard and mouse input bindings for the pause menu.
+     * Locks the cursor and sets up camera orbit via mouse movement.
+     */
     public void initTouches() {
         ArrayList<Touche> touches = new ArrayList<>();
 
-        // Verrouillage du curseur au début
-
         glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        // Callback mouvement souris
         glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
             if (!mouseLocked) return;
             if (firstMouseInput) {
@@ -91,14 +111,11 @@ public class PausedState extends GameState {
                     (float)(deltaY * mouseSensitivity));
         });
 
-        // Callback perte focus
         glfwSetWindowFocusCallback(commande.getWindow(), (window, focused) -> {
             if (!focused) firstMouseInput = true;
         });
 
-        // Reprendre
         touches.add(new Touche(GLFW_KEY_ESCAPE, () -> actionBySelection(0), null, null));
-        // Retour menu
         touches.add(new Touche(GLFW_KEY_ENTER, () -> actionBySelection(indexSelection), null, null));
         touches.add(new Touche(GLFW_KEY_UP, () -> indexSelection--, null, null));
         touches.add(new Touche(GLFW_KEY_DOWN, () -> indexSelection++, null, null));
@@ -108,6 +125,9 @@ public class PausedState extends GameState {
     }
 
     @Override
+    /**
+     * Initializes the HUD text elements for the pause menu.
+     */
     public void initHud() {
         for (String t : textMenu)
             texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER, (float)(uniformTextScale*1.2), 1.0f, 1.0f, 1.0f));
@@ -115,6 +135,11 @@ public class PausedState extends GameState {
         hud.setTexts(texts);
     }
 
+    /**
+     * Performs the action associated with the given menu selection index.
+     *
+     * @param indexSelection the selected menu index (0 = CONTINUER, 1 = RECOMMENCER, 2 = QUITTER)
+     */
     public void actionBySelection(int indexSelection) {
         switch (indexSelection) {
             case 0 -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PLAY);
@@ -123,20 +148,22 @@ public class PausedState extends GameState {
         }
     }
 
+    /**
+     * Updates the HUD, normalizing the selection index and highlighting the selected item.
+     *
+     * @param deltaTime time elapsed since the last update
+     */
     public void updateHUD(float deltaTime) {
-        // normalise l'index
         indexSelection = ((indexSelection % textMenu.length) + textMenu.length) % textMenu.length;
 
         for (int i = 0; i < texts.size(); i++) {
             TextHUD t = texts.get(i);
 
             if (i == indexSelection) {
-                // texte sélectionné : plus grand et couleur jaune
                 t.setText(">> " + textMenu[i]);
                 t.setScale((float)(uniformTextScale * 2.5));
                 t.setRGB(1.0f, 1.0f, 0f);
             } else {
-                // textes non sélectionnés : scale normal
                 t.setText(textMenu[i]);
                 t.setScale(uniformTextScale * 1.2f);
                 t.setRGB(1.0f, 1.0f, 1.0f);
@@ -146,6 +173,11 @@ public class PausedState extends GameState {
     }
 
     @Override
+    /**
+     * Updates the paused state: processes input, updates HUD, and updates fake enemies.
+     *
+     * @param deltaTime time elapsed since the last update
+     */
     public void update(float deltaTime) {
         commande.update();
         updateHUD(deltaTime);
@@ -155,6 +187,9 @@ public class PausedState extends GameState {
     }
 
     @Override
+    /**
+     * Renders the pause menu background, HUD text, and fake enemies in 3D.
+     */
     public void render() {
         glClearColor(0.2f, 0.2f, 0.2f, 1f);
         hud.render(textShader);
@@ -168,6 +203,12 @@ public class PausedState extends GameState {
         super.cleanup();
     }
 
+    /**
+     * Generates a fake enemy for decorative background rendering.
+     *
+     * @param speed the movement speed of the generated enemy
+     * @return a new Ennemis instance
+     */
     public Ennemis generateEnnemis(int speed) {
         Ennemis e = new EnnemisBasic(ennemisShader, new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z}, PreVerticesTable.generateCubeSimple(1f), camera);
         e.setSpeed(speed);

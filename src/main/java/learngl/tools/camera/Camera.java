@@ -1,4 +1,4 @@
-package learngl.tools;
+package learngl.tools.camera;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -13,7 +13,7 @@ public class Camera {
 
     private float yaw;
     private float pitch;
-    private float roll; // degrees
+    private float roll;
     private float fov;
 
     private boolean orbitMode = false;
@@ -55,7 +55,11 @@ public class Camera {
         orbitController.init(position, new Vector3f(0, 0, 0));
     }
 
-    // ---------------- Orbit Mode ----------------
+    /**
+     * Activates or deactivates orbit mode. When entering orbit, the camera
+     * attaches to the orbit controller around the current target. When exiting,
+     * the camera's yaw/pitch are derived from the direction toward the target.
+     */
     public void setOrbitMode(boolean active) {
         if (active == orbitMode) return;
         if (active) {
@@ -76,7 +80,9 @@ public class Camera {
 
     public boolean isOrbitMode() { return orbitMode; }
 
-    // ---------------- Roll ----------------
+    /**
+     * Enables or disables roll. Enabling resets the current roll angle to zero.
+     */
     public void setRollEnabled(boolean active) {
         rollEnabled = active;
         roll = 0f;
@@ -97,7 +103,12 @@ public class Camera {
 
     public float getRoll() { return roll; }
 
-    // ---------------- View / Projection ----------------
+    /**
+     * Computes the view matrix using a look-at transformation from the camera's
+     * current position, looking in the front direction. In orbit mode the axes
+     * are recalculated to face the orbit target first. If roll is enabled and
+     * non-zero, the up vector is rotated around the front axis.
+     */
     public Matrix4f getViewMatrix() {
         if (orbitMode) updateAxesToTarget();
 
@@ -113,11 +124,15 @@ public class Camera {
         return new Matrix4f().perspective((float) Math.toRadians(fov), aspect, 0.1f, renderDistance);
     }
 
-    // ---------------- Movement / Rotation ----------------
     public void move(Vector3f offset) {
         if (!orbitMode) position.add(offset);
     }
 
+    /**
+     * Rotates the camera by the given yaw/pitch offsets. In orbit mode the
+     * rotation is delegated to the orbit controller, which rotates around the
+     * target point and writes the result directly into the camera position.
+     */
     public void rotate(float offsetYaw, float offsetPitch) {
         if (!orbitMode) {
             yaw += offsetYaw;
@@ -131,7 +146,6 @@ public class Camera {
         }
     }
 
-    // ---------------- Axes Calculation ----------------
     private void updateAxes() {
         AxesCalculator.fromYawPitch(yaw, pitch, worldUp, front, right, up);
     }
@@ -140,14 +154,15 @@ public class Camera {
         AxesCalculator.fromTarget(position, orbitController.getTarget(), worldUp, front, right, up);
     }
 
-    // ---------------- Getters / Setters ----------------
     public Vector3f getPosition() { return new Vector3f(position); }
+    public void setPosition(Vector3f pos) { position.set(pos); }
     public Vector3f getFront() { return new Vector3f(front); }
     public Vector3f getRight() { return new Vector3f(right); }
     public Vector3f getUp() { return new Vector3f(up); }
 
     public float getYaw() { return yaw; }
     public float getPitch() { return pitch; }
+
     public void setYawPitch(float yawDeg, float pitchDeg) {
         yaw = yawDeg;
         pitch = pitchDeg;

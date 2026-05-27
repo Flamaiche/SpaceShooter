@@ -1,12 +1,12 @@
 package gamegl.entites;
 
 import gamegl.entites.balls.Balls;
-import learngl.tools.Camera;
+import learngl.tools.shape.PreVerticesTable;
+import learngl.tools.camera.Camera;
 import learngl.tools.commandes.Commande;
 import learngl.tools.Shader;
-import learngl.tools.Shape;
+import learngl.tools.shape.Shape;
 import learngl.tools.VertexUtils;
-import gamegl.utils.PreVerticesTable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -19,39 +19,47 @@ public class Joueur extends Entity {
     private Shader shader;
     private Matrix4f modelMatrix;
     private int vie;
+    private Vector3f position;
+    private boolean visible = true;
 
-    private Camera camera;
     public Commande cmd;
 
-    public Joueur(Shader shader, Camera camera, Commande cmd, float tailleCorps) {
-        this.camera = camera;
+    public Joueur(Shader shader, Commande cmd, float tailleCorps) {
         this.cmd = cmd;
+        this.position = new Vector3f(0, 0, 0);
 
-        this.corps = new Shape(VertexUtils.autoAddSlotColor(PreVerticesTable.generateCubeSimple(tailleCorps)));
+        this.corps = new Shape(VertexUtils.autoAddSlotColor(PreVerticesTable.generatePlayerShip(tailleCorps)));
         this.corps.setShader(shader);
 
         this.shader = shader;
-        this.modelMatrix = new Matrix4f().identity().translate(camera.getPosition());
+        this.modelMatrix = new Matrix4f().identity().translate(position);
 
         this.vie = 3;
     }
 
-    public void update(float deltaTime) {
+    @Override
+    public void update(float deltaTime) {}
+
+    public void update(float deltaTime, Camera camera) {
         cmd.update();
 
-        Vector3f pos = camera.getPosition();
-        float yaw   = camera.getYaw();
-        float pitch = camera.getPitch();
-        float roll  = camera.getRoll();
+        Vector3f front = camera.getFront();
+        Vector3f up = camera.getUp();
+
+        if (front.lengthSquared() < 1e-6f) front.set(0, 0, -1);
+        if (up.lengthSquared() < 1e-6f) up.set(0, 1, 0);
+
+        Matrix4f rot = new Matrix4f()
+                .lookAt(new Vector3f(0, 0, 0), new Vector3f(front), new Vector3f(up))
+                .invert();
 
         modelMatrix.identity()
-                .translate(pos)
-                .rotateX((float) Math.toRadians(pitch))
-                .rotateY((float) Math.toRadians(yaw))
-                .rotateZ((float) Math.toRadians(roll));
+                .translate(position)
+                .mul(rot);
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
+        if (!visible) return;
         if (!corps.isVisible(projection, view, modelMatrix)) return;
 
         shader.bind();
@@ -65,6 +73,8 @@ public class Joueur extends Entity {
 
         shader.unbind();
     }
+
+    public void setVisible(boolean v) { visible = v; }
 
     public void cleanup() {
         corps.cleanup();
@@ -80,12 +90,13 @@ public class Joueur extends Entity {
         return null;
     }
 
-    // --- Gestion de la vie ---
     public void setVie(int v) { vie = v; }
     public int getVie() { return vie; }
     public void decrementVie() { if (vie > 0) vie--; }
 
-    // --- Utilitaires ---
     public Matrix4f getModelMatrix() { return modelMatrix; }
     public Shape getBody() { return corps; }
+    public Vector3f getPosition() { return position; }
+
+    public void setPosition(Vector3f pos) { position.set(pos); }
 }

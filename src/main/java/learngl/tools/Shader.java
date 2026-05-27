@@ -10,6 +10,11 @@ import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL20.*;
 
+/**
+ * Manages the lifecycle of an OpenGL shader program consisting of a vertex
+ * and a fragment shader. Shader source code is loaded from resource files,
+ * compiled, linked, and exposed via uniform setter methods.
+ */
 public class Shader {
     private int programId;
     private int vertexShaderId;
@@ -18,6 +23,13 @@ public class Shader {
     private String vertexCode;
     private String fragmentCode;
 
+    /**
+     * Loads, compiles, and links a shader program from the given vertex and
+     * fragment shader resource paths.
+     *
+     * @param vertexPath   the classpath resource path for the vertex shader source
+     * @param fragmentPath the classpath resource path for the fragment shader source
+     */
     public Shader(String vertexPath, String fragmentPath) {
         vertexCode = readFileFromResources(vertexPath);
         fragmentCode = readFileFromResources(fragmentPath);
@@ -41,12 +53,16 @@ public class Shader {
         }
     }
 
+    /**
+     * Returns the OpenGL program ID of this shader.
+     *
+     * @return the program handle
+     */
     public int getProgramId() {
         return programId;
     }
 
     private void compile() {
-        // Vertex shader
         vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShaderId, vertexCode);
         glCompileShader(vertexShaderId);
@@ -54,7 +70,6 @@ public class Shader {
             throw new RuntimeException("Erreur compilation vertex shader : " + glGetShaderInfoLog(vertexShaderId));
         }
 
-        // Fragment shader
         fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragmentShaderId, fragmentCode);
         glCompileShader(fragmentShaderId);
@@ -62,7 +77,6 @@ public class Shader {
             throw new RuntimeException("Erreur compilation fragment shader : " + glGetShaderInfoLog(fragmentShaderId));
         }
 
-        // Programme
         programId = glCreateProgram();
         glAttachShader(programId, vertexShaderId);
         glAttachShader(programId, fragmentShaderId);
@@ -73,14 +87,23 @@ public class Shader {
         }
     }
 
+    /**
+     * Activates this shader program for rendering.
+     */
     public void bind() {
         glUseProgram(programId);
     }
 
+    /**
+     * Deactivates the current shader program.
+     */
     public void unbind() {
         glUseProgram(0);
     }
 
+    /**
+     * Detaches and deletes the shader objects and program from OpenGL.
+     */
     public void cleanup() {
         unbind();
         glDetachShader(programId, vertexShaderId);
@@ -90,6 +113,12 @@ public class Shader {
         glDeleteProgram(programId);
     }
 
+    /**
+     * Sets a 4x4 matrix uniform in the shader.
+     *
+     * @param name   the uniform variable name
+     * @param matrix the matrix value
+     */
     public void setUniformMat4f(String name, Matrix4f matrix) {
         int location = glGetUniformLocation(programId, name);
         if (location != -1) {
@@ -99,6 +128,12 @@ public class Shader {
         }
     }
 
+    /**
+     * Sets a float uniform in the shader.
+     *
+     * @param name  the uniform variable name
+     * @param value the float value
+     */
     public void setUniform1f(String name, float value) {
         int location = glGetUniformLocation(programId, name);
         if (location != -1) {
@@ -106,6 +141,13 @@ public class Shader {
         }
     }
 
+    /**
+     * Sets a vec2 uniform in the shader.
+     *
+     * @param name the uniform variable name
+     * @param x    the first component
+     * @param y    the second component
+     */
     public void setUniform2f(String name, float x, float y) {
         int location = glGetUniformLocation(programId, name);
         if (location != -1) {
@@ -113,6 +155,14 @@ public class Shader {
         }
     }
 
+    /**
+     * Sets a vec3 uniform in the shader.
+     *
+     * @param name the uniform variable name
+     * @param x    the first component
+     * @param y    the second component
+     * @param z    the third component
+     */
     public void setUniform3f(String name, float x, float y, float z) {
         int location = glGetUniformLocation(programId, name);
         if (location != -1) {

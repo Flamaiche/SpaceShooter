@@ -6,12 +6,13 @@ import gamegl.entites.balls.BallsBasic;
 import gamegl.entites.ennemis.Ennemis;
 import gamegl.entites.ennemis.EnnemisBasic;
 import gamegl.gestion.donnees.GameData;
-import gamegl.gestion.CameraPhysics;
 import gamegl.gestion.Manager2D;
 import gamegl.gestion.Manager3D;
+import learngl.tools.camera.CameraPhysics;
+import learngl.tools.camera.vue.GestionnaireVue;
+import learngl.tools.shape.PreVerticesTable;
 import gamegl.gestion.texte.TextHUD;
-import gamegl.utils.PreVerticesTable;
-import learngl.tools.*;
+import learngl.tools.Shader;
 import learngl.tools.commandes.ComboTouche;
 import learngl.tools.commandes.Commande;
 import learngl.tools.commandes.Touche;
@@ -38,20 +39,17 @@ public class PlayingState extends GameState {
     private int score, ballsFiredTotal, enemiesKilledTotal;
     private final int MAX_BALLS = 20;
 
-    // Physique du déplacement
     private final CameraPhysics cameraPhysics = new CameraPhysics();
+    private final GestionnaireVue gestionnaireVue = new GestionnaireVue();
 
-    // Rotation / roll
     private final float vitesseRotation = 1.0f;
     private final float rollSpeed = 1.0f;
 
-    // Souris
     private boolean mouseLocked = true;
     private boolean firstMouseInput = true;
     private double lastMouseX, lastMouseY;
     private final float mouseSensitivity = 0.1f;
 
-    // Autres
     private double shootCooldown = 0.5;
     private int nbEnnemis = 35;
     private final Manager3D manager3D = new Manager3D();
@@ -59,22 +57,24 @@ public class PlayingState extends GameState {
     private Touche alt;
     private Touche shift;
 
+    /**
+     * @param width  initial window width
+     * @param height initial window height
+     */
     public PlayingState(Commande commande, GameData data, int width, int height) {
         super(commande, data, width, height);
         camera.resetValues();
 
         score = ballsFiredTotal = enemiesKilledTotal = 0;
 
-        // Shaders
         ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
         ballShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
         crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
-        // Joueur
-        joueur = new Joueur(ballShader, camera, commande, 0.25f);
+        joueur = new Joueur(ballShader, commande, 0.25f);
+        joueur.setPosition(camera.getPosition());
 
-        // Ennemis
         Ennemis.setDespawnDistance(camera.getRenderSimulation());
         ennemis = new ArrayList<>();
         for (int i = 0; i < nbEnnemis; i++) {
@@ -84,7 +84,7 @@ public class PlayingState extends GameState {
                     PreVerticesTable.generateCubeSimple(1f),
                     camera
             );
-            float speed = 2.5f * (0.85f + (float)Math.random() * 0.5f); //2.5f *0.85 <= speed <= 2.5f *(0.85+0.5) == 2.125 <= speed <= 3.375
+            float speed = 2.5f * (0.85f + (float)Math.random() * 0.5f);
             if (i > 10) {
                 for (int puissance = 0; puissance < i/10; puissance++)
                     speed += speed*1.5f;
@@ -93,12 +93,10 @@ public class PlayingState extends GameState {
             ennemis.add(e);
         }
 
-        // Balles
         Balls.setMaxDistance(camera.getRenderSimulation());
         balls = new ArrayList<>();
         for (int i = 0; i < MAX_BALLS; i++) balls.add(new BallsBasic(ballShader, 0.35f));
 
-        // UI
         uiElements = new ArrayList<>();
         crosshair = new Crosshair(crosshairShader, camera);
         uiElements.add(crosshair);
@@ -121,7 +119,6 @@ public class PlayingState extends GameState {
         ArrayList<Touche> touches = new ArrayList<>();
         glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        // MOUVEMENT SOURIS
         glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
             if (!mouseLocked) return;
             if (firstMouseInput) {
@@ -140,12 +137,10 @@ public class PlayingState extends GameState {
             if (!focused) firstMouseInput = true;
         });
 
-        // TOUCHES
         touches.add(new Touche(GLFW_KEY_TAB, null,
                 () -> camera.setOrbitMode(false),
                 () -> camera.setOrbitMode(true)));
 
-        // ALT + Roll
         alt = new Touche(GLFW_KEY_LEFT_ALT, null, null, null);
         touches.add(alt);
         touches.add(new ComboTouche(alt, GLFW_KEY_Q, null, null, () -> camera.addRoll(-rollSpeed)));
@@ -153,7 +148,6 @@ public class PlayingState extends GameState {
         touches.add(new ComboTouche(alt, GLFW_KEY_R, () -> camera.setRoll(0), null, null));
         touches.add(new ComboTouche(alt, GLFW_KEY_L, () -> camera.setRollEnabled(!camera.isRollEnabled()), null, null));
 
-        // Déplacements (avec inertie fluide)
         touches.add(new Touche(GLFW_KEY_W, null, null, () -> cameraPhysics.addFront(1, camera)));
         touches.add(new Touche(GLFW_KEY_S, null, null, () -> cameraPhysics.addFront(-1, camera)));
         touches.add(new Touche(GLFW_KEY_D, null, null, () -> cameraPhysics.addRight(1, camera)));
@@ -161,12 +155,10 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_SPACE, null, null, () -> cameraPhysics.addUp(1, camera)));
         touches.add(new Touche(GLFW_KEY_LEFT_CONTROL, null, null, () -> cameraPhysics.addUp(-1, camera)));
 
-        // Rotation flèches
         touches.add(new Touche(GLFW_KEY_LEFT, null, null, () -> camera.rotate(-vitesseRotation, 0f)));
         touches.add(new Touche(GLFW_KEY_RIGHT, null, null, () -> camera.rotate(vitesseRotation, 0f)));
         touches.add(new Touche(GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation)));
         touches.add(new Touche(GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation)));
-
 
         shift = new Touche(GLFW_KEY_LEFT_SHIFT, null, null, null);
         touches.add(shift);
@@ -175,15 +167,15 @@ public class PlayingState extends GameState {
         touches.add(new ComboTouche(shift, GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation/2.0f)));
         touches.add(new ComboTouche(shift, GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation/2.0f)));
 
-        // Tir
         touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()));
         touches.add(new Touche(GLFW_KEY_GRAVE_ACCENT, null, null, () -> shoot()));
 
-        // Pause / Debug
         touches.add(new Touche(GLFW_KEY_ESCAPE,
                 () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE),
                 null, null));
         touches.add(new Touche(GLFW_KEY_U, () -> hud.setDebugMode(!hud.getDebugMode()), null, null));
+
+        touches.add(new Touche(GLFW_KEY_V, () -> gestionnaireVue.suivant(), null, null));
 
         commande.setTouches(touches);
     }
@@ -191,9 +183,21 @@ public class PlayingState extends GameState {
     @Override
     public void update(float deltaTime) {
         commande.update();
-        cameraPhysics.update(camera, deltaTime);
 
-        int point = manager3D.updateAll(ennemis, balls, joueur, deltaTime, camera.getPosition());
+        cameraPhysics.update(joueur.getPosition(), camera, deltaTime);
+        gestionnaireVue.mettreAJour(camera, joueur.getPosition());
+
+        joueur.update(deltaTime, camera);
+        joueur.setVisible(!gestionnaireVue.estPremierePersonne());
+        Entity collised = joueur.checkCollision(new ArrayList<Entity>(ennemis));
+        if (collised != null) {
+            joueur.decrementVie();
+            if (collised instanceof Ennemis) {
+                score += ((Ennemis) collised).touched();
+            }
+        }
+
+        int point = manager3D.updateAll(ennemis, balls, deltaTime, camera.getPosition());
         if (point > 0) {
             score += point;
             enemiesKilledTotal++;
@@ -220,7 +224,7 @@ public class PlayingState extends GameState {
         data.setLives(joueur.getVie());
         data.setBallsFired(ballsFiredTotal);
         data.setEnemiesKilled(enemiesKilledTotal);
-        data.setPlayerPosition(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+        data.setPlayerPosition(joueur.getPosition().x, joueur.getPosition().y, joueur.getPosition().z);
         data.setPlayerOrientation(camera.getPitch(), camera.getYaw(), camera.getRoll());
         data.setActiveBalls(activeBalls, balls.size());
         data.setActiveEnemies(activeEnemies, ennemis.size());
@@ -239,14 +243,13 @@ public class PlayingState extends GameState {
         Matrix4f view = camera.getViewMatrix();
         Matrix4f projection = camera.getProjection(width, height);
 
+        joueur.render(view, projection);
         manager3D.renderAll(ennemis, balls, view, projection);
 
         Matrix4f ortho = new Matrix4f().ortho2D(-1, 1, -1, 1);
         manager2D.renderAll(uiElements, ortho);
 
         hud.render(textShader);
-
-        joueur.render(view, projection);
     }
 
     @Override
@@ -262,11 +265,9 @@ public class PlayingState extends GameState {
         if (currentTime - lastTime < shootCooldown) return;
         lastTime = currentTime;
 
-        Vector3f rayOrigin = crosshair.getRayOrigin();
         Vector3f rayDir = crosshair.getRayDir();
 
-        // Point de spawn légèrement devant la caméra (pour éviter les collisions internes)
-        Vector3f spawnPos = new Vector3f(rayOrigin).add(new Vector3f(rayDir).mul(0.8f));
+        Vector3f spawnPos = new Vector3f(joueur.getPosition()).add(new Vector3f(rayDir).mul(0.8f));
 
         for (Balls b : balls) {
             if (!b.isActive()) {
@@ -276,7 +277,6 @@ public class PlayingState extends GameState {
             }
         }
     }
-
 
     public void initHud() {
         texts = new ArrayList<>();

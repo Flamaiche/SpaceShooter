@@ -1,8 +1,22 @@
 package learngl.tools.commandes;
 
+/**
+ * A composite key binding that is active only when a modifier Touche AND
+ * a secondary key are both pressed simultaneously.
+ */
 public class ComboTouche extends Touche {
     private Touche t1;
 
+    /**
+     * Creates a combo binding requiring the given modifier Touche and a
+     * secondary key to be pressed together.
+     *
+     * @param t1              the modifier Touche that must also be held
+     * @param key             the secondary GLFW key constant
+     * @param onPressAction   action on combo press
+     * @param onReleaseAction action on combo release
+     * @param onHoldAction    action each frame while combo is held
+     */
     public ComboTouche(Touche t1, int key, Runnable onPressAction, Runnable onReleaseAction, Runnable onHoldAction) {
         super(key, onPressAction, onReleaseAction, onHoldAction);
         this.t1 = t1;
@@ -10,7 +24,6 @@ public class ComboTouche extends Touche {
 
     @Override
     public boolean update(long window) {
-        // Le combo est actif si t1 ET la touche principale sont pressées
         boolean comboActive = t1.isPressed(window) && isPressed(window);
         boolean inAction = false;
 

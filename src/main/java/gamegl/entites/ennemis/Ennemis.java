@@ -1,9 +1,9 @@
 package gamegl.entites.ennemis;
 
 import gamegl.entites.Entity;
-import learngl.tools.Camera;
+import learngl.tools.camera.Camera;
 import learngl.tools.Shader;
-import learngl.tools.Shape;
+import learngl.tools.shape.Shape;
 import learngl.tools.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -13,6 +13,11 @@ import java.util.*;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11C.*;
 
+/**
+ * Abstract base class for enemy entities.
+ * Handles spawning, movement, respawning after death, rendering with highlight outlines,
+ * and random mutation of speed, size, and respawn time.
+ */
 public abstract class Ennemis extends Entity {
     protected static Random rand = new Random();
     protected float spawnSize = 10f;
@@ -37,6 +42,14 @@ public abstract class Ennemis extends Entity {
 
     protected final int moduloMutationDeltaTime = 6;
 
+    /**
+     * Constructs an enemy with the given shader, player-centered spawn area, shape vertices, and camera.
+     *
+     * @param shader        the shader used for rendering
+     * @param centerPlayer  the player's position {x, y, z} used as spawn origin
+     * @param verticesShape the vertex data defining the enemy's shape
+     * @param camera        the camera (unused in constructor but kept for subclasses)
+     */
     public Ennemis(Shader shader, float[] centerPlayer, float[] verticesShape, Camera camera) {
         corps = new Shape(VertexUtils.autoAddSlotColor(verticesShape));
         corps.setShader(shader);
@@ -46,6 +59,11 @@ public abstract class Ennemis extends Entity {
         updateModelMatrix();
     }
 
+    /**
+     * Sets a random spawn position and target direction relative to the player.
+     *
+     * @param centerPlayer the player's position as {x, y, z}
+     */
     public void setDeplacement(float[] centerPlayer) {
         float[] coors = generateSpawn(centerPlayer[0], centerPlayer[1], centerPlayer[2]);
         position = new Vector3f(coors[0], coors[1], coors[2]);
@@ -57,6 +75,14 @@ public abstract class Ennemis extends Entity {
         updateModelMatrix();
     }
 
+    /**
+     * Generates a random spawn position within a cube around the player, excluding a central exclusion zone.
+     *
+     * @param playerX the player's X position
+     * @param playerY the player's Y position
+     * @param playerZ the player's Z position
+     * @return an array {x, y, z} with the absolute spawn coordinates
+     */
     public float[] generateSpawn(float playerX, float playerY, float playerZ) {
         float x,y,z;
         do {
@@ -69,28 +95,38 @@ public abstract class Ennemis extends Entity {
         return new float[]{playerX + x,playerY + y,playerZ + z};
     }
 
+    /**
+     * Checks whether the enemy should despawn based on distance from the camera.
+     *
+     * @param cameraPos the camera's position
+     * @return true if the enemy is beyond despawn distance
+     */
     public boolean shouldDespawn(Vector3f cameraPos) {
         return position.distance(cameraPos) > despawnDistance;
     }
 
+    /**
+     * Updates the enemy: triggers mutation periodically, handles death/respawn timing,
+     * and updates the model matrix.
+     *
+     * @param deltaTime time elapsed since the last update
+     */
     public void update(float deltaTime) {
         if (deltaTime%moduloMutationDeltaTime == 0) mutation();
         if (vie <= 0) {
             if (deathTime < 0) {
-                deathTime = (float) glfwGetTime(); // on note le moment de la mort
+                deathTime = (float) glfwGetTime();
                 respawn_time = rand.nextFloat(RESPAWN_TIME_MAX - RESPAWN_TIME_MIN + 1) + RESPAWN_TIME_MIN;
             } else {
                 float currentTime = (float) glfwGetTime();
                 if (currentTime - deathTime >= respawn_time) {
                     resetVie();
-                    deathTime = -1f; // on réinitialise
+                    deathTime = -1f;
                 }
             }
-            return; // pas de déplacement tant qu'il est mort
+            return;
         }
 
-        //Vector3f deplace = new Vector3f(direction).mul(speed * deltaTime);
-        //position.add(deplace);
         updateModelMatrix();
     }
 
@@ -98,6 +134,12 @@ public abstract class Ennemis extends Entity {
         modelMatrix.identity().translate(position);
     }
 
+    /**
+     * Renders the enemy. If highlighted, draws a red wireframe outline on top.
+     *
+     * @param view       the view matrix
+     * @param projection the projection matrix
+     */
     public void render(Matrix4f view, Matrix4f projection) {
         if (vie <= 0) return;
         if (!corps.isVisible(projection, view, modelMatrix)) {
@@ -131,6 +173,11 @@ public abstract class Ennemis extends Entity {
         shader.unbind();
     }
 
+    /**
+     * Called when the enemy is hit. Decrements health and returns score if killed.
+     *
+     * @return the score value if the enemy dies, or 0 otherwise
+     */
     public int touched() {
         decrementVie();
         if (getVie() <= 0) {
@@ -140,6 +187,7 @@ public abstract class Ennemis extends Entity {
         return 0;
     }
 
+    /** Releases the shape resources. */
     public void cleanup() { corps.cleanup(); }
 
     public Shape getBody() { return corps; }
@@ -150,15 +198,39 @@ public abstract class Ennemis extends Entity {
     public float getDespawnDistance() { return despawnDistance; }
     public void setHighlighted(boolean h) { highlighted = h; }
 
+    /**
+     * Sets the despawn distance for all enemy instances.
+     *
+     * @param d the despawn distance
+     */
     public static void setDespawnDistance(float d) { despawnDistance = d; }
+
+    /**
+     * Sets the movement speed for this enemy.
+     *
+     * @param s the speed value
+     */
     public void setSpeed(float s) { speed = s; }
 
+    /**
+     * Returns whether this enemy is currently highlighted.
+     *
+     * @return true if highlighted
+     */
     public boolean isHighlighted() {
         return highlighted;
     }
 
+    /**
+     * Returns the current position of this enemy.
+     *
+     * @return the position vector
+     */
     public Vector3f getPosition() { return position;}
 
+    /**
+     * Applies random mutations to speed, size, and respawn time with defined probabilities.
+     */
     public void mutation() {
         float MUTATIONVITESSE = 0.02f;
         float MUTATIONTAILLE = 0.02f;
@@ -181,7 +253,6 @@ public abstract class Ennemis extends Entity {
             respawn_time *= Math.min(0.00001f, 1f - rand.nextFloat());
 
         if (testMutation(MUTATIONSHAPE)) {
-            // muter en fonction des sous classes de Ennemis
         }
     }
 
@@ -189,6 +260,11 @@ public abstract class Ennemis extends Entity {
         return rand.nextFloat() * 100 < chance;
     }
 
+    /**
+     * Returns the maximum health value for this enemy type.
+     *
+     * @return the maximum health
+     */
     public int getMAX_VIE() {
         return MAX_VIE;
     }

@@ -1,15 +1,20 @@
 package gamegl.entites;
 
 import gamegl.entites.ennemis.Ennemis;
-import learngl.tools.Camera;
+import learngl.tools.camera.Camera;
 import learngl.tools.Shader;
-import learngl.tools.Shape;
+import learngl.tools.shape.Shape;
 import learngl.tools.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import static org.lwjgl.opengl.GL11C.*;
 
+/**
+ * A 2D crosshair overlay rendered on screen.
+ * Includes a dynamic gap that widens based on the player's movement speed,
+ * and raycasting to highlight the targeted enemy.
+ */
 public class Crosshair extends Entity2D {
 
     private final Shape shapeCross;
@@ -26,9 +31,14 @@ public class Crosshair extends Entity2D {
     private final float espaceCentral = 0.02f;
     private final float epaisseurLigne = 0.005f;
 
-    // Nouvelle variable pour la vitesse du joueur
     private float playerSpeed = 0f;
 
+    /**
+     * Constructs a Crosshair with the given shader and camera.
+     *
+     * @param shader the shader used for rendering the crosshair
+     * @param camera the camera used for orientation and roll
+     */
     public Crosshair(Shader shader, Camera camera) {
         this.shader = shader;
         this.camera = camera;
@@ -42,6 +52,11 @@ public class Crosshair extends Entity2D {
         shapeOblique.setShader(shader);
     }
 
+    /**
+     * Updates the player speed used to dynamically adjust the crosshair gap.
+     *
+     * @param velocity the player's velocity vector
+     */
     public void setPlayerSpeed(Vector3f velocity) {
         this.playerSpeed = velocity.length();
     }
@@ -116,6 +131,12 @@ public class Crosshair extends Entity2D {
     }
 
     @Override
+    /**
+     * Renders the crosshair overlay. Disables depth testing so the crosshair
+     * always appears on top. Applies camera roll rotation and aspect ratio scaling.
+     *
+     * @param orthoProjection the orthographic projection matrix
+     */
     public void render(Matrix4f orthoProjection) {
         boolean depth = glIsEnabled(GL_DEPTH_TEST);
         if (depth) glDisable(GL_DEPTH_TEST);
@@ -142,6 +163,12 @@ public class Crosshair extends Entity2D {
         if (depth) glEnable(GL_DEPTH_TEST);
     }
 
+    /**
+     * Updates the crosshair dimensions and dynamic gap based on window size and player speed.
+     *
+     * @param width  the current window width
+     * @param height the current window height
+     */
     public void update(int width, int height) {
         lastWidth = width;
         lastHeight = height;
@@ -152,7 +179,6 @@ public class Crosshair extends Entity2D {
         float epaisseur = (minDim / 600f) * epaisseurLigne;
         float baseGap = (minDim / 600f) * espaceCentral;
 
-        // Écart dynamique selon la vitesse du joueur
         float maxSpeed = 17.5f;
         float normalizedSpeed = Math.min(playerSpeed / maxSpeed, 1f);
         float dynamicGap = baseGap * (1f + normalizedSpeed * 3f);
@@ -161,6 +187,11 @@ public class Crosshair extends Entity2D {
         shapeOblique.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur*2.5f)));
     }
 
+    /**
+     * Raycasts against all enemies and highlights the closest one under the crosshair.
+     *
+     * @param ennemis the list of enemies to check
+     */
     public void updateHighlightedEnemy(java.util.ArrayList<Ennemis> ennemis) {
         for (Ennemis e : ennemis) e.setHighlighted(false);
 
@@ -187,10 +218,20 @@ public class Crosshair extends Entity2D {
         shapeOblique.cleanup();
     }
 
+    /**
+     * Returns a copy of the ray origin used for targeting.
+     *
+     * @return the ray origin vector
+     */
     public Vector3f getRayOrigin() {
         return new Vector3f(rayOrigin);
     }
 
+    /**
+     * Returns a copy of the ray direction used for targeting.
+     *
+     * @return the ray direction vector
+     */
     public Vector3f getRayDir() {
         return new Vector3f(rayDir);
     }

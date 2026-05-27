@@ -1,13 +1,25 @@
-package learngl.tools;
+package learngl.tools.camera;
 
 import org.joml.Vector3f;
 
+/**
+ * Controls a camera or object that orbits around a target point using
+ * spherical coordinates (theta, phi, radius). Supports rotation via yaw/pitch
+ * offsets and reset to default state.
+ */
 public final class OrbitController {
     private final Vector3f target = new Vector3f(0, 0, 0);
     private float theta;
     private float phi;
     private float radius = 1f;
 
+    /**
+     * Initializes the orbit controller from a position and target, computing
+     * the initial spherical coordinates. Clamps the radius to a minimum of 0.1.
+     *
+     * @param position the initial position
+     * @param newTarget the orbit target point
+     */
     public void init(Vector3f position, Vector3f newTarget) {
         target.set(newTarget);
         Vector3f rel = new Vector3f(position).sub(target);
@@ -18,6 +30,14 @@ public final class OrbitController {
         phi = (float) Math.asin(rel.y);
     }
 
+    /**
+     * Applies yaw and pitch offset rotations and writes the resulting orbital
+     * position into outPosition. The pitch is clamped to [-90, 90] degrees.
+     *
+     * @param offsetYawDeg   the yaw offset in degrees
+     * @param offsetPitchDeg the pitch offset in degrees
+     * @param outPosition    output vector receiving the new position
+     */
     public void rotate(float offsetYawDeg, float offsetPitchDeg, Vector3f outPosition) {
         theta += Math.toRadians(offsetYawDeg);
         phi += Math.toRadians(offsetPitchDeg);
@@ -34,10 +54,19 @@ public final class OrbitController {
         outPosition.z = target.z + radius * cosPhi * sinTh;
     }
 
+    /**
+     * Returns a copy of the current orbit target.
+     *
+     * @return a new Vector3f representing the target
+     */
     public Vector3f getTarget() {
         return new Vector3f(target);
     }
 
+    /**
+     * Resets the orbit controller to its default state: target at origin,
+     * angles at zero, radius at 1.
+     */
     public void reset() {
         target.set(0, 0, 0);
         theta = 0;
