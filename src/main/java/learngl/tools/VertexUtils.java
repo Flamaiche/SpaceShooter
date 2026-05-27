@@ -24,14 +24,14 @@ public final class VertexUtils {
         int vertexCount = vertices.length / 6;
         float[] full = new float[vertexCount * FLOATS_PER_VERTEX];
         for (int i = 0; i < vertexCount; i++) {
-            full[i * 8]     = vertices[i * 6];
-            full[i * 8 + 1] = vertices[i * 6 + 1];
-            full[i * 8 + 2] = vertices[i * 6 + 2];
-            full[i * 8 + 3] = vertices[i * 6 + 3];
-            full[i * 8 + 4] = vertices[i * 6 + 4];
-            full[i * 8 + 5] = vertices[i * 6 + 5];
-            full[i * 8 + 6] = 0f;
-            full[i * 8 + 7] = 0f;
+            full[i * FLOATS_PER_VERTEX]     = vertices[i * 6];
+            full[i * FLOATS_PER_VERTEX + 1] = vertices[i * 6 + 1];
+            full[i * FLOATS_PER_VERTEX + 2] = vertices[i * 6 + 2];
+            full[i * FLOATS_PER_VERTEX + 3] = vertices[i * 6 + 3];
+            full[i * FLOATS_PER_VERTEX + 4] = vertices[i * 6 + 4];
+            full[i * FLOATS_PER_VERTEX + 5] = vertices[i * 6 + 5];
+            full[i * FLOATS_PER_VERTEX + 6] = 0f;
+            full[i * FLOATS_PER_VERTEX + 7] = 0f;
         }
         return full;
     }
