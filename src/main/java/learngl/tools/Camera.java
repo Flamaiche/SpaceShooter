@@ -73,9 +73,13 @@ public class Camera {
             initOrbitFromCurrentState();
             updateAxesToTarget();
         } else {
-            Vector3f dir = new Vector3f(target).sub(position).normalize();
-            pitch = (float) Math.toDegrees(Math.asin(dir.y));
-            yaw = (float) Math.toDegrees(Math.atan2(dir.z, dir.x));
+            Vector3f dir = new Vector3f(target).sub(position);
+            if (dir.lengthSquared() > 1e-8f) {
+                dir.normalize();
+                pitch = (float) Math.toDegrees(Math.asin(dir.y));
+                yaw = (float) Math.toDegrees(Math.atan2(dir.z, dir.x));
+                yaw = ((yaw % 360) + 360) % 360;
+            }
             updateAxes();
         }
         orbitMode = active;
@@ -129,13 +133,13 @@ public class Camera {
         if (!orbitMode) {
             yaw += offsetYaw;
             pitch += offsetPitch;
-            pitch = Math.max(-89.9f, Math.min(89.9f, pitch));
+            pitch = Math.max(-90f, Math.min(90f, pitch));
             yaw = ((yaw % 360) + 360) % 360;
             updateAxes();
         } else {
             orbitTheta += Math.toRadians(offsetYaw);
             orbitPhi += Math.toRadians(offsetPitch);
-            float limit = (float) (Math.PI / 2 - 0.001);
+            float limit = (float) (Math.PI / 2);
             orbitPhi = Math.max(-limit, Math.min(limit, orbitPhi));
 
             float cosPhi = (float)Math.cos(orbitPhi);
