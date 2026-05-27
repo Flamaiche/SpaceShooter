@@ -28,7 +28,7 @@ public class Joueur extends Entity {
         this.cmd = cmd;
         this.position = new Vector3f(0, 0, 0);
 
-        this.corps = new Shape(VertexUtils.autoAddSlotColor(PreVerticesTable.generatePlayerShip(tailleCorps)));
+        this.corps = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(tailleCorps)));
         this.corps.setShader(shader);
 
         this.shader = shader;
@@ -68,7 +68,6 @@ public class Joueur extends Entity {
         shader.setUniformMat4f("model", modelMatrix);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        corps.setColor(0f, 1f, 0f);
         corps.render();
 
         shader.unbind();

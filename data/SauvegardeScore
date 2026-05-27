@@ -162,6 +162,213 @@
       "ballsFired": 0.0,
       "enemiesKilled": 0.0,
       "elapsedTime": 37.74823
+    },
+    {
+      "date": "2026-05-27",
+      "time": "15:50:31.937415165",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 2.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 37.752846
+    },
+    {
+      "date": "2026-05-27",
+      "time": "15:52:39.388630520",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 7.7347655
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:12:14.973314415",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 7.4367127
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:15:14.423594541",
+      "version": "A1.1",
+      "score": 50.0,
+      "ballsFired": 36.0,
+      "enemiesKilled": 5.0,
+      "elapsedTime": 39.111126
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:17:57.482157436",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 19.60368
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:22:50.833932357",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 10.8410425
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:28:31.075616239",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 21.601683
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:36:47.948609349",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 5.0899587
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:38:01.101849739",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 18.107534
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:45:29.163508401",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 19.537851
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:47:09.804008144",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 5.269503
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:49:17.041368368",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 15.711907
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:51:50.303418119",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 8.0235
+    },
+    {
+      "date": "2026-05-27",
+      "time": "16:57:43.861764792",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 5.9867682
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:07:06.709276165",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 21.605297
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:14:22.080506443",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 51.97952
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:15:22.899762324",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 12.339247
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:16:01.245298763",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 3.888566
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:18:27.631776822",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 10.259842
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:20:44.228297869",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 13.093852
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:24:00.646164555",
+      "version": "A1.1",
+      "score": 50.0,
+      "ballsFired": 89.0,
+      "enemiesKilled": 5.0,
+      "elapsedTime": 65.437996
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:26:45.990265209",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 7.5708323
+    },
+    {
+      "date": "2026-05-27",
+      "time": "17:27:39.591630043",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 1.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 27.656094
     }
   ]
 }
