@@ -1,6 +1,6 @@
-package gamegl.gestion;
+package learngl.tools.camera;
 
-import learngl.tools.Camera;
+import learngl.tools.camera.Camera;
 import org.joml.Vector3f;
 
 public class CameraPhysics {
@@ -23,7 +23,7 @@ public class CameraPhysics {
         moveDirection.add(new Vector3f(camera.getUp()).mul(amount));
     }
 
-    public void update(Camera camera, float deltaTime) {
+    public void update(Vector3f position, Camera camera, float deltaTime) {
         if (camera.isOrbitMode()) return;
 
         if (moveDirection.lengthSquared() > 0) {
@@ -46,7 +46,7 @@ public class CameraPhysics {
         }
 
         if (velocity.lengthSquared() > 0)
-            camera.move(new Vector3f(velocity).mul(deltaTime));
+            position.add(new Vector3f(velocity).mul(deltaTime));
 
         moveDirection.zero();
     }

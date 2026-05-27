@@ -15,6 +15,10 @@ import static gamegl.gestion.texte.TextManager.uniformTextScale;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
+/**
+ * The main menu state displaying menu options (JOUER, PARAMETRE, QUITTER)
+ * with animated text effects and mouse/keyboard navigation.
+ */
 public class MainMenuState extends GameState {
 
     private ArrayList<TextHUD> texts;
@@ -25,10 +29,17 @@ public class MainMenuState extends GameState {
     private int indexSelection;
     private float rotationRadius = 175;
 
-    // Liste globale des textes animés
     private ArrayList<AnimatedText> animatedTexts = new ArrayList<>();
-    private TextManager animatedTextManager; // Manager unique pour tous les AnimatedText
+    private TextManager animatedTextManager;
 
+    /**
+     * Constructs the main menu state.
+     *
+     * @param commande the command handler for input
+     * @param data     the shared game data
+     * @param width    the initial window width
+     * @param height   the initial window height
+     */
     public MainMenuState(Commande commande, GameData data, int width, int height) {
         super(commande, data, width, height);
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
@@ -36,6 +47,13 @@ public class MainMenuState extends GameState {
     }
 
     @Override
+    /**
+     * Initializes the menu state, including input bindings, HUD, and mouse callbacks.
+     *
+     * @param commande the command handler for input
+     * @param width    the window width
+     * @param height   the window height
+     */
     public void init(Commande commande, int width, int height) {
         texts = new ArrayList<>();
         super.init(commande, width, height);
@@ -60,6 +78,9 @@ public class MainMenuState extends GameState {
     }
 
     @Override
+    /**
+     * Initializes keyboard and mouse input bindings for menu navigation.
+     */
     public void initTouches() {
         ArrayList<Touche> touches = new ArrayList<>();
         touches.add(new Touche(GLFW_KEY_UP, () -> indexSelection--, null, null));
@@ -71,8 +92,11 @@ public class MainMenuState extends GameState {
     }
 
     @Override
+    /**
+     * Initializes the HUD text elements, including static menu items, score/version display,
+     * and animated text (selection highlight and decorative stars).
+     */
     public void initHud() {
-        // Menu fixe
         for (String t : textMenu) {
             texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER,
                     (float) (uniformTextScale * 1.2), 1.0f, 1.0f, 1.0f));
@@ -83,7 +107,6 @@ public class MainMenuState extends GameState {
                 uniformTextScale, 1.0f, 1.0f, 1.0f));
         hud.setTexts(texts);
 
-        // AnimatedText HELLO (position 0)
         AnimatedText MenuText = new AnimatedText(
                 textMenu[indexSelection],
                 uniformTextScale * 1.5f,
@@ -92,11 +115,9 @@ public class MainMenuState extends GameState {
                 width / 2.0, height / 2.0,
                 0.5,
                 (time, amplitude, cx, cy, tps, i) -> {
-                    // Espacement horizontal pour chaque lettre
                     double letterSpacing = 20;
                     double x = cx + (i - textMenu[indexSelection].length() / 2.0) * letterSpacing;
 
-                    // Position y selon la vague
                     double y = cy + amplitude * Math.sin(time * 2 + i * tps);
 
                     return new double[]{x, y};
@@ -106,7 +127,6 @@ public class MainMenuState extends GameState {
         );
         animatedTexts.add(MenuText);
 
-        // Étoiles rouges animées en cercle (solution 2)
         String starsText = "*****";
         int nbStars = starsText.length();
         AnimatedText stars = new AnimatedText(
@@ -123,12 +143,16 @@ public class MainMenuState extends GameState {
         );
         animatedTexts.add(stars);
 
-        // Ajouter toutes les lettres de tous les AnimatedText au manager centralisé
         for (AnimatedText at : animatedTexts) {
             animatedTextManager.getTexts().addAll(at.getLetters());
         }
     }
 
+    /**
+     * Performs the action associated with the given menu selection index.
+     *
+     * @param indexSelection the selected menu index (0 = JOUER, 1 = PARAMETRE, 2 = QUITTER)
+     */
     public void actionBySelection(int indexSelection) {
         switch (indexSelection) {
             case 0 -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.NEWPLAY);
@@ -157,7 +181,6 @@ public class MainMenuState extends GameState {
     private void updateAnimatedTexts(double deltaTime) {
         animatedTextManager.getTexts().clear();
 
-        // HELLO dynamique (position 0)
         animatedTexts.get(0).setText(textMenu[indexSelection]);
 
         for (AnimatedText at : animatedTexts) {
@@ -167,6 +190,11 @@ public class MainMenuState extends GameState {
     }
 
     @Override
+    /**
+     * Updates the menu state, including selection highlighting and animated text.
+     *
+     * @param deltaTime time elapsed since the last update
+     */
     public void update(float deltaTime) {
         commande.update();
         updateMenuSelection();
@@ -176,6 +204,9 @@ public class MainMenuState extends GameState {
     }
 
     @Override
+    /**
+     * Renders the menu background, HUD text, and animated text elements.
+     */
     public void render() {
         glClearColor(0f, 0f, 0f, 1f);
         hud.render(textShader);
@@ -183,6 +214,9 @@ public class MainMenuState extends GameState {
     }
 
     @Override
+    /**
+     * Releases resources held by this menu state.
+     */
     public void cleanup() {
         super.cleanup();
     }

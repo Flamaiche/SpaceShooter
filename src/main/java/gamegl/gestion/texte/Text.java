@@ -11,6 +11,9 @@ import static org.lwjgl.opengl.GL30.*;
 
 import learngl.tools.Shader;
 
+/**
+ * Gestion de l'affichage de texte avec OpenGL et STB Easy Font.
+ */
 public class Text {
     private static int vao, vbo;
     private static boolean initialized = false;
@@ -35,6 +38,18 @@ public class Text {
         return textBuffer;
     }
 
+    /**
+     * Dessine un texte à l'écran.
+     *
+     * @param shader le shader à utiliser
+     * @param text   le texte à afficher
+     * @param x      position X
+     * @param y      position Y
+     * @param scale  échelle du texte
+     * @param r      composante rouge de la couleur
+     * @param g      composante verte de la couleur
+     * @param b      composante bleue de la couleur
+     */
     public static void drawText(Shader shader, String text,
                                 float x, float y, float scale,
                                 float r, float g, float b) {
@@ -81,6 +96,13 @@ public class Text {
         glEnable(GL_DEPTH_TEST);
     }
 
+    /**
+     * Calcule les dimensions du texte après rendu.
+     *
+     * @param text  le texte à mesurer
+     * @param scale échelle du texte
+     * @return tableau {largeur, hauteur} du texte après mise à l'échelle
+     */
     public static float[] getTextExtent(String text, float scale) {
         if (text == null || text.isEmpty()) return new float[]{0f, 0f};
 
@@ -101,6 +123,9 @@ public class Text {
         return new float[]{maxX * scale, (maxY - minY) * scale};
     }
 
+    /**
+     * Libère les ressources OpenGL allouées pour le texte.
+     */
     public static void cleanup() {
         if (!initialized) return;
         glDeleteBuffers(vbo);

@@ -4,6 +4,7 @@ import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.Text;
 import gamegl.state.GameStateManager;
 import learngl.tools.*;
+import learngl.tools.camera.Camera;
 import learngl.tools.commandes.Commande;
 import learngl.tools.commandes.Touche;
 import org.joml.Vector3f;
@@ -26,6 +27,11 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
 
+/**
+ * Main entry point for the Space Shooter game application.
+ * Initializes GLFW, creates a window, sets up the game loop with delta-time
+ * updates, and manages global input (e.g. cursor lock toggle).
+ */
 public class SpaceShooter {
 
     private long window;
@@ -35,6 +41,10 @@ public class SpaceShooter {
     private static String gameVersion = "A1.1";
     public static String filenameSaveScore = "SauvegardeScore";
 
+    /**
+     * Runs the game: prints the LWJGL version, initialises the window, reads the
+     * latest version from a file, enters the main loop, and cleans up the window.
+     */
     public void run() {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
         init();
@@ -42,7 +52,6 @@ public class SpaceShooter {
         System.out.println("gameVersion : " + gameVersion);
         loop();
 
-        // cleanup fenêtre
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -73,7 +82,6 @@ public class SpaceShooter {
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
-        // callback viewport
         glfwSetFramebufferSizeCallback(window, (win, newWidth, newHeight) -> {
             width = newWidth;
             height = newHeight;
@@ -85,7 +93,6 @@ public class SpaceShooter {
         glEnable(GL_DEPTH_TEST);
         glViewport(0, 0, width, height);
 
-        // centrer fenêtre (pas sur Wayland)
         if (!isWayland) {
             try (MemoryStack stack = stackPush()) {
                 IntBuffer pWidth = stack.mallocInt(1);
@@ -98,7 +105,6 @@ public class SpaceShooter {
                         (vidmode.height() - pHeight.get(0)) / 2
                 );
             } catch (Exception ignored) {
-                // Certains compositors Wayland/Weston ne supportent pas
             }
         }
 
@@ -140,10 +146,15 @@ public class SpaceShooter {
         Text.cleanup();
     }
 
+    /**
+     * Registers global input bindings. Currently binds CAPS_LOCK to toggle
+     * between cursor-disabled (locked) and cursor-normal (unlocked) modes.
+     *
+     * @param commandeGlobal the global command manager
+     */
     public void touchesGlobal(Commande commandeGlobal) {
         ArrayList<Touche> touches = new ArrayList<>();
 
-        // CAPS_LOCK -> lock/unlock souris
         touches.add(new Touche(GLFW_KEY_CAPS_LOCK,
                 () -> {
                     if (mouseLocked) {
@@ -160,6 +171,11 @@ public class SpaceShooter {
         commandeGlobal.setTouches(touches);
     }
 
+    /**
+     * Returns the current game version string.
+     *
+     * @return the version identifier
+     */
     public static String getGameVersion() {
         return gameVersion;
     }
@@ -201,6 +217,11 @@ public class SpaceShooter {
         }
     }
 
+    /**
+     * Program entry point.
+     *
+     * @param args command-line arguments (unused)
+     */
     public static void main(String[] args) {
         new SpaceShooter().run();
     }

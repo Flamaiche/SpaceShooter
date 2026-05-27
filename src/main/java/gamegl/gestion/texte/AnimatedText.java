@@ -4,6 +4,9 @@ import gamegl.gestion.donnees.GameData;
 import learngl.tools.Shader;
 import java.util.ArrayList;
 
+/**
+ * Texte animé dont chaque lettre ou groupe de lettres suit une transformation dynamique.
+ */
 public class AnimatedText {
 
     private ArrayList<TextHUD> letters = new ArrayList<>();
@@ -25,6 +28,26 @@ public class AnimatedText {
 
     private int lettrePack = 1;
 
+    /**
+     * Constructeur d'un texte animé avec alignement horizontal et vertical.
+     *
+     * @param text                  texte à animer
+     * @param scale                 échelle du texte
+     * @param r                     composante rouge
+     * @param g                     composante verte
+     * @param b                     composante bleue
+     * @param radius                rayon de l'animation
+     * @param centerX               centre X
+     * @param centerY               centre Y
+     * @param toursPerSecond        vitesse de rotation
+     * @param transformFunction     fonction de transformation positionnelle
+     * @param initialWindowWidth    largeur initiale de la fenêtre
+     * @param initialWindowHeight   hauteur initiale de la fenêtre
+     * @param lettrePack            nombre de lettres par groupe
+     * @param ha                    alignement horizontal
+     * @param va                    alignement vertical
+     * @param data                  données du jeu
+     */
     public AnimatedText(String text, float scale, float r, float g, float b,
                         double radius, double centerX, double centerY, double toursPerSecond,
                         TextTransformFunction transformFunction,
@@ -37,6 +60,24 @@ public class AnimatedText {
     }
 
 
+    /**
+     * Constructeur d'un texte animé sans alignement explicite.
+     *
+     * @param text                  texte à animer
+     * @param scale                 échelle du texte
+     * @param r                     composante rouge
+     * @param g                     composante verte
+     * @param b                     composante bleue
+     * @param radius                rayon de l'animation
+     * @param centerX               centre X
+     * @param centerY               centre Y
+     * @param toursPerSecond        vitesse de rotation
+     * @param transformFunction     fonction de transformation positionnelle
+     * @param initialWindowWidth    largeur initiale de la fenêtre
+     * @param initialWindowHeight   hauteur initiale de la fenêtre
+     * @param lettrePack            nombre de lettres par groupe
+     * @param data                  données du jeu
+     */
     public AnimatedText(String text, float scale, float r, float g, float b,
                         double radius, double centerX, double centerY, double toursPerSecond,
                         TextTransformFunction transformFunction,
@@ -76,11 +117,23 @@ public class AnimatedText {
         return listHUD;
     }
 
+    /**
+     * Définit le texte à animer, en reconstruisant les groupes de lettres.
+     *
+     * @param text le texte à animer
+     */
     public void setText(String text) {
         this.letters = new ArrayList<>(destructeurText(text));
         this.textManager.setTexts(letters);
     }
 
+    /**
+     * Met à jour la position de chaque lettre selon la fonction de transformation.
+     *
+     * @param deltaTime             temps écoulé depuis la dernière frame
+     * @param currentWindowWidth    largeur actuelle de la fenêtre
+     * @param currentWindowHeight   hauteur actuelle de la fenêtre
+     */
     public void update(double deltaTime, int currentWindowWidth, int currentWindowHeight) {
         time += deltaTime;
 
@@ -108,18 +161,38 @@ public class AnimatedText {
         textManager.update(0f, currentWindowWidth, currentWindowHeight);
     }
 
+    /**
+     * Affiche le texte animé via le gestionnaire de texte.
+     *
+     * @param shader le shader à utiliser
+     */
     public void render(Shader shader) {
         textManager.render(shader);
     }
 
+    /**
+     * Retourne la liste des TextHUD représentant les lettres.
+     *
+     * @return liste des lettres
+     */
     public ArrayList<TextHUD> getLetters() {
         return letters;
     }
 
+    /**
+     * Retourne le gestionnaire de texte interne.
+     *
+     * @return le TextManager
+     */
     public TextManager getTextManager() {
         return textManager;
     }
 
+    /**
+     * Définit le nombre de lettres par groupe.
+     *
+     * @param lettrePack nombre de lettres par groupe
+     */
     public void setLettrePack(int lettrePack) {
         this.lettrePack = lettrePack;
     }

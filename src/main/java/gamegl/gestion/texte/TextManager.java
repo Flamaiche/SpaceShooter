@@ -4,6 +4,9 @@ import gamegl.gestion.donnees.GameData;
 import learngl.tools.Shader;
 import java.util.ArrayList;
 
+/**
+ * Gestionnaire de texte HUD avec support d'alignement et de redimensionnement.
+ */
 public class TextManager {
 
     private final GameData data;
@@ -19,20 +22,40 @@ public class TextManager {
     private int windowWidth;
     private int windowHeight;
 
+    /** Marge par défaut pour l'alignement du texte. */
     public static final float margin = 20f;
+    /** Échelle uniforme par défaut du texte. */
     public static final float uniformTextScale = 1.5f;
 
+    /**
+     * Constructeur du gestionnaire de texte.
+     *
+     * @param data           données du jeu
+     * @param initialWidth   largeur initiale de la fenêtre
+     * @param initialHeight  hauteur initiale de la fenêtre
+     */
     public TextManager(GameData data, int initialWidth, int initialHeight) {
         this.data = data;
         this.windowWidth = initialWidth;
         this.windowHeight = initialHeight;
     }
 
+    /**
+     * Met à jour la taille de la fenêtre.
+     *
+     * @param width  nouvelle largeur
+     * @param height nouvelle hauteur
+     */
     public void setWindowSize(int width, int height) {
         this.windowWidth = width;
         this.windowHeight = height;
     }
 
+    /**
+     * Active ou désactive le mode debug.
+     *
+     * @param debug true pour activer le debug
+     */
     public void setDebugMode(boolean debug) {
         this.debugMode = debug;
         for (TextHUD t : texts) {
@@ -40,17 +63,39 @@ public class TextManager {
         }
     }
 
+    /**
+     * Définit la liste des textes HUD.
+     *
+     * @param texts liste des textes HUD
+     */
     public void setTexts(ArrayList<TextHUD> texts) {
         this.texts = texts;
         setDebugMode(debugMode);
     }
 
+    /**
+     * Retourne la liste des textes HUD.
+     *
+     * @return liste des textes HUD
+     */
     public ArrayList<TextHUD> getTexts() { return texts; }
 
+    /**
+     * Met à jour le gestionnaire avec la taille actuelle de la fenêtre.
+     *
+     * @param deltaTime             temps écoulé depuis la dernière mise à jour
+     * @param currentWindowWidth    largeur actuelle de la fenêtre
+     * @param currentWindowHeight   hauteur actuelle de la fenêtre
+     */
     public void update(float deltaTime, int currentWindowWidth, int currentWindowHeight) {
         setWindowSize(currentWindowWidth, currentWindowHeight);
     }
 
+    /**
+     * Affiche tous les textes HUD triés par alignement.
+     *
+     * @param shader le shader à utiliser
+     */
     public void render(Shader shader) {
         float scaleX = (float) windowWidth / baseWidth;
         float scaleY = (float) windowHeight / baseHeight;
@@ -142,14 +187,29 @@ public class TextManager {
         };
     }
 
+    /**
+     * Retourne la largeur de base pour le calcul d'échelle.
+     *
+     * @return largeur de base
+     */
     public int getBaseWidth() {
         return baseWidth;
     }
 
+    /**
+     * Retourne la hauteur de base pour le calcul d'échelle.
+     *
+     * @return hauteur de base
+     */
     public int getBaseHeight() {
         return baseHeight;
     }
 
+    /**
+     * Retourne l'état du mode debug.
+     *
+     * @return true si le debug est activé
+     */
     public boolean getDebugMode() {
         return debugMode;
     }

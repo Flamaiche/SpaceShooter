@@ -1,9 +1,7 @@
 package gamegl.gestion;
 
-import gamegl.entites.Joueur;
 import gamegl.entites.balls.Balls;
 import gamegl.entites.ennemis.Ennemis;
-import gamegl.entites.Entity;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -11,8 +9,15 @@ import java.util.ArrayList;
 
 public class Manager3D {
 
-    // Update toutes les entités et retourne le score gagné
-    public int updateAll(ArrayList<Ennemis> ennemis, ArrayList<Balls> balls, Joueur joueur, float deltaTime, Vector3f playerPos) {
+    /**
+     * Updates all enemies (including despawn/respawn logic) and active balls.
+     * Ball collision against enemies is evaluated and the cumulative score is returned.
+     *
+     * @param deltaTime frame delta in seconds
+     * @param playerPos current camera/player position used for enemy despawning
+     * @return total score earned this frame from destroyed enemies
+     */
+    public int updateAll(ArrayList<Ennemis> ennemis, ArrayList<Balls> balls, float deltaTime, Vector3f playerPos) {
         int score = 0;
 
         for (Ennemis e : ennemis) {
@@ -20,15 +25,6 @@ public class Manager3D {
                 e.setDeplacement(new float[] {playerPos.x, playerPos.y, playerPos.z});
             }
             e.update(deltaTime);
-        }
-
-        joueur.update(deltaTime);
-        Entity collised = joueur.checkCollision(new ArrayList<Entity>(ennemis));
-        if (collised != null) {
-            joueur.decrementVie();
-            if (collised instanceof Ennemis) {
-                score += ((Ennemis) collised).touched();
-            }
         }
 
         for (Balls b : balls) {

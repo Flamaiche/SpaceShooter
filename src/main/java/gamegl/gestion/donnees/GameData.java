@@ -1,25 +1,24 @@
 package gamegl.gestion.donnees;
 
+/**
+ * Contient toutes les données dynamiques du jeu utilisées par le HUD et les systèmes de sauvegarde.
+ */
 public class GameData {
 
     private String gameVersion = "";
 
-    // --- HUD joueur ---
     private float score = 0f;
     private float lives = 0f;
     private float ballsFired = 0f;
     private float enemiesKilled = 0f;
     private float elapsedTime = 0f;
 
-    // --- Position et orientation ---
-    private float[] playerPosition = new float[3];   // x, y, z
-    private float[] playerOrientation = new float[3]; // pitch, yaw, roll
+    private float[] playerPosition = new float[3];
+    private float[] playerOrientation = new float[3];
 
-    // --- Balls / enemies actifs ---
-    private float[] ballsActive = new float[2];     // active, max
-    private float[] enemiesActive = new float[2];   // active, max
+    private float[] ballsActive = new float[2];
+    private float[] enemiesActive = new float[2];
 
-    // --- Debug ---
     private float distanceTarget = 0f;
     private float fps = 0f;
     private float speed = 0f;
@@ -29,6 +28,9 @@ public class GameData {
 
     public GameData() {}
 
+    /**
+     * Réinitialise toutes les valeurs de jeu à leur état par défaut.
+     */
     public void resetVal() {
         this.score = 0f;
         this.lives = 0f;
@@ -36,20 +38,16 @@ public class GameData {
         this.enemiesKilled = 0f;
         this.elapsedTime = 0f;
 
-        // --- Position et orientation ---
-        this.playerPosition = new float[3];   // x, y, z
-        this.playerOrientation = new float[3]; // pitch, yaw, roll
+        this.playerPosition = new float[3];
+        this.playerOrientation = new float[3];
 
-        // --- Balls / enemies actifs ---
-        this.ballsActive = new float[2];     // active, max
-        this.enemiesActive = new float[2];   // active, max
+        this.ballsActive = new float[2];
+        this.enemiesActive = new float[2];
 
-        // --- Debug ---
         this.distanceTarget = 0f;
         this.fps = 0f;
     }
 
-    // --- Setters / getters HUD joueur ---
     public void setScore(float score) { this.score = score; }
     public float getScore() { return score; }
 
@@ -65,7 +63,13 @@ public class GameData {
     public void setElapsedTime(float elapsedTime) { this.elapsedTime = elapsedTime; }
     public float getElapsedTime() { return elapsedTime; }
 
-    // --- Position et orientation ---
+    /**
+     * Définit la position du joueur.
+     *
+     * @param x coordonnée X
+     * @param y coordonnée Y
+     * @param z coordonnée Z
+     */
     public void setPlayerPosition(float x, float y, float z) {
         playerPosition[0] = x;
         playerPosition[1] = y;
@@ -73,6 +77,13 @@ public class GameData {
     }
     public float[] getPlayerPosition() { return playerPosition; }
 
+    /**
+     * Définit l'orientation du joueur.
+     *
+     * @param pitch tangage
+     * @param yaw   lacet
+     * @param roll  roulis
+     */
     public void setPlayerOrientation(float pitch, float yaw, float roll) {
         playerOrientation[0] = pitch;
         playerOrientation[1] = yaw;
@@ -80,20 +91,30 @@ public class GameData {
     }
     public float[] getPlayerOrientation() { return playerOrientation; }
 
-    // --- Balls / enemies ---
+    /**
+     * Définit le nombre de balles actives et maximum.
+     *
+     * @param active balles actives
+     * @param max    maximum de balles
+     */
     public void setActiveBalls(float active, float max) {
         ballsActive[0] = active;
         ballsActive[1] = max;
     }
     public float[] getActiveBalls() { return ballsActive; }
 
+    /**
+     * Définit le nombre d'ennemis actifs et maximum.
+     *
+     * @param active ennemis actifs
+     * @param max    maximum d'ennemis
+     */
     public void setActiveEnemies(float active, float max) {
         enemiesActive[0] = active;
         enemiesActive[1] = max;
     }
     public float[] getActiveEnemies() { return enemiesActive; }
 
-    // --- Debug ---
     public void setDistanceTarget(float distance) { distanceTarget = distance; }
     public float getDistanceTarget() { return distanceTarget; }
 

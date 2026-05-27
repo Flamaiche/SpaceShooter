@@ -1,14 +1,31 @@
-package learngl.tools;
+package learngl.tools.shape;
 
+import learngl.tools.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+/**
+ * Provides static methods for mesh-level collision detection.
+ * Supports AABB-based broad-phase culling followed by triangle-triangle
+ * intersection tests, as well as ray-mesh intersection queries.
+ */
 public final class MeshCollider {
 
     private static final float EPSILON = 1e-6f;
 
     private MeshCollider() {}
 
+    /**
+     * Tests whether two meshes, each transformed by their respective model matrices,
+     * intersect. First performs an AABB overlap check, then a detailed
+     * triangle-triangle intersection for potentially overlapping triangles.
+     *
+     * @param vertsA vertex data of the first mesh
+     * @param vertsB vertex data of the second mesh
+     * @param modelA model matrix for the first mesh
+     * @param modelB model matrix for the second mesh
+     * @return true if any triangles intersect
+     */
     public static boolean intersectsOptimized(float[] vertsA, float[] vertsB, Matrix4f modelA, Matrix4f modelB) {
         float[] ta = applyTransform(vertsA, modelA);
         float[] tb = applyTransform(vertsB, modelB);
@@ -48,6 +65,17 @@ public final class MeshCollider {
         return false;
     }
 
+    /**
+     * Casts a ray against a transformed mesh and returns the distance to the nearest
+     * triangle hit, or -1 if no intersection is found. Uses AABB culling before
+     * testing individual triangles.
+     *
+     * @param vertices the vertex data of the mesh
+     * @param origin   the ray origin in world space
+     * @param dir      the ray direction in world space
+     * @param model    the model matrix to transform the mesh
+     * @return the distance along the ray to the nearest hit, or -1 if none
+     */
     public static float intersectRayDistance(float[] vertices, Vector3f origin, Vector3f dir, Matrix4f model) {
         float[] transformed = applyTransform(vertices, model);
         int count = transformed.length / VertexUtils.FLOATS_PER_VERTEX;
