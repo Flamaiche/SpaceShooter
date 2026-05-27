@@ -4,6 +4,7 @@ import gamegl.entites.ennemis.Ennemis;
 import learngl.tools.Camera;
 import learngl.tools.Shader;
 import learngl.tools.Shape;
+import learngl.tools.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -32,11 +33,11 @@ public class Crosshair extends Entity2D {
         this.shader = shader;
         this.camera = camera;
 
-        shapeCross = new Shape(Shape.autoAddSlotColor(createCrosshairRectangle(longueurSegment, espaceCentral, epaisseurLigne)));
+        shapeCross = new Shape(VertexUtils.autoAddSlotColor(createCrosshairRectangle(longueurSegment, espaceCentral, epaisseurLigne)));
         shapeCross.setColor(1f, 0f, 1f);
         shapeCross.setShader(shader);
 
-        shapeOblique = new Shape(Shape.autoAddSlotColor(createCrosshairOblique(longueurSegment, espaceCentral, epaisseurLigne)));
+        shapeOblique = new Shape(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueurSegment, espaceCentral, epaisseurLigne)));
         shapeOblique.setColor(1f, 0f, 1f);
         shapeOblique.setShader(shader);
     }
@@ -156,8 +157,8 @@ public class Crosshair extends Entity2D {
         float normalizedSpeed = Math.min(playerSpeed / maxSpeed, 1f);
         float dynamicGap = baseGap * (1f + normalizedSpeed * 3f);
 
-        shapeCross.updatePositions(Shape.autoAddSlotColor(createCrosshairRectangle(longueur, baseGap, epaisseur)));
-        shapeOblique.updatePositions(Shape.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur*2.5f)));
+        shapeCross.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairRectangle(longueur, baseGap, epaisseur)));
+        shapeOblique.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur*2.5f)));
     }
 
     public void updateHighlightedEnemy(java.util.ArrayList<Ennemis> ennemis) {

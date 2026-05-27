@@ -5,6 +5,7 @@ import gamegl.entites.Entity;
 import gamegl.utils.PreVerticesTable;
 import learngl.tools.Shader;
 import learngl.tools.Shape;
+import learngl.tools.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -30,7 +31,7 @@ public abstract class Balls extends Entity {
 
     public Balls(Shader shader, float baseSize) {
         this.shader = shader;
-        corps = new Shape(Shape.autoAddSlotColor(PreVerticesTable.generatePyramid(baseSize)));
+        corps = new Shape(VertexUtils.autoAddSlotColor(PreVerticesTable.generatePyramid(baseSize)));
         corps.setShader(shader);
         corps.setColor(1f,0f,0f);
     }
