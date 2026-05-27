@@ -63,5 +63,5 @@
 | Branche | Refactoring | Statut |
 |---|---|---|
 | `refactoring/camera` | Camera.java → AxesCalculator + OrbitController | ✅ Créée |
-| `refactoring/shape` | Shape.java → MeshCollider + VertexUtils | ⏳ À faire |
+| `refactoring/shape` | Shape.java → MeshCollider + VertexUtils (509→169 lignes) | ✅ Fait, mergé dans dev |
 | `refactoring/text` | Système Text complet | ⏳ À faire |
