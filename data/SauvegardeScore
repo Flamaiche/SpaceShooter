@@ -27,6 +27,15 @@
       "ballsFired": 9.0,
       "enemiesKilled": 3.0,
       "elapsedTime": 20.152525
+    },
+    {
+      "date": "2026-05-27",
+      "time": "11:42:45.421449559",
+      "version": "A1.1",
+      "score": 20.0,
+      "ballsFired": 2.0,
+      "enemiesKilled": 2.0,
+      "elapsedTime": 6.8842697
     }
   ]
 }
