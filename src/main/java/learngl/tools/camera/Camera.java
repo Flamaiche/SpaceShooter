@@ -1,6 +1,7 @@
 package learngl.tools.camera;
 
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 public class Camera {
@@ -16,6 +17,7 @@ public class Camera {
     private float roll;
     private float fov;
 
+    private final Quaternionf orientation = new Quaternionf();
     private boolean orbitMode = false;
     private boolean rollEnabled = false;
 
@@ -137,7 +139,6 @@ public class Camera {
         if (!orbitMode) {
             yaw += offsetYaw;
             pitch += offsetPitch;
-            pitch = Math.max(-90f, Math.min(90f, pitch));
             yaw = ((yaw % 360) + 360) % 360;
             updateAxes();
         } else {
@@ -147,7 +148,14 @@ public class Camera {
     }
 
     private void updateAxes() {
-        AxesCalculator.fromYawPitch(yaw, pitch, worldUp, front, right, up);
+        float yawRad  = (float) Math.toRadians(yaw + 90);
+        float pitchRad = (float) Math.toRadians(pitch);
+        orientation.identity()
+                .rotateY(-yawRad)
+                .rotateX(pitchRad);
+        orientation.positiveX(right);
+        orientation.positiveY(up);
+        orientation.positiveZ(front).negate();
     }
 
     private void updateAxesToTarget() {
