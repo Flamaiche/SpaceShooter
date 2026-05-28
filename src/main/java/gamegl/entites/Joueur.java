@@ -16,12 +16,14 @@ public class Joueur extends Entity {
     private float prevPitch;
     private boolean firstUpdate = true;
     private int frameCount;
+    private float pitchAngle;
 
     private final Matrix4f rotMatrix = new Matrix4f();
 
     private static final float MAX_BIAS = 35f;
     private static final float BANK_FACTOR = 0.08f;
     private static final float PITCH_AMP = 2f;
+    private static final float PITCH_MAX = 85f;
 
     public Joueur(Shape corps) {
         this.corps = corps;
@@ -59,6 +61,7 @@ public class Joueur extends Entity {
                     .lookAt(new Vector3f(0, 0, 0), new Vector3f(shipFront), shipUp)
                     .invert(rotMatrix);
 
+            pitchAngle = clampedPitch;
             prevYaw = yaw;
             prevPitch = pitch;
             firstUpdate = false;
@@ -74,7 +77,14 @@ public class Joueur extends Entity {
                     .rotate((float) Math.toRadians(-dyaw), 0, 1, 0);
             yawRot.mul(rotMatrix, rotMatrix);
 
-            rotMatrix.rotate((float) Math.toRadians(dpitch * PITCH_AMP), 1, 0, 0);
+            float dpitchEff = dpitch * PITCH_AMP;
+            float newPitch = pitchAngle + dpitchEff;
+            if (newPitch > PITCH_MAX)
+                dpitchEff = PITCH_MAX - pitchAngle;
+            else if (newPitch < -PITCH_MAX)
+                dpitchEff = -PITCH_MAX - pitchAngle;
+            pitchAngle += dpitchEff;
+            rotMatrix.rotate((float) Math.toRadians(dpitchEff), 1, 0, 0);
 
             float yawRate = dyaw / deltaTime;
             float bankDeg = Math.max(-MAX_BIAS, Math.min(MAX_BIAS, -yawRate * BANK_FACTOR));
