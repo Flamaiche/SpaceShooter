@@ -31,10 +31,6 @@ public class Joueur extends Entity {
     public void update(float deltaTime) {}
 
     public void update(Camera camera, float deltaTime) {
-        Vector3f up = camera.getUp();
-
-        if (up.lengthSquared() < 1e-6f) up.set(0, 1, 0);
-
         float yaw = camera.getYaw();
         float pitch = camera.getPitch();
 
@@ -57,7 +53,13 @@ public class Joueur extends Entity {
                     Math.max(-MAX_BIAS, Math.min(MAX_BIAS, -yawRate * BANK_FACTOR))
             );
 
-            Vector3f shipUp = new Vector3f(up);
+            Vector3f worldUp = new Vector3f(0, 1, 0);
+            Vector3f right = new Vector3f(shipFront).cross(worldUp);
+            if (right.lengthSquared() < 1e-6f)
+                right.set(1, 0, 0);
+            right.normalize();
+            Vector3f shipUp = new Vector3f(right).cross(shipFront).normalize();
+
             if (Math.abs(bank) > 1e-4f)
                 shipUp.rotateAxis(bank, shipFront.x, shipFront.y, shipFront.z);
 
