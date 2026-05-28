@@ -248,14 +248,23 @@ public class PlayingState extends GameState {
         Matrix4f view = gestionnaireVue.obtenirVue(camera, joueur.getPosition());
         Matrix4f projection = camera.getProjection(width, height);
 
-        if (!gestionnaireVue.estPremierePersonne() && joueur.getBody().isVisible(projection, view, joueur.getModelMatrix())) {
-            ballShader.bind();
-            ballShader.setUniformMat4f("view", view);
-            ballShader.setUniformMat4f("projection", projection);
-            ballShader.setUniformMat4f("model", joueur.getModelMatrix());
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            joueur.getBody().render();
-            ballShader.unbind();
+        if (!gestionnaireVue.estPremierePersonne()) {
+            Vector3f shipFixedPos = new Vector3f(camera.getPosition())
+                    .add(new Vector3f(camera.getFront()).mul(2f))
+                    .sub(new Vector3f(camera.getUp()).mul(0.4f));
+
+            Matrix4f shipModel = new Matrix4f(joueur.getModelMatrix());
+            shipModel.setTranslation(shipFixedPos);
+
+            if (joueur.getBody().isVisible(projection, view, shipModel)) {
+                ballShader.bind();
+                ballShader.setUniformMat4f("view", view);
+                ballShader.setUniformMat4f("projection", projection);
+                ballShader.setUniformMat4f("model", shipModel);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                joueur.getBody().render();
+                ballShader.unbind();
+            }
         }
         manager3D.renderAll(ennemis, balls, view, projection);
 
