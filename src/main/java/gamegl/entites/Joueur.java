@@ -40,8 +40,9 @@ public class Joueur extends Entity {
             prevPitch = pitch;
 
             float yawRad = (float) Math.toRadians(yaw + 90);
-            float pitchRad = (float) Math.toRadians(pitch * PITCH_AMP);
-            pitchRad = (float) Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, pitchRad));
+            float targetPitch = pitch * PITCH_AMP;
+            float clampedPitch = Math.max(-89.99f, Math.min(89.99f, targetPitch));
+            float pitchRad = (float) Math.toRadians(clampedPitch);
             float cp = (float) Math.cos(pitchRad);
             float sp = (float) Math.sin(pitchRad);
             float cy = (float) Math.cos(yawRad);
@@ -59,6 +60,10 @@ public class Joueur extends Entity {
                 right.set(1, 0, 0);
             right.normalize();
             Vector3f shipUp = new Vector3f(right).cross(shipFront).normalize();
+
+            float pitchMod = ((pitch % 360f) + 360f) % 360f;
+            if (pitchMod > 90 && pitchMod < 270)
+                shipUp.negate();
 
             if (Math.abs(bank) > 1e-4f)
                 shipUp.rotateAxis(bank, shipFront.x, shipFront.y, shipFront.z);
