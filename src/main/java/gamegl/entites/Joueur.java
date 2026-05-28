@@ -15,6 +15,7 @@ public class Joueur extends Entity {
     private float prevYaw;
     private float prevPitch;
     private boolean firstUpdate = true;
+    private int frameCount;
 
     private final Matrix4f rotMatrix = new Matrix4f();
 
@@ -34,11 +35,7 @@ public class Joueur extends Entity {
         float yaw = camera.getYaw();
         float pitch = camera.getPitch();
 
-        if (firstUpdate || yaw != prevYaw || pitch != prevPitch) {
-            float yawRate = !firstUpdate ? (yaw - prevYaw) / deltaTime : 0;
-            prevYaw = yaw;
-            prevPitch = pitch;
-
+        if (firstUpdate) {
             float yawRad = (float) Math.toRadians(yaw + 90);
             float targetPitch = pitch * PITCH_AMP;
             float clampedPitch = Math.max(-89.99f, Math.min(89.99f, targetPitch));
@@ -50,10 +47,6 @@ public class Joueur extends Entity {
 
             Vector3f shipFront = new Vector3f(-cy * cp, sp, -sy * cp);
 
-            float bank = (float) Math.toRadians(
-                    Math.max(-MAX_BIAS, Math.min(MAX_BIAS, -yawRate * BANK_FACTOR))
-            );
-
             Vector3f worldUp = new Vector3f(0, 1, 0);
             Vector3f right = new Vector3f(shipFront).cross(worldUp);
             if (right.lengthSquared() < 1e-6f)
@@ -61,19 +54,41 @@ public class Joueur extends Entity {
             right.normalize();
             Vector3f shipUp = new Vector3f(right).cross(shipFront).normalize();
 
-            float pitchMod = ((pitch % 360f) + 360f) % 360f;
-            if (pitchMod > 90 && pitchMod < 270)
-                shipUp.negate();
-
-            if (Math.abs(bank) > 1e-4f)
-                shipUp.rotateAxis(bank, shipFront.x, shipFront.y, shipFront.z);
-
             rotMatrix.identity();
             new Matrix4f()
                     .lookAt(new Vector3f(0, 0, 0), new Vector3f(shipFront), shipUp)
                     .invert(rotMatrix);
 
+            prevYaw = yaw;
+            prevPitch = pitch;
             firstUpdate = false;
+            frameCount = 0;
+
+        } else if (yaw != prevYaw || pitch != prevPitch) {
+            float dyaw = yaw - prevYaw;
+            float dpitch = pitch - prevPitch;
+            prevYaw = yaw;
+            prevPitch = pitch;
+
+            Vector3f localRight = new Vector3f(rotMatrix.m00, rotMatrix.m10, rotMatrix.m20);
+            rotMatrix.rotate((float) Math.toRadians(dpitch * PITCH_AMP), localRight);
+
+            Matrix4f yawRot = new Matrix4f().identity()
+                    .rotate((float) Math.toRadians(-dyaw), 0, 1, 0);
+            yawRot.mul(rotMatrix, rotMatrix);
+
+            float yawRate = dyaw / deltaTime;
+            float bankDeg = Math.max(-MAX_BIAS, Math.min(MAX_BIAS, -yawRate * BANK_FACTOR));
+            if (Math.abs(bankDeg) > 1e-4f) {
+                Vector3f localFront = new Vector3f(-rotMatrix.m02, -rotMatrix.m12, -rotMatrix.m22);
+                rotMatrix.rotate((float) Math.toRadians(bankDeg), localFront);
+            }
+
+            frameCount++;
+            if (frameCount > 300) {
+                rotMatrix.normalize3x3();
+                frameCount = 0;
+            }
         }
 
         modelMatrix.identity()
