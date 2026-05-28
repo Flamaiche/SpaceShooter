@@ -11,6 +11,8 @@ import gamegl.gestion.Manager3D;
 import learngl.tools.camera.CameraPhysics;
 import learngl.tools.camera.vue.GestionnaireVue;
 import learngl.tools.shape.PreVerticesTable;
+import learngl.tools.shape.Shape;
+import learngl.tools.VertexUtils;
 import gamegl.gestion.texte.TextHUD;
 import learngl.tools.Shader;
 import learngl.tools.commandes.ComboTouche;
@@ -72,7 +74,9 @@ public class PlayingState extends GameState {
         crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
-        joueur = new Joueur(ballShader, commande, 0.25f);
+        Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(0.25f)));
+        joueurShape.setShader(ballShader);
+        joueur = new Joueur(joueurShape);
         joueur.setPosition(camera.getPosition());
 
         Ennemis.setDespawnDistance(camera.getRenderSimulation());
@@ -189,8 +193,7 @@ public class PlayingState extends GameState {
         cameraPhysics.update(joueur.getPosition(), camera, deltaTime);
         gestionnaireVue.mettreAJour(camera, joueur.getPosition(), 0);
 
-        joueur.update(deltaTime, camera);
-        joueur.setVisible(!gestionnaireVue.estPremierePersonne());
+        joueur.update(camera, deltaTime);
         Entity collised = joueur.checkCollision(new ArrayList<Entity>(ennemis));
         if (collised != null) {
             joueur.decrementVie();
@@ -245,7 +248,15 @@ public class PlayingState extends GameState {
         Matrix4f view = gestionnaireVue.obtenirVue(camera, joueur.getPosition());
         Matrix4f projection = camera.getProjection(width, height);
 
-        joueur.render(view, projection);
+        if (!gestionnaireVue.estPremierePersonne() && joueur.getBody().isVisible(projection, view, joueur.getModelMatrix())) {
+            ballShader.bind();
+            ballShader.setUniformMat4f("view", view);
+            ballShader.setUniformMat4f("projection", projection);
+            ballShader.setUniformMat4f("model", joueur.getModelMatrix());
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            joueur.getBody().render();
+            ballShader.unbind();
+        }
         manager3D.renderAll(ennemis, balls, view, projection);
 
         Matrix4f ortho = new Matrix4f().ortho2D(-1, 1, -1, 1);

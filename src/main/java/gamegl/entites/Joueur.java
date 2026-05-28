@@ -1,80 +1,83 @@
 package gamegl.entites;
 
 import gamegl.entites.balls.Balls;
-import learngl.tools.shape.PreVerticesTable;
 import learngl.tools.camera.Camera;
-import learngl.tools.commandes.Commande;
-import learngl.tools.Shader;
 import learngl.tools.shape.Shape;
-import learngl.tools.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
 
-import static org.lwjgl.opengl.GL11C.*;
-
 public class Joueur extends Entity {
-    private Shape corps;
-    private Shader shader;
-    private Matrix4f modelMatrix;
     private int vie;
-    private Vector3f position;
-    private boolean visible = true;
+    private final Vector3f position = new Vector3f(0, 0, 0);
 
-    public Commande cmd;
+    private float prevYaw;
+    private float prevPitch;
+    private boolean firstUpdate = true;
 
-    public Joueur(Shader shader, Commande cmd, float tailleCorps) {
-        this.cmd = cmd;
-        this.position = new Vector3f(0, 0, 0);
+    private final Matrix4f rotMatrix = new Matrix4f();
 
-        this.corps = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(tailleCorps)));
-        this.corps.setShader(shader);
+    private static final float MAX_BIAS = 35f;
+    private static final float BANK_FACTOR = 0.08f;
+    private static final float PITCH_AMP = 2f;
 
-        this.shader = shader;
-        this.modelMatrix = new Matrix4f().identity().translate(position);
-
+    public Joueur(Shape corps) {
+        this.corps = corps;
         this.vie = 3;
     }
 
     @Override
     public void update(float deltaTime) {}
 
-    public void update(float deltaTime, Camera camera) {
-        cmd.update();
-
-        Vector3f front = camera.getFront();
+    public void update(Camera camera, float deltaTime) {
         Vector3f up = camera.getUp();
 
-        if (front.lengthSquared() < 1e-6f) front.set(0, 0, -1);
         if (up.lengthSquared() < 1e-6f) up.set(0, 1, 0);
 
-        Matrix4f rot = new Matrix4f()
-                .lookAt(new Vector3f(0, 0, 0), new Vector3f(front), new Vector3f(up))
-                .invert();
+        float yaw = camera.getYaw();
+        float pitch = camera.getPitch();
+
+        if (firstUpdate || yaw != prevYaw || pitch != prevPitch) {
+            float yawRate = !firstUpdate ? (yaw - prevYaw) / deltaTime : 0;
+            prevYaw = yaw;
+            prevPitch = pitch;
+
+            float yawRad = (float) Math.toRadians(yaw + 90);
+            float pitchRad = (float) Math.toRadians(pitch * PITCH_AMP);
+            pitchRad = (float) Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, pitchRad));
+            float cp = (float) Math.cos(pitchRad);
+            float sp = (float) Math.sin(pitchRad);
+            float cy = (float) Math.cos(yawRad);
+            float sy = (float) Math.sin(yawRad);
+
+            Vector3f shipFront = new Vector3f(-cy * cp, sp, -sy * cp);
+
+            float bank = (float) Math.toRadians(
+                    Math.max(-MAX_BIAS, Math.min(MAX_BIAS, -yawRate * BANK_FACTOR))
+            );
+
+            Vector3f shipUp = new Vector3f(up);
+            if (Math.abs(bank) > 1e-4f)
+                shipUp.rotateAxis(bank, shipFront.x, shipFront.y, shipFront.z);
+
+            rotMatrix.identity();
+            new Matrix4f()
+                    .lookAt(new Vector3f(0, 0, 0), new Vector3f(shipFront), shipUp)
+                    .invert(rotMatrix);
+
+            firstUpdate = false;
+        }
 
         modelMatrix.identity()
                 .translate(position)
-                .mul(rot);
+                .mul(rotMatrix);
     }
 
-    public void render(Matrix4f view, Matrix4f projection) {
-        if (!visible) return;
-        if (!corps.isVisible(projection, view, modelMatrix)) return;
+    @Override
+    public void render(Matrix4f view, Matrix4f projection) {}
 
-        shader.bind();
-        shader.setUniformMat4f("view", view);
-        shader.setUniformMat4f("projection", projection);
-        shader.setUniformMat4f("model", modelMatrix);
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        corps.render();
-
-        shader.unbind();
-    }
-
-    public void setVisible(boolean v) { visible = v; }
-
+    @Override
     public void cleanup() {
         corps.cleanup();
     }
@@ -92,10 +95,6 @@ public class Joueur extends Entity {
     public void setVie(int v) { vie = v; }
     public int getVie() { return vie; }
     public void decrementVie() { if (vie > 0) vie--; }
-
-    public Matrix4f getModelMatrix() { return modelMatrix; }
-    public Shape getBody() { return corps; }
     public Vector3f getPosition() { return position; }
-
     public void setPosition(Vector3f pos) { position.set(pos); }
 }
