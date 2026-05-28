@@ -173,9 +173,14 @@ public class Camera {
 
         front.set(-cy * cp, sp, -sy * cp);
 
-        // When looking straight up/down use worldRight as fallback
-        // reference to avoid degenerate cross products.
-        Vector3f refUp = (Math.abs(sp) > 0.9999f) ? new Vector3f(1, 0, 0) : worldUp;
+        // When looking straight up/down use a yaw-dependent fallback
+        // so right/up remain continuous with surrounding frames.
+        Vector3f refUp;
+        if (Math.abs(sp) > 0.9999f) {
+            refUp = new Vector3f(sp > 0 ? cy : -cy, 0, sp > 0 ? sy : -sy);
+        } else {
+            refUp = worldUp;
+        }
         right.set(front).cross(refUp, right).normalize();
         up.set(right).cross(front, up);
 
