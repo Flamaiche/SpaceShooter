@@ -74,7 +74,7 @@ public class PlayingState extends GameState {
         crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
-        Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(0.25f)));
+        Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(0.7f)));
         joueurShape.setShader(ballShader);
         joueur = new Joueur(joueurShape);
         joueur.setPosition(camera.getPosition());
@@ -250,8 +250,8 @@ public class PlayingState extends GameState {
 
         if (!gestionnaireVue.estPremierePersonne()) {
             Vector3f shipFixedPos = new Vector3f(camera.getPosition())
-                    .add(new Vector3f(camera.getFront()).mul(2f))
-                    .sub(new Vector3f(camera.getUp()).mul(0.4f));
+                    .add(new Vector3f(camera.getFront()).mul(1.5f))
+                    .sub(new Vector3f(camera.getUp()).mul(0.3f));
 
             Matrix4f shipModel = new Matrix4f(joueur.getModelMatrix());
             shipModel.setTranslation(shipFixedPos);
