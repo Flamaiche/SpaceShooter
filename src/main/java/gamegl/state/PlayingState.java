@@ -51,7 +51,7 @@ public class PlayingState extends GameState {
     private final float mouseSensitivity = 0.1f;
 
     private double shootCooldown = 0.5;
-    private int nbEnnemis = 35;
+    private int nbEnnemis = 2;
     private final Manager3D manager3D = new Manager3D();
     private final Manager2D manager2D = new Manager2D();
     private Touche alt;
@@ -90,6 +90,8 @@ public class PlayingState extends GameState {
                     speed += speed*1.5f;
             }
             e.setSpeed(speed);
+            if (i == 0) e.setBodyColor(1f, 0.2f, 0.2f);
+            else        e.setBodyColor(0.2f, 0.2f, 1f);
             ennemis.add(e);
         }
 
@@ -155,17 +157,17 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_SPACE, null, null, () -> cameraPhysics.addUp(1, camera)));
         touches.add(new Touche(GLFW_KEY_LEFT_CONTROL, null, null, () -> cameraPhysics.addUp(-1, camera)));
 
-        touches.add(new Touche(GLFW_KEY_LEFT, null, null, () -> camera.rotate(-vitesseRotation, 0f)));
-        touches.add(new Touche(GLFW_KEY_RIGHT, null, null, () -> camera.rotate(vitesseRotation, 0f)));
-        touches.add(new Touche(GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation)));
-        touches.add(new Touche(GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation)));
+        touches.add(new Touche(GLFW_KEY_LEFT,  null, null, () -> { System.out.println("[Input] ←");  camera.rotate(-vitesseRotation, 0f); }));
+        touches.add(new Touche(GLFW_KEY_RIGHT, null, null, () -> { System.out.println("[Input] →");  camera.rotate( vitesseRotation, 0f); }));
+        touches.add(new Touche(GLFW_KEY_UP,    null, null, () -> { System.out.println("[Input] ↑");  camera.rotate(0f,  vitesseRotation); }));
+        touches.add(new Touche(GLFW_KEY_DOWN,  null, null, () -> { System.out.println("[Input] ↓");  camera.rotate(0f, -vitesseRotation); }));
 
         shift = new Touche(GLFW_KEY_LEFT_SHIFT, null, null, null);
         touches.add(shift);
-        touches.add(new ComboTouche(shift, GLFW_KEY_LEFT, null, null, () -> camera.rotate(vitesseRotation/2.0f, 0f)));
-        touches.add(new ComboTouche(shift, GLFW_KEY_RIGHT, null, null, () -> camera.rotate(-vitesseRotation/2.0f, 0f)));
-        touches.add(new ComboTouche(shift, GLFW_KEY_UP, null, null, () -> camera.rotate(0f, vitesseRotation/2.0f)));
-        touches.add(new ComboTouche(shift, GLFW_KEY_DOWN, null, null, () -> camera.rotate(0f, -vitesseRotation/2.0f)));
+        touches.add(new ComboTouche(shift, GLFW_KEY_LEFT,  null, null, () -> { System.out.println("[Input] Shift+←");  camera.rotate( vitesseRotation/2.0f, 0f); }));
+        touches.add(new ComboTouche(shift, GLFW_KEY_RIGHT, null, null, () -> { System.out.println("[Input] Shift+→");  camera.rotate(-vitesseRotation/2.0f, 0f); }));
+        touches.add(new ComboTouche(shift, GLFW_KEY_UP,    null, null, () -> { System.out.println("[Input] Shift+↑");  camera.rotate(0f,  vitesseRotation/2.0f); }));
+        touches.add(new ComboTouche(shift, GLFW_KEY_DOWN,  null, null, () -> { System.out.println("[Input] Shift+↓");  camera.rotate(0f, -vitesseRotation/2.0f); }));
 
         touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()));
         touches.add(new Touche(GLFW_KEY_GRAVE_ACCENT, null, null, () -> shoot()));

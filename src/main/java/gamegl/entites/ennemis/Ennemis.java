@@ -41,6 +41,7 @@ public abstract class Ennemis extends Entity {
     protected float deathTime = -1f;
 
     protected final int moduloMutationDeltaTime = 6;
+    protected Vector3f bodyColor = new Vector3f(0f, 0f, 0f);
 
     /**
      * Constructs an enemy with the given shader, player-centered spawn area, shape vertices, and camera.
@@ -151,7 +152,7 @@ public abstract class Ennemis extends Entity {
         shader.setUniformMat4f("model", modelMatrix);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        corps.setColor(0f,0f,0f);
+        corps.setColor(bodyColor.x, bodyColor.y, bodyColor.z);
         corps.render();
 
         if (highlighted) {
@@ -211,6 +212,7 @@ public abstract class Ennemis extends Entity {
      * @param s the speed value
      */
     public void setSpeed(float s) { speed = s; }
+    public void setBodyColor(float r, float g, float b) { bodyColor.set(r, g, b); }
 
     /**
      * Returns whether this enemy is currently highlighted.
