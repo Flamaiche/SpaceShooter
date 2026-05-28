@@ -70,19 +70,16 @@ public class Joueur extends Entity {
             prevYaw = yaw;
             prevPitch = pitch;
 
-            Vector3f localRight = new Vector3f(rotMatrix.m00, rotMatrix.m10, rotMatrix.m20);
-            rotMatrix.rotate((float) Math.toRadians(dpitch * PITCH_AMP), localRight);
-
             Matrix4f yawRot = new Matrix4f().identity()
                     .rotate((float) Math.toRadians(-dyaw), 0, 1, 0);
             yawRot.mul(rotMatrix, rotMatrix);
 
+            rotMatrix.rotate((float) Math.toRadians(dpitch * PITCH_AMP), 1, 0, 0);
+
             float yawRate = dyaw / deltaTime;
             float bankDeg = Math.max(-MAX_BIAS, Math.min(MAX_BIAS, -yawRate * BANK_FACTOR));
-            if (Math.abs(bankDeg) > 1e-4f) {
-                Vector3f localFront = new Vector3f(-rotMatrix.m02, -rotMatrix.m12, -rotMatrix.m22);
-                rotMatrix.rotate((float) Math.toRadians(bankDeg), localFront);
-            }
+            if (Math.abs(bankDeg) > 1e-4f)
+                rotMatrix.rotate((float) Math.toRadians(bankDeg), 0, 0, -1);
 
             frameCount++;
             if (frameCount > 300) {
