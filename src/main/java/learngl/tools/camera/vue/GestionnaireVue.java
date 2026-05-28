@@ -20,7 +20,7 @@ public class GestionnaireVue {
         },
         TROISIEME_PERSONNE_AVANT {
             public List<Vector3f> params() {
-                return List.of(TROISIEME_PERSONNE.params().getFirst().mul(new Vector3f(-1, 1, 1)), new Vector3f(0, 0, 1));
+                return List.of(new Vector3f(-1.0f, 0.30f, 0), new Vector3f(0, 0, 1));
             }
         };
 
@@ -33,6 +33,7 @@ public class GestionnaireVue {
     }
 
     private ModeVue modeActuel = ModeVue.PREMIERE_PERSONNE;
+    private final Vector3f worldOffset = new Vector3f();
 
     public void mettreAJour(Camera camera, Vector3f posJoueur) {
         mettreAJour(camera, posJoueur, 1);
@@ -40,16 +41,15 @@ public class GestionnaireVue {
 
     public void mettreAJour(Camera camera, Vector3f posJoueur, int pas) {
         modeActuel = modeActuel.suivant(pas);
-        List<Vector3f> p = modeActuel.params();
-        Vector3f offsetPos = p.getFirst();
-
-        Vector3f front = camera.getFront();
-        Vector3f right = camera.getRight();
-
-        Vector3f posOffset = new Vector3f(front).negate().mul(offsetPos.x)
-                .add(0, offsetPos.y, 0)
-                .add(new Vector3f(right).mul(offsetPos.z));
-        camera.setPosition(new Vector3f(posJoueur).add(posOffset));
+        if (pas != 0) {
+            Vector3f front = camera.getFront();
+            Vector3f right = camera.getRight();
+            Vector3f offsetPos = modeActuel.params().getFirst();
+            worldOffset.set(front).negate().mul(offsetPos.x)
+                    .add(0, offsetPos.y, 0)
+                    .add(new Vector3f(right).mul(offsetPos.z));
+        }
+        camera.setPosition(new Vector3f(posJoueur).add(worldOffset));
     }
 
     public Matrix4f obtenirVue(Camera camera, Vector3f posJoueur) {
