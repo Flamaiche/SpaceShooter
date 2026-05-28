@@ -3,6 +3,9 @@ package learngl.tools.camera;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class Camera {
     private Vector3f position;
@@ -29,6 +32,7 @@ public class Camera {
     private static final float EPSILON = 1e-4f;
 
     public Camera(Vector3f position) {
+        System.out.println("[Camera] " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " — init");
         this.position = new Vector3f(position);
         this.startPosition = position;
         this.front = new Vector3f(0, 0, -1);
@@ -39,7 +43,7 @@ public class Camera {
         this.pitch = 0f;
         this.roll = 0f;
         this.fov = 60f;
-        updateAxes();
+        reconstruireAxes();
         orbitController.init(position, new Vector3f(0, 0, 0));
     }
 
@@ -53,7 +57,7 @@ public class Camera {
         this.pitch = 0f;
         this.roll = 0f;
         this.fov = 60f;
-        updateAxes();
+        reconstruireAxes();
         orbitController.init(position, new Vector3f(0, 0, 0));
     }
 
@@ -75,7 +79,7 @@ public class Camera {
                 yaw = (float) Math.toDegrees(Math.atan2(dir.z, dir.x));
                 yaw = ((yaw % 360) + 360) % 360;
             }
-            updateAxes();
+            reconstruireAxes();
         }
         orbitMode = active;
     }
@@ -88,7 +92,7 @@ public class Camera {
     public void setRollEnabled(boolean active) {
         rollEnabled = active;
         roll = 0f;
-        updateAxes();
+        reconstruireAxes();
     }
 
     public boolean isRollEnabled() { return rollEnabled; }
@@ -132,30 +136,59 @@ public class Camera {
 
     /**
      * Rotates the camera by the given yaw/pitch offsets. In orbit mode the
-     * rotation is delegated to the orbit controller, which rotates around the
-     * target point and writes the result directly into the camera position.
+     * rotation is delegated to the orbit controller. In free-look mode the
+     * yaw is applied around the world up axis and the pitch around the
+     * camera's local right axis after yaw, eliminating the ellipse artifact.
      */
     public void rotate(float offsetYaw, float offsetPitch) {
         if (!orbitMode) {
             yaw += offsetYaw;
             pitch += offsetPitch;
-            yaw = ((yaw % 360) + 360) % 360;
-            updateAxes();
+            reconstruireAxes();
+            System.out.printf(Locale.US, "[Camera] rotate(yaw=%+.1f pitch=%+.1f) → yaw=%.1f pitch=%.1f | front=(%.3f,%.3f,%.3f) right=(%.3f,%.3f,%.3f) up=(%.3f,%.3f,%.3f)%n",
+                offsetYaw, offsetPitch, yaw, pitch,
+                front.x, front.y, front.z,
+                right.x, right.y, right.z,
+                up.x, up.y, up.z);
         } else {
             orbitController.rotate(offsetYaw, offsetPitch, position);
             updateAxesToTarget();
         }
     }
 
-    private void updateAxes() {
+    /**
+     * Recalculates front/right/up using spherical coordinates.
+     * When pitch is between 90° and 270° (cosine is negative), front
+     * naturally points behind. The camera axes are flipped so that
+     * right and up remain continuous through the zenith/nadir —
+     * the camera loops smoothly without a sudden horizontal roll.
+     */
+    private void reconstruireAxes() {
         float yawRad  = (float) Math.toRadians(yaw + 90);
         float pitchRad = (float) Math.toRadians(pitch);
-        orientation.identity()
-                .rotateY(-yawRad)
-                .rotateX(pitchRad);
-        orientation.positiveX(right);
-        orientation.positiveY(up);
-        orientation.positiveZ(front).negate();
+        float cp = (float) Math.cos(pitchRad);
+        float sp = (float) Math.sin(pitchRad);
+        float cy = (float) Math.cos(yawRad);
+        float sy = (float) Math.sin(yawRad);
+
+        front.set(-cy * cp, sp, -sy * cp);
+
+        // When looking straight up/down use worldRight as fallback
+        // reference to avoid degenerate cross products.
+        Vector3f refUp = (Math.abs(sp) > 0.9999f) ? new Vector3f(1, 0, 0) : worldUp;
+        right.set(front).cross(refUp, right).normalize();
+        up.set(right).cross(front, up);
+
+        // When cosine is negative (pitch 90°–270°), front's horizontal
+        // components invert and would flip right/up. Negate them so
+        // the camera axes keep rotating in the same direction.
+        float pitchMod = ((pitch % 360f) + 360f) % 360f;
+        if (pitchMod > 90 && pitchMod < 270) {
+            right.negate();
+            up.negate();
+        }
+
+        orientation.identity().rotateY(-yawRad).rotateX(pitchRad);
     }
 
     private void updateAxesToTarget() {
@@ -174,7 +207,7 @@ public class Camera {
     public void setYawPitch(float yawDeg, float pitchDeg) {
         yaw = yawDeg;
         pitch = pitchDeg;
-        updateAxes();
+        reconstruireAxes();
     }
 
     public float distanceTo(Vector3f point) { return position.distance(point); }
