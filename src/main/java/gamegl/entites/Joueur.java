@@ -29,7 +29,7 @@ public class Joueur extends Entity {
     @Override
     public void update(float deltaTime) {}
 
-    public void update(int[] axes, float deltaTime) {
+    public void update(int[] axes, float deltaTime, float camYaw, float camPitch) {
         int hInput = axes[0];
         int vInput = axes[1];
 
@@ -62,7 +62,8 @@ public class Joueur extends Entity {
         float bankDeg = -hBias * BANK_FACTOR;
 
         rotMatrix.identity()
-                .rotateY((float) Math.toRadians(90))
+                .rotateY((float) Math.toRadians(-camYaw))
+                .rotateX((float) Math.toRadians(camPitch))
                 .rotateY((float) Math.toRadians(hBias))
                 .rotateX((float) Math.toRadians(vBias))
                 .rotateZ((float) Math.toRadians(bankDeg));
