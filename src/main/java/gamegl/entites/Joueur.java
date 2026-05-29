@@ -59,7 +59,7 @@ public class Joueur extends Entity {
         else if (vBias < 0)
             vBias = Math.min(0, vBias + V_RATE * deltaTime);
 
-        float bankDeg = -hBias * BANK_FACTOR;
+        float bankDeg = hBias * BANK_FACTOR;
 
         rotMatrix.identity()
                 .rotateY((float) Math.toRadians(-camYaw))
