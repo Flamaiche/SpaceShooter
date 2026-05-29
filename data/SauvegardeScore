@@ -1413,6 +1413,24 @@
       "ballsFired": 0.0,
       "enemiesKilled": 0.0,
       "elapsedTime": 40.451477
+    },
+    {
+      "date": "2026-05-29",
+      "time": "10:59:26.294985446",
+      "version": "A1.1",
+      "score": 10.0,
+      "ballsFired": 19.0,
+      "enemiesKilled": 1.0,
+      "elapsedTime": 27.063076
+    },
+    {
+      "date": "2026-05-29",
+      "time": "10:59:53.076170946",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 14.323247
     }
   ]
 }

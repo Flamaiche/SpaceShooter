@@ -29,6 +29,8 @@ public class Camera {
     private float renderDistance = 100f;
     private float renderSimulation = 150f;
 
+    private final Matrix4f rotationMatrix = new Matrix4f();
+
     private static final float EPSILON = 1e-4f;
 
     public Camera(Vector3f position) {
@@ -157,44 +159,20 @@ public class Camera {
     }
 
     /**
-     * Recalculates front/right/up using spherical coordinates.
-     * When pitch is between 90° and 270° (cosine is negative), front
-     * naturally points behind. The camera axes are flipped so that
-     * right and up remain continuous through the zenith/nadir —
-     * the camera loops smoothly without a sudden horizontal roll.
+     * Recalculates front/right/up from yaw/pitch using a rotation matrix.
+     * Ry(-yaw) * Rx(pitch), columns = right, up, -front.
+     * Pas de gimbal lock ni de négation nécessaire — continue en 360°.
      */
     private void reconstruireAxes() {
-        float yawRad  = (float) Math.toRadians(yaw + 90);
-        float pitchRad = (float) Math.toRadians(pitch);
-        float cp = (float) Math.cos(pitchRad);
-        float sp = (float) Math.sin(pitchRad);
-        float cy = (float) Math.cos(yawRad);
-        float sy = (float) Math.sin(yawRad);
+        rotationMatrix.identity()
+                .rotateY((float) Math.toRadians(-yaw))
+                .rotateX((float) Math.toRadians(pitch));
+        rotationMatrix.getColumn(0, right);
+        rotationMatrix.getColumn(1, up);
+        rotationMatrix.getColumn(2, front);
+        front.negate();
 
-        front.set(-cy * cp, sp, -sy * cp);
-
-        // When looking straight up/down use a yaw-dependent fallback
-        // so right/up remain continuous with surrounding frames.
-        Vector3f refUp;
-        if (Math.abs(sp) > 0.9999f) {
-            refUp = new Vector3f(sp > 0 ? cy : -cy, 0, sp > 0 ? sy : -sy);
-        } else {
-            refUp = worldUp;
-        }
-        right.set(front).cross(refUp, right).normalize();
-        up.set(right).cross(front, up);
-
-        // When cosine is negative (pitch 90°–270°), front's horizontal
-        // components invert and would flip right/up. Negate them so
-        // the camera axes keep rotating in the same direction.
-        float pitchMod = ((pitch % 360f) + 360f) % 360f;
-        boolean nearGimbalTop = Math.abs(sp) > 0.9999f && sp > 0;
-        if (pitchMod > 90 && pitchMod < 270 && !nearGimbalTop) {
-            right.negate();
-            up.negate();
-        }
-
-        orientation.identity().rotateY(-yawRad).rotateX(pitchRad);
+        orientation.identity().rotateY((float) Math.toRadians(-yaw)).rotateX((float) Math.toRadians(pitch));
     }
 
     private void updateAxesToTarget() {
