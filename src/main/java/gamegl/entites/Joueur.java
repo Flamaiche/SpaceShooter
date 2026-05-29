@@ -11,20 +11,17 @@ public class Joueur extends Entity {
     private int vie;
     private final Vector3f position = new Vector3f(0, 0, 0);
 
-    private int frameCount;
     private float hBias, vBias;
 
     private final Matrix4f rotMatrix = new Matrix4f();
 
-    private static final float H_SPEED = 120f;
-    private static final float V_SPEED = 60f;
+    private static final float STEP = 0.15f;
+    private static final float BIAS_MAX = 10f;
     private static final float BANK_FACTOR = 0.8f;
-    private static final float BANK_MAX = 35f;
 
     public Joueur(Shape corps) {
         this.corps = corps;
         this.vie = 3;
-        rotMatrix.rotateY((float) Math.toRadians(90));
     }
 
     @Override
@@ -35,38 +32,34 @@ public class Joueur extends Entity {
         float vInput = axes[1];
 
         if (hInput == 1)
-            hBias = H_SPEED;
+            hBias = Math.min(BIAS_MAX, hBias + STEP);
         else if (hInput == -1)
-            hBias = -H_SPEED;
-        else
-            hBias = 0;
+            hBias = Math.max(-BIAS_MAX, hBias - STEP);
+        else if (hBias > 0)
+            hBias = Math.max(0, hBias - STEP);
+        else if (hBias < 0)
+            hBias = Math.min(0, hBias + STEP);
 
         if (vInput == 1)
-            vBias = V_SPEED;
+            vBias = Math.min(BIAS_MAX, vBias + STEP);
         else if (vInput == -1)
-            vBias = -V_SPEED;
-        else
-            vBias = 0;
+            vBias = Math.max(-BIAS_MAX, vBias - STEP);
+        else if (vBias > 0)
+            vBias = Math.max(0, vBias - STEP);
+        else if (vBias < 0)
+            vBias = Math.min(0, vBias + STEP);
 
-        if (Math.abs(hBias) > 0.1f)
-            rotMatrix.rotate((float) Math.toRadians(hBias * deltaTime), 0, 1, 0);
+        float bankDeg = -hBias * BANK_FACTOR;
 
-        if (Math.abs(vBias) > 0.1f)
-            rotMatrix.rotate((float) Math.toRadians(vBias * deltaTime), 1, 0, 0);
-
-        float bankDeg = Math.max(-BANK_MAX, Math.min(BANK_MAX, -hBias * BANK_FACTOR));
-        if (Math.abs(bankDeg) > 0.1f)
-            rotMatrix.rotate((float) Math.toRadians(bankDeg), 0, 0, -1);
+        rotMatrix.identity()
+                .rotateY((float) Math.toRadians(90))
+                .rotateY((float) Math.toRadians(hBias))
+                .rotateX((float) Math.toRadians(vBias))
+                .rotateZ((float) Math.toRadians(bankDeg));
 
         modelMatrix.identity()
                 .translate(position)
                 .mul(rotMatrix);
-
-        frameCount++;
-        if (frameCount > 300) {
-            rotMatrix.normalize3x3();
-            frameCount = 0;
-        }
     }
 
     @Override
