@@ -12,10 +12,12 @@ public class Joueur extends Entity {
     private final Vector3f position = new Vector3f(0, 0, 0);
 
     private float hBias, vBias;
+    private int lastHInput, lastVInput;
 
     private final Matrix4f rotMatrix = new Matrix4f();
 
-    private static final float STEP = 0.15f;
+    private static final float H_RATE = 20f;
+    private static final float V_RATE = 10f;
     private static final float BIAS_MAX = 10f;
     private static final float BANK_FACTOR = 0.8f;
 
@@ -28,26 +30,34 @@ public class Joueur extends Entity {
     public void update(float deltaTime) {}
 
     public void update(int[] axes, float deltaTime) {
-        float hInput = axes[0];
-        float vInput = axes[1];
+        int hInput = axes[0];
+        int vInput = axes[1];
+
+        if (hInput != lastHInput && hInput != 0 && lastHInput != 0)
+            hBias = 0;
+        lastHInput = hInput;
 
         if (hInput == 1)
-            hBias = Math.min(BIAS_MAX, hBias + STEP);
+            hBias = Math.min(BIAS_MAX, hBias + H_RATE * deltaTime);
         else if (hInput == -1)
-            hBias = Math.max(-BIAS_MAX, hBias - STEP);
+            hBias = Math.max(-BIAS_MAX, hBias - H_RATE * deltaTime);
         else if (hBias > 0)
-            hBias = Math.max(0, hBias - STEP);
+            hBias = Math.max(0, hBias - H_RATE * deltaTime);
         else if (hBias < 0)
-            hBias = Math.min(0, hBias + STEP);
+            hBias = Math.min(0, hBias + H_RATE * deltaTime);
+
+        if (vInput != lastVInput && vInput != 0 && lastVInput != 0)
+            vBias = 0;
+        lastVInput = vInput;
 
         if (vInput == 1)
-            vBias = Math.min(BIAS_MAX, vBias + STEP);
+            vBias = Math.min(BIAS_MAX, vBias + V_RATE * deltaTime);
         else if (vInput == -1)
-            vBias = Math.max(-BIAS_MAX, vBias - STEP);
+            vBias = Math.max(-BIAS_MAX, vBias - V_RATE * deltaTime);
         else if (vBias > 0)
-            vBias = Math.max(0, vBias - STEP);
+            vBias = Math.max(0, vBias - V_RATE * deltaTime);
         else if (vBias < 0)
-            vBias = Math.min(0, vBias + STEP);
+            vBias = Math.min(0, vBias + V_RATE * deltaTime);
 
         float bankDeg = -hBias * BANK_FACTOR;
 
