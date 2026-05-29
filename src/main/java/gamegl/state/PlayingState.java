@@ -52,6 +52,8 @@ public class PlayingState extends GameState {
     private double lastMouseX, lastMouseY;
     private final float mouseSensitivity = 0.1f;
 
+    private final int[] inputAxes = new int[2];
+
     private double shootCooldown = 0.5;
     private int nbEnnemis = 2;
     private final Manager3D manager3D = new Manager3D();
@@ -161,17 +163,8 @@ public class PlayingState extends GameState {
         touches.add(new Touche(GLFW_KEY_SPACE, null, null, () -> cameraPhysics.addUp(1, camera)));
         touches.add(new Touche(GLFW_KEY_LEFT_CONTROL, null, null, () -> cameraPhysics.addUp(-1, camera)));
 
-        touches.add(new Touche(GLFW_KEY_LEFT,  null, null, () -> { System.out.println("[Input] ←");  camera.rotate(-vitesseRotation, 0f); }));
-        touches.add(new Touche(GLFW_KEY_RIGHT, null, null, () -> { System.out.println("[Input] →");  camera.rotate( vitesseRotation, 0f); }));
-        touches.add(new Touche(GLFW_KEY_UP,    null, null, () -> { System.out.println("[Input] ↑");  camera.rotate(0f,  vitesseRotation); }));
-        touches.add(new Touche(GLFW_KEY_DOWN,  null, null, () -> { System.out.println("[Input] ↓");  camera.rotate(0f, -vitesseRotation); }));
-
         shift = new Touche(GLFW_KEY_LEFT_SHIFT, null, null, null);
         touches.add(shift);
-        touches.add(new ComboTouche(shift, GLFW_KEY_LEFT,  null, null, () -> { System.out.println("[Input] Shift+←");  camera.rotate( vitesseRotation/2.0f, 0f); }));
-        touches.add(new ComboTouche(shift, GLFW_KEY_RIGHT, null, null, () -> { System.out.println("[Input] Shift+→");  camera.rotate(-vitesseRotation/2.0f, 0f); }));
-        touches.add(new ComboTouche(shift, GLFW_KEY_UP,    null, null, () -> { System.out.println("[Input] Shift+↑");  camera.rotate(0f,  vitesseRotation/2.0f); }));
-        touches.add(new ComboTouche(shift, GLFW_KEY_DOWN,  null, null, () -> { System.out.println("[Input] Shift+↓");  camera.rotate(0f, -vitesseRotation/2.0f); }));
 
         touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()));
         touches.add(new Touche(GLFW_KEY_GRAVE_ACCENT, null, null, () -> shoot()));
@@ -190,10 +183,18 @@ public class PlayingState extends GameState {
     public void update(float deltaTime) {
         commande.update();
 
+        long window = commande.getWindow();
+        inputAxes[0] = 0;
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) inputAxes[0]++;
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) inputAxes[0]--;
+        inputAxes[1] = 0;
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) inputAxes[1]++;
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) inputAxes[1]--;
+
         cameraPhysics.update(joueur.getPosition(), camera, deltaTime);
         gestionnaireVue.mettreAJour(camera, joueur.getPosition(), 0);
 
-        joueur.update(camera, deltaTime);
+        joueur.update(inputAxes, deltaTime);
         Entity collised = joueur.checkCollision(new ArrayList<Entity>(ennemis));
         if (collised != null) {
             joueur.decrementVie();
