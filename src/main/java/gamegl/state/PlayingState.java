@@ -151,7 +151,7 @@ public class PlayingState extends GameState {
                 () -> camera.setOrbitMode(false),
                 () -> camera.setOrbitMode(true)));
 
-        touches.add(new Touche(GLFW_KEY_A, null, null, () -> camera.rotateRoll(-rollSpeed)));
+        touches.add(new Touche(GLFW_KEY_Q, null, null, () -> camera.rotateRoll(-rollSpeed)));
         touches.add(new Touche(GLFW_KEY_E, null, null, () -> camera.rotateRoll(rollSpeed)));
 
         touches.add(new Touche(GLFW_KEY_W, null, null, () -> cameraPhysics.addFront(1, camera)));
