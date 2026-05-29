@@ -23,3 +23,4 @@ Version : (A:Alpha)
     27/05/2026: refonte Text : getTextExtent, cache ortho, deduplication, switch vers Map+Builder
      27/05/2026: buffer texte auto-redimensionnable, ArrayLists reutilisees, plus de lettres coupees
      29/05/2026: fix vaisseau : Joueur utilise Vector3f camFront/camUp + lookAt + slerp au lieu de float yaw/pitch
+     29/05/2026: fix camera : gimbal lock à pitch=90° — negation sautée quand |sp|>0.9999 dans reconstruireAxes()

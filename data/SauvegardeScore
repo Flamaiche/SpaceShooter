@@ -1386,6 +1386,33 @@
       "ballsFired": 0.0,
       "enemiesKilled": 0.0,
       "elapsedTime": 37.211193
+    },
+    {
+      "date": "2026-05-29",
+      "time": "10:42:54.524263191",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 23.128138
+    },
+    {
+      "date": "2026-05-29",
+      "time": "10:47:50.588000829",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 11.484993
+    },
+    {
+      "date": "2026-05-29",
+      "time": "10:48:32.587474265",
+      "version": "A1.1",
+      "score": 0.0,
+      "ballsFired": 0.0,
+      "enemiesKilled": 0.0,
+      "elapsedTime": 40.451477
     }
   ]
 }
