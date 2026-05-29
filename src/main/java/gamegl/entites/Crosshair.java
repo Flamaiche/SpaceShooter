@@ -145,12 +145,10 @@ public class Crosshair extends Entity2D {
 
         float scaleX = (float) lastHeight / (float) lastWidth;
         float scaleY = 1.0f;
-        float rollRad = (float)Math.toRadians(camera.getRoll());
 
         Matrix4f model = new Matrix4f()
                 .identity()
-                .scale(scaleX, scaleY, 1.0f)
-                .rotateZ(rollRad);
+                .scale(scaleX, scaleY, 1.0f);
 
         shader.setUniformMat4f("model", model);
         shader.setUniformMat4f("view", new Matrix4f().identity());

@@ -202,7 +202,7 @@ public class PlayingState extends GameState {
         cameraPhysics.update(joueur.getPosition(), camera, deltaTime);
         gestionnaireVue.mettreAJour(camera, joueur.getPosition(), 0);
 
-        joueur.update(inputAxes, deltaTime, camera.getYaw(), camera.getPitch());
+        joueur.update(inputAxes, deltaTime, camera.getFront(), camera.getUp());
         Entity collised = joueur.checkCollision(new ArrayList<Entity>(ennemis));
         if (collised != null) {
             joueur.decrementVie();
