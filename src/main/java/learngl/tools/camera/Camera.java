@@ -3,9 +3,10 @@ package learngl.tools.camera;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import learngl.tools.LogFile;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+
 
 public class Camera {
     private Vector3f position;
@@ -17,12 +18,10 @@ public class Camera {
 
     private float yaw;
     private float pitch;
-    private float roll;
     private float fov;
 
     private final Quaternionf orientation = new Quaternionf();
     private boolean orbitMode = false;
-    private boolean rollEnabled = false;
 
     private final OrbitController orbitController = new OrbitController();
 
@@ -31,10 +30,10 @@ public class Camera {
 
     private final Matrix4f rotationMatrix = new Matrix4f();
 
-    private static final float EPSILON = 1e-4f;
 
     public Camera(Vector3f position) {
-        System.out.println("[Camera] " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " — init");
+        LogFile.init();
+        LogFile.log("[Camera] " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " — init");
         this.position = new Vector3f(position);
         this.startPosition = position;
         this.front = new Vector3f(0, 0, -1);
@@ -43,7 +42,6 @@ public class Camera {
         this.right = new Vector3f();
         this.yaw = -90f;
         this.pitch = 0f;
-        this.roll = 0f;
         this.fov = 60f;
         reconstruireAxes();
         orbitController.init(position, new Vector3f(0, 0, 0));
@@ -57,17 +55,11 @@ public class Camera {
         this.right = new Vector3f();
         this.yaw = -90f;
         this.pitch = 0f;
-        this.roll = 0f;
         this.fov = 60f;
         reconstruireAxes();
         orbitController.init(position, new Vector3f(0, 0, 0));
     }
 
-    /**
-     * Activates or deactivates orbit mode. When entering orbit, the camera
-     * attaches to the orbit controller around the current target. When exiting,
-     * the camera's yaw/pitch are derived from the direction toward the target.
-     */
     public void setOrbitMode(boolean active) {
         if (active == orbitMode) return;
         if (active) {
@@ -88,43 +80,17 @@ public class Camera {
 
     public boolean isOrbitMode() { return orbitMode; }
 
-    /**
-     * Enables or disables roll. Enabling resets the current roll angle to zero.
-     */
-    public void setRollEnabled(boolean active) {
-        rollEnabled = active;
-        roll = 0f;
-        reconstruireAxes();
-    }
-
-    public boolean isRollEnabled() { return rollEnabled; }
-
-    public void addRoll(float delta) {
-        if (rollEnabled) {
-            roll = (roll + delta) % 360f;
+    public void rotateRoll(float deltaDeg) {
+        if (!orbitMode) {
+            rotationMatrix.mul(new Matrix4f().rotationZ((float) Math.toRadians(deltaDeg)));
+            extractAxes();
         }
     }
 
-    public void setRoll(float angleDeg) {
-        if (rollEnabled) roll = angleDeg % 360f;
-    }
-
-    public float getRoll() { return roll; }
-
-    /**
-     * Computes the view matrix using a look-at transformation from the camera's
-     * current position, looking in the front direction. In orbit mode the axes
-     * are recalculated to face the orbit target first. If roll is enabled and
-     * non-zero, the up vector is rotated around the front axis.
-     */
     public Matrix4f getViewMatrix() {
         if (orbitMode) updateAxesToTarget();
 
-        Vector3f rolledUp = new Vector3f(up);
-        if (rollEnabled && Math.abs(roll) > EPSILON)
-            rolledUp.rotateAxis((float)Math.toRadians(roll), front.x, front.y, front.z);
-
-        return new Matrix4f().lookAt(position, new Vector3f(position).add(front), rolledUp);
+        return new Matrix4f().lookAt(position, new Vector3f(position).add(front), up);
     }
 
     public Matrix4f getProjection(int width, int height) {
@@ -136,19 +102,25 @@ public class Camera {
         if (!orbitMode) position.add(offset);
     }
 
-    /**
-     * Rotates the camera by the given yaw/pitch offsets. In orbit mode the
-     * rotation is delegated to the orbit controller. In free-look mode the
-     * yaw is applied around the world up axis and the pitch around the
-     * camera's local right axis after yaw, eliminating the ellipse artifact.
-     */
     public void rotate(float offsetYaw, float offsetPitch) {
         if (!orbitMode) {
+            LogFile.logf("--- rotate(offsetYaw=%.1f, offsetPitch=%.1f)", offsetYaw, offsetPitch);
+            LogFile.logf("yaw=%.1f pitch=%.1f (before)", yaw, pitch);
+
+            rotationMatrix.mul(new Matrix4f().rotationY((float) Math.toRadians(-offsetYaw)));
+            rotationMatrix.mul(new Matrix4f().rotationX((float) Math.toRadians(offsetPitch)));
+
+            extractAxes();
+
             yaw += offsetYaw;
             pitch += offsetPitch;
-            reconstruireAxes();
-            System.out.printf(Locale.US, "[Camera] rotate(yaw=%+.1f pitch=%+.1f) → yaw=%.1f pitch=%.1f | front=(%.3f,%.3f,%.3f) right=(%.3f,%.3f,%.3f) up=(%.3f,%.3f,%.3f)%n",
-                offsetYaw, offsetPitch, yaw, pitch,
+            pitch = pitch % 360f;
+            if (pitch > 180f) pitch -= 360f;
+            if (pitch < -180f) pitch += 360f;
+            yaw = ((yaw % 360f) + 360f) % 360f;
+
+            LogFile.logf("yaw=%.1f pitch=%.1f (after)", yaw, pitch);
+            LogFile.logf("front=(%.6f,%.6f,%.6f) right=(%.6f,%.6f,%.6f) up=(%.6f,%.6f,%.6f)",
                 front.x, front.y, front.z,
                 right.x, right.y, right.z,
                 up.x, up.y, up.z);
@@ -158,21 +130,25 @@ public class Camera {
         }
     }
 
-    /**
-     * Recalculates front/right/up from yaw/pitch using a rotation matrix.
-     * Ry(-yaw) * Rx(pitch), columns = right, up, -front.
-     * Pas de gimbal lock ni de négation nécessaire — continue en 360°.
-     */
     private void reconstruireAxes() {
+        LogFile.logf("reconstruireAxes yaw=%.1f pitch=%.1f", yaw, pitch);
         rotationMatrix.identity()
                 .rotateY((float) Math.toRadians(-yaw))
                 .rotateX((float) Math.toRadians(pitch));
+        extractAxes();
+
+        orientation.identity().rotateY((float) Math.toRadians(-yaw)).rotateX((float) Math.toRadians(pitch));
+    }
+
+    private void extractAxes() {
         rotationMatrix.getColumn(0, right);
         rotationMatrix.getColumn(1, up);
         rotationMatrix.getColumn(2, front);
         front.negate();
-
-        orientation.identity().rotateY((float) Math.toRadians(-yaw)).rotateX((float) Math.toRadians(pitch));
+        LogFile.logf("  front=(%.6f,%.6f,%.6f) right=(%.6f,%.6f,%.6f) up=(%.6f,%.6f,%.6f)",
+            front.x, front.y, front.z,
+            right.x, right.y, right.z,
+            up.x, up.y, up.z);
     }
 
     private void updateAxesToTarget() {

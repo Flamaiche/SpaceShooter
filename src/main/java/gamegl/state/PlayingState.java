@@ -15,7 +15,7 @@ import learngl.tools.shape.Shape;
 import learngl.tools.VertexUtils;
 import gamegl.gestion.texte.TextHUD;
 import learngl.tools.Shader;
-import learngl.tools.commandes.ComboTouche;
+
 import learngl.tools.commandes.Commande;
 import learngl.tools.commandes.Touche;
 import org.joml.Matrix4f;
@@ -45,7 +45,7 @@ public class PlayingState extends GameState {
     private final GestionnaireVue gestionnaireVue = new GestionnaireVue();
 
     private final float vitesseRotation = 1.0f;
-    private final float rollSpeed = 1.0f;
+    private final float rollSpeed = 1.5f;
 
     private boolean mouseLocked = true;
     private boolean firstMouseInput = true;
@@ -58,7 +58,6 @@ public class PlayingState extends GameState {
     private int nbEnnemis = 35;
     private final Manager3D manager3D = new Manager3D();
     private final Manager2D manager2D = new Manager2D();
-    private Touche alt;
     private Touche shift;
 
     /**
@@ -152,17 +151,13 @@ public class PlayingState extends GameState {
                 () -> camera.setOrbitMode(false),
                 () -> camera.setOrbitMode(true)));
 
-        alt = new Touche(GLFW_KEY_LEFT_ALT, null, null, null);
-        touches.add(alt);
-        touches.add(new ComboTouche(alt, GLFW_KEY_Q, null, null, () -> camera.addRoll(-rollSpeed)));
-        touches.add(new ComboTouche(alt, GLFW_KEY_E, null, null, () -> camera.addRoll(rollSpeed)));
-        touches.add(new ComboTouche(alt, GLFW_KEY_R, () -> camera.setRoll(0), null, null));
-        touches.add(new ComboTouche(alt, GLFW_KEY_L, () -> camera.setRollEnabled(!camera.isRollEnabled()), null, null));
+        touches.add(new Touche(GLFW_KEY_A, null, null, () -> camera.rotateRoll(-rollSpeed)));
+        touches.add(new Touche(GLFW_KEY_E, null, null, () -> camera.rotateRoll(rollSpeed)));
 
         touches.add(new Touche(GLFW_KEY_W, null, null, () -> cameraPhysics.addFront(1, camera)));
         touches.add(new Touche(GLFW_KEY_S, null, null, () -> cameraPhysics.addFront(-1, camera)));
         touches.add(new Touche(GLFW_KEY_D, null, null, () -> cameraPhysics.addRight(1, camera)));
-        touches.add(new Touche(GLFW_KEY_A, null, null, () -> cameraPhysics.addRight(-1, camera)));
+        touches.add(new Touche(GLFW_KEY_Q, null, null, () -> cameraPhysics.addRight(-1, camera)));
         touches.add(new Touche(GLFW_KEY_SPACE, null, null, () -> cameraPhysics.addUp(1, camera)));
         touches.add(new Touche(GLFW_KEY_LEFT_CONTROL, null, null, () -> cameraPhysics.addUp(-1, camera)));
 
@@ -239,7 +234,7 @@ public class PlayingState extends GameState {
         data.setBallsFired(ballsFiredTotal);
         data.setEnemiesKilled(enemiesKilledTotal);
         data.setPlayerPosition(joueur.getPosition().x, joueur.getPosition().y, joueur.getPosition().z);
-        data.setPlayerOrientation(camera.getPitch(), camera.getYaw(), camera.getRoll());
+        data.setPlayerOrientation(camera.getPitch(), camera.getYaw(), 0);
         data.setActiveBalls(activeBalls, balls.size());
         data.setActiveEnemies(activeEnemies, ennemis.size());
         data.setDistanceTarget(distanceTarget);
