@@ -194,6 +194,11 @@ public class PlayingState extends GameState {
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) inputAxes[1]++;
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) inputAxes[1]--;
 
+        if (inputAxes[0] == 1) camera.rotate(-vitesseRotation * 60f * deltaTime, 0);
+        else if (inputAxes[0] == -1) camera.rotate(vitesseRotation * 60f * deltaTime, 0);
+        if (inputAxes[1] == 1) camera.rotate(0, vitesseRotation * 60f * deltaTime);
+        else if (inputAxes[1] == -1) camera.rotate(0, -vitesseRotation * 60f * deltaTime);
+
         cameraPhysics.update(joueur.getPosition(), camera, deltaTime);
         gestionnaireVue.mettreAJour(camera, joueur.getPosition(), 0);
 
