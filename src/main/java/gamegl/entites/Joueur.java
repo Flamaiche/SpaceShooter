@@ -3,6 +3,7 @@ package gamegl.entites;
 import gamegl.entites.balls.Balls;
 import learngl.tools.shape.Shape;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -15,6 +16,9 @@ public class Joueur extends Entity {
     private int lastHInput, lastVInput;
 
     private final Matrix4f rotMatrix = new Matrix4f();
+    private final Quaternionf smoothRot = new Quaternionf().identity();
+    private final Quaternionf rawRot = new Quaternionf();
+    private final Vector3f zero = new Vector3f(0, 0, 0);
 
     private static final float H_RATE = 20f;
     private static final float V_RATE = 10f;
@@ -29,7 +33,7 @@ public class Joueur extends Entity {
     @Override
     public void update(float deltaTime) {}
 
-    public void update(int[] axes, float deltaTime, float camYaw, float camPitch) {
+    public void update(int[] axes, float deltaTime, Vector3f camFront, Vector3f camUp) {
         int hInput = axes[0];
         int vInput = axes[1];
 
@@ -62,11 +66,15 @@ public class Joueur extends Entity {
         float bankDeg = hBias * BANK_FACTOR;
 
         rotMatrix.identity()
-                .rotateY((float) Math.toRadians(-camYaw))
-                .rotateX((float) Math.toRadians(camPitch))
+                .lookAt(zero, camFront, camUp)
+                .invert()
                 .rotateY((float) Math.toRadians(hBias))
                 .rotateX((float) Math.toRadians(vBias))
                 .rotateZ((float) Math.toRadians(bankDeg));
+
+        rawRot.setFromNormalized(rotMatrix);
+        smoothRot.slerp(rawRot, 0.98f);
+        smoothRot.get(rotMatrix);
 
         modelMatrix.identity()
                 .translate(position)
