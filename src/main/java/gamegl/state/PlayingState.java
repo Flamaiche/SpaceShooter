@@ -55,7 +55,7 @@ public class PlayingState extends GameState {
     private final int[] inputAxes = new int[2];
 
     private double shootCooldown = 0.5;
-    private int nbEnnemis = 2;
+    private int nbEnnemis = 35;
     private final Manager3D manager3D = new Manager3D();
     private final Manager2D manager2D = new Manager2D();
     private Touche alt;
@@ -96,8 +96,11 @@ public class PlayingState extends GameState {
                     speed += speed*1.5f;
             }
             e.setSpeed(speed);
-            if (i == 0) e.setBodyColor(1f, 0.2f, 0.2f);
-            else        e.setBodyColor(0.2f, 0.2f, 1f);
+            e.setBodyColor(
+                    0.3f + (float)Math.random() * 0.7f,
+                    0.3f + (float)Math.random() * 0.7f,
+                    0.3f + (float)Math.random() * 0.7f
+            );
             ennemis.add(e);
         }
 
