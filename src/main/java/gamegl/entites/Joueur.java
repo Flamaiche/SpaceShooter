@@ -1,7 +1,6 @@
 package gamegl.entites;
 
 import gamegl.entites.balls.Balls;
-import learngl.tools.camera.Camera;
 import learngl.tools.shape.Shape;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -12,95 +11,62 @@ public class Joueur extends Entity {
     private int vie;
     private final Vector3f position = new Vector3f(0, 0, 0);
 
-    private float prevYaw;
-    private float prevPitch;
-    private boolean firstUpdate = true;
     private int frameCount;
-    private float pitchAngle;
+    private float hBias, vBias;
 
     private final Matrix4f rotMatrix = new Matrix4f();
 
-    private static final float MAX_BIAS = 35f;
-    private static final float BANK_FACTOR = 0.08f;
-    private static final float PITCH_AMP = 2f;
-    private static final float PITCH_MAX = 85f;
+    private static final float H_SPEED = 120f;
+    private static final float V_SPEED = 60f;
+    private static final float BANK_FACTOR = 0.8f;
+    private static final float BANK_MAX = 35f;
 
     public Joueur(Shape corps) {
         this.corps = corps;
         this.vie = 3;
+        rotMatrix.rotateY((float) Math.toRadians(90));
     }
 
     @Override
     public void update(float deltaTime) {}
 
-    public void update(Camera camera, float deltaTime) {
-        float yaw = camera.getYaw();
-        float pitch = camera.getPitch();
+    public void update(int[] axes, float deltaTime) {
+        float hInput = axes[0];
+        float vInput = axes[1];
 
-        if (firstUpdate) {
-            float yawRad = (float) Math.toRadians(yaw + 90);
-            float targetPitch = pitch * PITCH_AMP;
-            float clampedPitch = Math.max(-89.99f, Math.min(89.99f, targetPitch));
-            float pitchRad = (float) Math.toRadians(clampedPitch);
-            float cp = (float) Math.cos(pitchRad);
-            float sp = (float) Math.sin(pitchRad);
-            float cy = (float) Math.cos(yawRad);
-            float sy = (float) Math.sin(yawRad);
+        if (hInput == 1)
+            hBias = H_SPEED;
+        else if (hInput == -1)
+            hBias = -H_SPEED;
+        else
+            hBias = 0;
 
-            Vector3f shipFront = new Vector3f(-cy * cp, sp, -sy * cp);
+        if (vInput == 1)
+            vBias = V_SPEED;
+        else if (vInput == -1)
+            vBias = -V_SPEED;
+        else
+            vBias = 0;
 
-            Vector3f worldUp = new Vector3f(0, 1, 0);
-            Vector3f right = new Vector3f(shipFront).cross(worldUp);
-            if (right.lengthSquared() < 1e-6f)
-                right.set(1, 0, 0);
-            right.normalize();
-            Vector3f shipUp = new Vector3f(right).cross(shipFront).normalize();
+        if (Math.abs(hBias) > 0.1f)
+            rotMatrix.rotate((float) Math.toRadians(hBias * deltaTime), 0, 1, 0);
 
-            rotMatrix.identity();
-            new Matrix4f()
-                    .lookAt(new Vector3f(0, 0, 0), new Vector3f(shipFront), shipUp)
-                    .invert(rotMatrix);
+        if (Math.abs(vBias) > 0.1f)
+            rotMatrix.rotate((float) Math.toRadians(vBias * deltaTime), 1, 0, 0);
 
-            pitchAngle = clampedPitch;
-            prevYaw = yaw;
-            prevPitch = pitch;
-            firstUpdate = false;
-            frameCount = 0;
-
-        } else if (yaw != prevYaw || pitch != prevPitch) {
-            float dyaw = yaw - prevYaw;
-            float dpitch = pitch - prevPitch;
-            prevYaw = yaw;
-            prevPitch = pitch;
-
-            Matrix4f yawRot = new Matrix4f().identity()
-                    .rotate((float) Math.toRadians(-dyaw), 0, 1, 0);
-            yawRot.mul(rotMatrix, rotMatrix);
-
-            float dpitchEff = dpitch * PITCH_AMP;
-            float newPitch = pitchAngle + dpitchEff;
-            if (newPitch > PITCH_MAX)
-                dpitchEff = PITCH_MAX - pitchAngle;
-            else if (newPitch < -PITCH_MAX)
-                dpitchEff = -PITCH_MAX - pitchAngle;
-            pitchAngle += dpitchEff;
-            rotMatrix.rotate((float) Math.toRadians(dpitchEff), 1, 0, 0);
-
-            float yawRate = dyaw / deltaTime;
-            float bankDeg = Math.max(-MAX_BIAS, Math.min(MAX_BIAS, -yawRate * BANK_FACTOR));
-            if (Math.abs(bankDeg) > 1e-4f)
-                rotMatrix.rotate((float) Math.toRadians(bankDeg), 0, 0, -1);
-
-            frameCount++;
-            if (frameCount > 300) {
-                rotMatrix.normalize3x3();
-                frameCount = 0;
-            }
-        }
+        float bankDeg = Math.max(-BANK_MAX, Math.min(BANK_MAX, -hBias * BANK_FACTOR));
+        if (Math.abs(bankDeg) > 0.1f)
+            rotMatrix.rotate((float) Math.toRadians(bankDeg), 0, 0, -1);
 
         modelMatrix.identity()
                 .translate(position)
                 .mul(rotMatrix);
+
+        frameCount++;
+        if (frameCount > 300) {
+            rotMatrix.normalize3x3();
+            frameCount = 0;
+        }
     }
 
     @Override
