@@ -188,7 +188,8 @@ public class Camera {
         // components invert and would flip right/up. Negate them so
         // the camera axes keep rotating in the same direction.
         float pitchMod = ((pitch % 360f) + 360f) % 360f;
-        if (pitchMod > 90 && pitchMod < 270 && Math.abs(sp) <= 0.9999f) {
+        boolean nearGimbalTop = Math.abs(sp) > 0.9999f && sp > 0;
+        if (pitchMod > 90 && pitchMod < 270 && !nearGimbalTop) {
             right.negate();
             up.negate();
         }
