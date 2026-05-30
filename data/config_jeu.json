@@ -85,6 +85,8 @@
 
       "crosshairMinSpeed": [0.0, 20.0],
 
+      "crosshairSnap": [0.0, 500.0],
+
       "nbEnnemis": [0, 10000],
       "enemyBaseSpeed": [0.0, 500.0],
       "enemyBaseSize": [0.01, 50.0],
