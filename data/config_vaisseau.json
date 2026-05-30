@@ -18,7 +18,7 @@
       "ballCollisionStep": 0.5,
       "shipOffset": {"x": 1.5, "y": 0.3},
       "bulletOffset": {"x": 1.5, "y": 0.3},
-      "thirdPersonOffset": {"x": 1.0, "y": 0.3, "z": 0.0},
+      "thirdPersonOffset": {"x": 2.0, "y": 0.3, "z": 0.0},
       "crosshairGeom": {"x": 0.04, "y": 0.02, "z": 0.005},
       "crosshairMult": {"x": 3.0, "y": 2.5},
       "cameraSpawn": {"x": 0.0, "y": 0.0, "z": 3.0},
@@ -28,7 +28,8 @@
       "biasMax": 10.0,
       "bankFactor": 0.8,
       "slerpFactor": 0.98,
-      "playerShipScale": 0.7
+      "playerShipScale": 0.7,
+      "offsetVisuelY": 0.0
     }
   ]
 }

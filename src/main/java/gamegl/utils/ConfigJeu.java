@@ -3,6 +3,7 @@ package gamegl.utils;
 import java.util.List;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 public class ConfigJeu {
 
@@ -112,6 +113,54 @@ public class ConfigJeu {
     public float[] slerpFactor;
     /* Échelle du modèle 3D du vaisseau joueur */
     public float[] playerShipScale;
+
+    /* === HUD / TEXTE === */
+    /* Taille de référence pour le calcul d'échelle HUD (x=largeur, y=hauteur) */
+    public Vector2f textBaseSize;
+    /* Marge par défaut pour l'alignement du texte */
+    public float textMargin;
+    /* Échelle uniforme par défaut du texte */
+    public float textUniformScale;
+
+    /* === COULEURS D'ARRIÈRE-PLAN === */
+    /* Couleur de fond en jeu (R, G, B, A) */
+    public Vector4f bgColorGameplay;
+    /* Couleur de fond en pause (R, G, B, A) */
+    public Vector4f bgColorPause;
+    /* Couleur de fond du menu principal (R, G, B, A) */
+    public Vector4f bgColorMenu;
+
+    /* === ANIMATION MENU === */
+    /* Rayon de l'animation du texte du menu */
+    public float menuTextRadius;
+    /* Espacement entre les lettres du menu animé */
+    public float menuTextLetterSpacing;
+    /* Fréquence de l'oscillation sinusoïdale du menu */
+    public float menuTextFrequency;
+    /* Tours par seconde de rotation des étoiles/texte */
+    public float menuToursPerSecond;
+    /* Rayon de l'animation des étoiles */
+    public float menuStarRadius;
+    /* Échelle du texte animé du menu (multiplicateur de uniformTextScale) */
+    public float menuAnimatedTextScale;
+    /* Échelle des items du menu (multiplicateur de uniformTextScale) */
+    public float menuItemScale;
+    /* Échelle de l'item sélectionné (multiplicateur de uniformTextScale) */
+    public float menuSelectedScale;
+    /* Couleur du texte animé du menu (R, G, B) */
+    public Vector3f menuTextColor;
+    /* Couleur des étoiles du menu (R, G, B) */
+    public Vector3f menuStarColor;
+    /* Couleur de l'item sélectionné (R, G, B) */
+    public Vector3f menuSelectedColor;
+    /* Couleur de l'item non sélectionné (R, G, B) */
+    public Vector3f menuUnselectedColor;
+    /* Nombre de faux ennemis décoratifs en pause */
+    public int menuFakeEnnemisCount;
+
+    /* === OFFSET VISUEL FAKE CAMERA === */
+    /* Hauteur Y des FAKE cameras (bornes [min, max]) */
+    public float[] offsetVisuelY;
 
     /* === ENNEMIS - stats de base === */
     /* Nombre d'ennemis générés */

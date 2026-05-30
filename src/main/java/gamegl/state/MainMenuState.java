@@ -4,11 +4,13 @@ import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.AnimatedText;
 import gamegl.gestion.texte.TextHUD;
 import gamegl.gestion.texte.TextManager;
+import gamegl.utils.ConfigJeu;
 import gamegl.utils.PosDeltaTime;
 import learngl.commandes.Commande;
 import learngl.Shader;
 import learngl.commandes.Touche;
 
+import org.joml.Vector4f;
 import java.util.ArrayList;
 
 import static gamegl.gestion.texte.TextManager.uniformTextScale;
@@ -82,28 +84,41 @@ public class MainMenuState extends GameState {
 
     @Override
     public void initHud() {
+        ConfigJeu cfgMenu = ConfigJeu.get();
+        float menuItemScale = cfgMenu.menuItemScale;
+        float menuAnimatedTextScale = cfgMenu.menuAnimatedTextScale;
+        float menuUnselR = cfgMenu.menuUnselectedColor.x;
+        float menuUnselG = cfgMenu.menuUnselectedColor.y;
+        float menuUnselB = cfgMenu.menuUnselectedColor.z;
         for (String t : textMenu) {
             texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER,
-                    (float) (uniformTextScale * 1.2), 1.0f, 1.0f, 1.0f));
+                    uniformTextScale * menuItemScale, menuUnselR, menuUnselG, menuUnselB));
         }
         texts.add(new TextHUD(TextHUD.TextType.TOTALSCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP,
-                uniformTextScale, 1.0f, 1.0f, 1.0f));
+                uniformTextScale, menuUnselR, menuUnselG, menuUnselB));
         texts.add(new TextHUD(TextHUD.TextType.VERSION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP,
-                uniformTextScale, 1.0f, 1.0f, 1.0f));
+                uniformTextScale, menuUnselR, menuUnselG, menuUnselB));
         hud.setTexts(texts);
 
+        float menuTextRadius = cfgMenu.menuTextRadius;
+        float menuTextLetterSpacing = cfgMenu.menuTextLetterSpacing;
+        float menuTextFrequency = cfgMenu.menuTextFrequency;
+        float menuToursPerSecond = cfgMenu.menuToursPerSecond;
+        float menuStarRadius = cfgMenu.menuStarRadius;
+        float animR = cfgMenu.menuTextColor.x;
+        float animG = cfgMenu.menuTextColor.y;
+        float animB = cfgMenu.menuTextColor.z;
         AnimatedText MenuText = new AnimatedText(
                 textMenu[indexSelection],
-                uniformTextScale * 1.5f,
-                0f, 1f, 0f,
-                145,
+                uniformTextScale * menuAnimatedTextScale,
+                animR, animG, animB,
+                menuTextRadius,
                 width / 2.0, height / 2.0,
-                0.5,
+                menuToursPerSecond,
                 (time, amplitude, cx, cy, tps, i) -> {
-                    double letterSpacing = 20;
-                    double x = cx + (i - textMenu[indexSelection].length() / 2.0) * letterSpacing;
+                    double x = cx + (i - textMenu[indexSelection].length() / 2.0) * menuTextLetterSpacing;
 
-                    double y = cy + amplitude * Math.sin(time * 2 + i * tps);
+                    double y = cy + amplitude * Math.sin(time * menuTextFrequency + i * tps);
 
                     return new double[]{x, y};
                 },
@@ -114,14 +129,13 @@ public class MainMenuState extends GameState {
 
         String starsText = "*****";
         int nbStars = starsText.length();
-        float rotationRadius = 175;
         AnimatedText stars = new AnimatedText(
                 starsText,
                 uniformTextScale,
-                1f, 0f, 0f,
-                rotationRadius,
+                cfgMenu.menuStarColor.x, cfgMenu.menuStarColor.y, cfgMenu.menuStarColor.z,
+                menuStarRadius,
                 width / 2.0, height / 2.0,
-                0.5,
+                menuToursPerSecond,
                 (time, radius, cx, cy, tps, i) ->
                         PosDeltaTime.circle(time, radius, cx, cy, tps, i, nbStars),
                 width, height,
@@ -150,16 +164,25 @@ public class MainMenuState extends GameState {
     private void updateMenuSelection() {
         indexSelection = ((indexSelection % textMenu.length) + textMenu.length) % textMenu.length;
 
+        ConfigJeu cfg = ConfigJeu.get();
+        float menuSelectedScale = cfg.menuSelectedScale;
+        float menuItemScale = cfg.menuItemScale;
+        float selR = cfg.menuSelectedColor.x;
+        float selG = cfg.menuSelectedColor.y;
+        float selB = cfg.menuSelectedColor.z;
+        float unselR = cfg.menuUnselectedColor.x;
+        float unselG = cfg.menuUnselectedColor.y;
+        float unselB = cfg.menuUnselectedColor.z;
         for (int i = 0; i < textMenu.length; i++) {
             TextHUD t = texts.get(i);
             if (i == indexSelection) {
                 t.setText(">> " + textMenu[i]);
-                t.setScale((float) (uniformTextScale * 2.5));
-                t.setRGB(1f, 1f, 0f);
+                t.setScale(uniformTextScale * menuSelectedScale);
+                t.setRGB(selR, selG, selB);
             } else {
                 t.setText(textMenu[i]);
-                t.setScale(uniformTextScale * 1.2f);
-                t.setRGB(1f, 1f, 1f);
+                t.setScale(uniformTextScale * menuItemScale);
+                t.setRGB(unselR, unselG, unselB);
             }
         }
     }
@@ -186,7 +209,8 @@ public class MainMenuState extends GameState {
 
     @Override
     public void render() {
-        glClearColor(0f, 0f, 0f, 1f);
+        Vector4f bgColorMenu = ConfigJeu.get().bgColorMenu;
+        glClearColor(bgColorMenu.x, bgColorMenu.y, bgColorMenu.z, bgColorMenu.w);
         hud.render(textShader);
         animatedTextManager.render(textShader);
     }
