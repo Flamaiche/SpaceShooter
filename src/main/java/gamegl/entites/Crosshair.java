@@ -67,20 +67,20 @@ public class Crosshair extends Entity2D {
         float errorMag = error.length();
 
         float angularSpeed = prevTargetDir.distance(targetDir) / Math.max(deltaTime, 0.0001f);
-        float angularDecel = prevAngularSpeed - angularSpeed;
         prevAngularSpeed = angularSpeed;
         prevTargetDir.set(targetDir);
 
-        chaseTimer += deltaTime;
-        float timeMul = 1f + chaseTimer * cfg.crosshairTimeMultiplier;
-        float cameraMul = 1f + angularSpeed * cfg.crosshairCameraForce;
+        float approach = error.dot(crosshairVel);
+        if (approach >= 0) chaseTimer += deltaTime;
+        else if (angularSpeed < 0.05f) chaseTimer = Math.max(0f, chaseTimer - deltaTime * 2f);
+        float timeMul = 1f + chaseTimer * cfg.crosshairTimeMultiplier / (1f + errorMag * 10f);
+        float cameraMul = Math.min(1.5f, 1f + angularSpeed * cfg.crosshairCameraForce);
 
-        float forceMag = cfg.crosshairStiffness * errorMag * (0.02f + errorMag * errorMag) * timeMul * cameraMul;
+        float forceMag = cfg.crosshairStiffness * errorMag * (0.05f + 0.5f * errorMag * errorMag) * timeMul * cameraMul;
         Vector3f force = new Vector3f(error).mul(forceMag);
 
-        float approach = error.dot(crosshairVel);
         float damping = (approach >= 0)
-            ? cfg.crosshairLagDamping * (0.2f + Math.min(1f, crosshairVel.length() / 3f) * 0.6f)
+            ? cfg.crosshairLagDamping * 1.0f
             : cfg.crosshairLagDamping;
         force.add(new Vector3f(crosshairVel).mul(-damping));
 
@@ -101,7 +101,7 @@ public class Crosshair extends Entity2D {
         float speed = crosshairVel.length();
         if (speed > cfg.crosshairLagMaxSpeed)
             crosshairVel.mul(cfg.crosshairLagMaxSpeed / speed);
-        else if (approach < 0 && speed < cfg.crosshairMinSpeed)
+        else if (angularSpeed > 0.1f && approach < 0 && speed < cfg.crosshairMinSpeed)
             crosshairVel.mul(cfg.crosshairMinSpeed / speed);
 
         crosshairDir.fma(deltaTime, crosshairVel).normalize();
