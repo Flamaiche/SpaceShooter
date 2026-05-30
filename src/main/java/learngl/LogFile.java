@@ -1,4 +1,4 @@
-package learngl.tools;
+package learngl;
 
 import java.io.FileWriter;
 import java.io.IOException;

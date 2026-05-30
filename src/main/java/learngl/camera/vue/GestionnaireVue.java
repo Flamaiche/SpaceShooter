@@ -1,33 +1,31 @@
-package learngl.tools.camera.vue;
+package learngl.camera.vue;
 
 import gamegl.utils.ConfigVaisseau;
-import learngl.tools.camera.Camera;
+import learngl.LogFile;
+import learngl.camera.Camera;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import java.util.List;
 
 public class GestionnaireVue {
 
     public enum ModeVue {
         PREMIERE_PERSONNE {
-            public List<Vector3f> params() {
-                return List.of(new Vector3f(), new Vector3f());
-            }
+            public Vector3f offsetVisuel() { return new Vector3f(); }
         },
         TROISIEME_PERSONNE {
-            public List<Vector3f> params() {
-                ConfigVaisseau cfg = ConfigVaisseau.get();
-                return List.of(new Vector3f(cfg.thirdPersonOffset), new Vector3f());
+            public Vector3f offsetVisuel() {
+                Vector3f off = new Vector3f(ConfigVaisseau.get().thirdPersonOffset);
+                return new Vector3f(off.x, ConfigVaisseau.get().offsetVisuelY, off.z);
             }
         },
         TROISIEME_PERSONNE_AVANT {
-            public List<Vector3f> params() {
-                ConfigVaisseau cfg = ConfigVaisseau.get();
-                return List.of(new Vector3f(cfg.thirdPersonOffset).mul(-1, 1, 1), new Vector3f(0, 0, 1));
+            public Vector3f offsetVisuel() {
+                Vector3f off = new Vector3f(ConfigVaisseau.get().thirdPersonOffset);
+                return new Vector3f(-off.x, ConfigVaisseau.get().offsetVisuelY, off.z);
             }
         };
 
-        public abstract List<Vector3f> params();
+        public abstract Vector3f offsetVisuel();
 
         public ModeVue suivant(int pas) {
             ModeVue[] vals = values();
@@ -36,40 +34,52 @@ public class GestionnaireVue {
     }
 
     private ModeVue modeActuel = ModeVue.PREMIERE_PERSONNE;
-    private final Vector3f worldOffset = new Vector3f();
+    private final Vector3f offsetReel = new Vector3f();
+    private final Vector3f dernierePosFactice = new Vector3f();
+    private final Vector3f dernierePosNavire = new Vector3f();
+
+    public GestionnaireVue() {
+        ConfigVaisseau cfg = ConfigVaisseau.get();
+        offsetReel.set(cfg.thirdPersonOffset);
+    }
 
     public void mettreAJour(Camera camera, Vector3f posJoueur) {
         mettreAJour(camera, posJoueur, 1);
     }
 
     public void mettreAJour(Camera camera, Vector3f posJoueur, int pas) {
+        ModeVue ancien = modeActuel;
         modeActuel = modeActuel.suivant(pas);
+        camera.setPosition(new Vector3f(posJoueur).add(offsetReel));
         if (pas != 0) {
-            Vector3f front = camera.getFront();
-            Vector3f right = camera.getRight();
-            Vector3f offsetPos = modeActuel.params().getFirst();
-            worldOffset.set(front).negate().mul(offsetPos.x)
-                    .add(0, offsetPos.y, 0)
-                    .add(new Vector3f(right).mul(offsetPos.z));
+            LogFile.printf("[GestionnaireVue] %s -> %s", ancien, modeActuel);
         }
-        camera.setPosition(new Vector3f(posJoueur).add(worldOffset));
     }
 
     public Matrix4f obtenirVue(Camera camera, Vector3f posJoueur) {
-        List<Vector3f> p = modeActuel.params();
-        Vector3f regard = p.get(1);
-        if (regard.z == 1) {
-            return new Matrix4f().lookAt(
-                    camera.getPosition(),
-                    posJoueur,
-                    new Vector3f(0, 1, 0)
-            );
+        Vector3f front = camera.getFront();
+        Vector3f right = camera.getRight();
+        Vector3f offsetVis = modeActuel.offsetVisuel();
+        dernierePosFactice.set(posJoueur)
+                .add(new Vector3f(front).negate().mul(offsetVis.x))
+                .add(0, offsetVis.y, 0)
+                .add(new Vector3f(right).mul(offsetVis.z));
+        ConfigVaisseau cfg = ConfigVaisseau.get();
+        dernierePosNavire.set(posJoueur)
+                .sub(0, cfg.shipOffset.y, 0);
+        if (modeActuel == ModeVue.TROISIEME_PERSONNE_AVANT) {
+            return new Matrix4f().lookAt(dernierePosFactice, posJoueur, new Vector3f(0, 1, 0));
         }
-        return camera.getViewMatrix();
+        return new Matrix4f().lookAt(dernierePosFactice, new Vector3f(dernierePosFactice).add(camera.getFront()), camera.getUp());
     }
+
+    public Vector3f getDernierePosFactice() { return dernierePosFactice; }
+    public Vector3f getDernierePosNavire() { return dernierePosNavire; }
 
     public boolean estPremierePersonne() {
         return modeActuel == ModeVue.PREMIERE_PERSONNE;
     }
+
+    public ModeVue getMode() { return modeActuel; }
 
 }

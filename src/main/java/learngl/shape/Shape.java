@@ -1,8 +1,8 @@
-package learngl.tools.shape;
+package learngl.shape;
 
-import learngl.tools.Shader;
-import learngl.tools.Texture;
-import learngl.tools.VertexUtils;
+import learngl.Shader;
+import learngl.Texture;
+import learngl.VertexUtils;
 import static org.lwjgl.opengl.GL30.*;
 
 import org.joml.Matrix4f;

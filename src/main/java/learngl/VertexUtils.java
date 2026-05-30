@@ -1,4 +1,4 @@
-package learngl.tools;
+package learngl;
 
 /**
  * Utility class for vertex data manipulation.

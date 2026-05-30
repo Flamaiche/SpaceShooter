@@ -1,4 +1,4 @@
-package learngl.tools.camera;
+package learngl.camera;
 
 import gamegl.utils.ConfigVaisseau;
 import org.joml.Vector3f;

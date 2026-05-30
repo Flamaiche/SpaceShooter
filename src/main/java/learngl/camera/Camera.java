@@ -1,11 +1,11 @@
-package learngl.tools.camera;
+package learngl.camera;
 
 import gamegl.utils.ConfigJeu;
 import gamegl.utils.ConfigVaisseau;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import learngl.tools.LogFile;
+import learngl.LogFile;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 

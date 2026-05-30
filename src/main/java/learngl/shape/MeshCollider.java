@@ -1,6 +1,6 @@
-package learngl.tools.shape;
+package learngl.shape;
 
-import learngl.tools.VertexUtils;
+import learngl.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

@@ -4,7 +4,7 @@ import gamegl.SpaceShooter;
 import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.donnees.SaveClassPatron;
 import gamegl.utils.GetDonnee;
-import learngl.tools.commandes.Commande;
+import learngl.commandes.Commande;
 
 import java.util.List;
 

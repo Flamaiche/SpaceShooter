@@ -3,9 +3,9 @@ package gamegl.entites.ennemis;
 import gamegl.entites.Entity;
 import gamegl.utils.ConfigEnnemis;
 import gamegl.utils.ConfigJeu;
-import learngl.tools.Shader;
-import learngl.tools.shape.Shape;
-import learngl.tools.VertexUtils;
+import learngl.Shader;
+import learngl.shape.Shape;
+import learngl.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

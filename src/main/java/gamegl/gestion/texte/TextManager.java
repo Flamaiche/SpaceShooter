@@ -1,7 +1,9 @@
 package gamegl.gestion.texte;
 
 import gamegl.gestion.donnees.GameData;
-import learngl.tools.Shader;
+import gamegl.utils.ConfigJeu;
+import learngl.Shader;
+import org.joml.Vector2f;
 import java.util.ArrayList;
 
 /**
@@ -16,16 +18,16 @@ public class TextManager {
     private final ArrayList<TextHUD> bottomTexts = new ArrayList<>();
     private final ArrayList<TextHUD> centerTexts = new ArrayList<>();
 
-    private final int baseWidth = 800;
-    private final int baseHeight = 600;
+    private final int baseWidth;
+    private final int baseHeight;
 
     private int windowWidth;
     private int windowHeight;
 
     /** Marge par défaut pour l'alignement du texte. */
-    public static final float margin = 20f;
+    public static float margin;
     /** Échelle uniforme par défaut du texte. */
-    public static final float uniformTextScale = 1.5f;
+    public static float uniformTextScale;
 
     /**
      * Constructeur du gestionnaire de texte.
@@ -35,6 +37,11 @@ public class TextManager {
      * @param initialHeight  hauteur initiale de la fenêtre
      */
     public TextManager(GameData data, int initialWidth, int initialHeight) {
+        Vector2f textBaseSize = ConfigJeu.get().textBaseSize;
+        this.baseWidth = (int) textBaseSize.x;
+        this.baseHeight = (int) textBaseSize.y;
+        margin = ConfigJeu.get().textMargin;
+        uniformTextScale = ConfigJeu.get().textUniformScale;
         this.data = data;
         this.windowWidth = initialWidth;
         this.windowHeight = initialHeight;

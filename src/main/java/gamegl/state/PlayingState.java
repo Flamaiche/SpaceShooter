@@ -11,18 +11,19 @@ import gamegl.gestion.Manager3D;
 import gamegl.utils.ConfigEnnemis;
 import gamegl.utils.ConfigJeu;
 import gamegl.utils.ConfigVaisseau;
-import learngl.tools.camera.CameraPhysics;
-import learngl.tools.camera.vue.GestionnaireVue;
-import learngl.tools.shape.PreVerticesTable;
-import learngl.tools.shape.Shape;
-import learngl.tools.VertexUtils;
+import learngl.camera.CameraPhysics;
+import learngl.camera.vue.GestionnaireVue;
+import learngl.shape.PreVerticesTable;
+import learngl.shape.Shape;
+import learngl.VertexUtils;
 import gamegl.gestion.texte.TextHUD;
-import learngl.tools.Shader;
+import learngl.Shader;
 
-import learngl.tools.commandes.Commande;
-import learngl.tools.commandes.Touche;
+import learngl.commandes.Commande;
+import learngl.commandes.Touche;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.ArrayList;
 
@@ -244,16 +245,14 @@ public class PlayingState extends GameState {
 
     @Override
     public void render() {
-        glClearColor(1f, 1f, 0f, 0f);
+        Vector4f bgColorGameplay = ConfigJeu.get().bgColorGameplay;
+        glClearColor(bgColorGameplay.x, bgColorGameplay.y, bgColorGameplay.z, bgColorGameplay.w);
 
         Matrix4f view = gestionnaireVue.obtenirVue(camera, joueur.getPosition());
         Matrix4f projection = camera.getProjection(width, height);
 
         if (!gestionnaireVue.estPremierePersonne()) {
-            ConfigVaisseau vaisseau = ConfigVaisseau.get();
-            Vector3f shipFixedPos = new Vector3f(camera.getPosition())
-                    .add(new Vector3f(camera.getFront()).mul(vaisseau.shipOffset.x))
-                    .sub(new Vector3f(camera.getUp()).mul(vaisseau.shipOffset.y));
+            Vector3f shipFixedPos = gestionnaireVue.getDernierePosNavire();
 
             Matrix4f shipModel = new Matrix4f(joueur.getModelMatrix());
             shipModel.setTranslation(shipFixedPos);

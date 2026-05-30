@@ -16,6 +16,28 @@
       "hudRightColor": {"x": 1.0, "y": 0.0, "z": 0.0},
       "targetFramerate": 60.0,
 
+      "textBaseSize": {"x": 800, "y": 600},
+      "textMargin": 20.0,
+      "textUniformScale": 1.5,
+
+      "bgColorGameplay": {"x": 1.0, "y": 1.0, "z": 0.0, "w": 0.0},
+      "bgColorPause": {"x": 0.2, "y": 0.2, "z": 0.2, "w": 1.0},
+      "bgColorMenu": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0},
+
+      "menuTextRadius": 145.0,
+      "menuTextLetterSpacing": 20.0,
+      "menuTextFrequency": 2.0,
+      "menuToursPerSecond": 0.5,
+      "menuStarRadius": 175.0,
+      "menuAnimatedTextScale": 1.5,
+      "menuItemScale": 1.2,
+      "menuSelectedScale": 2.5,
+      "menuTextColor": {"x": 0.0, "y": 1.0, "z": 0.0},
+      "menuStarColor": {"x": 1.0, "y": 0.0, "z": 0.0},
+      "menuSelectedColor": {"x": 1.0, "y": 1.0, "z": 0.0},
+      "menuUnselectedColor": {"x": 1.0, "y": 1.0, "z": 1.0},
+      "menuFakeEnnemisCount": 50,
+
       "initialLives": [1, 100],
 
       "cameraPhysics": [{"x": 0.1, "y": 0.01, "z": 0.01}, {"x": 500.0, "y": 20.0, "z": 0.999}],
@@ -50,6 +72,8 @@
       "bankFactor": [0.0, 1.0],
       "slerpFactor": [0.0, 1.0],
       "playerShipScale": [0.01, 50.0],
+
+      "offsetVisuelY": [-1000.0, 1000.0],
 
       "nbEnnemis": [0, 10000],
       "enemyBaseSpeed": [0.0, 500.0],

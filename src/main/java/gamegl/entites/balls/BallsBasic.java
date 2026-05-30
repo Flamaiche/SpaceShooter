@@ -1,6 +1,6 @@
 package gamegl.entites.balls;
 
-import learngl.tools.Shader;
+import learngl.Shader;
 
 /**
  * A basic ball projectile with default behavior.
