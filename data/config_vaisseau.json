@@ -36,7 +36,8 @@
       "crosshairTimeMultiplier": 3.0,
       "crosshairCameraForce": 5.0,
       "crosshairMinSpeed": 2.0,
-      "crosshairSnap": 50.0
+      "crosshairSnap": 50.0,
+      "crosshairStopBias": 10.0
     }
   ]
 }

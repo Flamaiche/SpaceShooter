@@ -30,6 +30,7 @@ public class Crosshair extends Entity2D {
     private final Vector3f crosshairVel = new Vector3f();
     private final Vector3f prevTargetDir = new Vector3f(0, 0, -1);
     private float chaseTimer = 0f;
+    private float prevAngularSpeed = 0f;
 
     public Crosshair(Shader shader, Camera camera) {
         this.shader = shader;
@@ -66,6 +67,8 @@ public class Crosshair extends Entity2D {
         float errorMag = error.length();
 
         float angularSpeed = prevTargetDir.distance(targetDir) / Math.max(deltaTime, 0.0001f);
+        float angularDecel = prevAngularSpeed - angularSpeed;
+        prevAngularSpeed = angularSpeed;
         prevTargetDir.set(targetDir);
 
         chaseTimer += deltaTime;
@@ -80,6 +83,13 @@ public class Crosshair extends Entity2D {
             ? cfg.crosshairLagDamping * 0.5f
             : cfg.crosshairLagDamping;
         force.add(new Vector3f(crosshairVel).mul(-damping));
+
+        // Bias d'arrêt : pousse le crosshair dans la direction du mouvement quand la caméra décélère
+        if (angularDecel > 0.05f && errorMag > 0.001f) {
+            float stopBias = cfg.crosshairStopBias * angularDecel;
+            Vector3f biasDir = new Vector3f(error).normalize();
+            force.add(new Vector3f(biasDir).mul(stopBias));
+        }
 
         // Snap boost pour le placement final : quand proche, lent et en approche
         if (errorMag < 0.15f && approach > 0 && crosshairVel.length() < 2f) {
