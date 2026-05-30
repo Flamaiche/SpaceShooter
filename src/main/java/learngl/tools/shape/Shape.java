@@ -15,10 +15,10 @@ import org.joml.Vector4f;
  * detection via MeshCollider, cloning, color modification, and scaling.
  */
 public class Shape {
-    private float[] vertices;
+    private final float[] vertices;
     private final int vaoId;
     private final int vboId;
-    private int vertexCount;
+    private final int vertexCount;
 
     /**
      * The OpenGL draw mode used when rendering this shape.
@@ -49,18 +49,6 @@ public class Shape {
     }
 
     /**
-     * Creates a shape from logical (screen-space) vertex coordinates by converting
-     * them to normalized device coordinates.
-     *
-     * @param logicalVertices vertices in logical pixel coordinates
-     * @param logicalWidth    the logical reference width
-     * @param logicalHeight   the logical reference height
-     */
-    public Shape(float[] logicalVertices, int logicalWidth, int logicalHeight) {
-        this(VertexUtils.convertLogicalToNormalized(logicalVertices, logicalWidth, logicalHeight));
-    }
-
-    /**
      * Sets the shader program used to render this shape.
      *
      * @param shader the shader to use, or null to unset
@@ -80,20 +68,6 @@ public class Shape {
      * @param texture the texture to use, or null to unset
      */
     public void setTexture(Texture texture) { this.texture = texture; }
-
-    /**
-     * Returns the currently assigned texture.
-     *
-     * @return the texture, or null if none is set
-     */
-    public Texture getTexture() { return texture; }
-
-    /**
-     * Returns the raw vertex data array.
-     *
-     * @return the vertex array
-     */
-    public float[] getVertices() { return vertices; }
 
     /**
      * Renders the shape by binding its VAO, enabling vertex attribute arrays,
@@ -182,24 +156,6 @@ public class Shape {
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-    }
-
-    /**
-     * Computes the geometric center (average position) of all vertices.
-     *
-     * @return a float array of length 3 containing [cx, cy, cz]
-     */
-    public float[] center() {
-        float[] center = new float[3];
-        for (int i = 0; i < vertexCount; i++) {
-            center[0] += vertices[i * VertexUtils.FLOATS_PER_VERTEX];
-            center[1] += vertices[i * VertexUtils.FLOATS_PER_VERTEX + 1];
-            center[2] += vertices[i * VertexUtils.FLOATS_PER_VERTEX + 2];
-        }
-        center[0] /= vertexCount;
-        center[1] /= vertexCount;
-        center[2] /= vertexCount;
-        return center;
     }
 
     /**

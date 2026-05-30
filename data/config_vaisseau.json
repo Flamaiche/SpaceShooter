@@ -1,0 +1,34 @@
+{
+  "type": "gamegl.utils.ConfigVaisseau",
+  "data": [
+    {
+      "name": "default",
+      "initialLives": 3,
+      "cameraPhysics": {"x": 17.5, "y": 4.0, "z": 0.5},
+      "mouseSensitivity": 0.1,
+      "vitesseRotation": 1.0,
+      "rollSpeed": 1.5,
+      "shootCooldown": 0.5,
+      "ballsMax": 20,
+      "ballSpeed": 25.0,
+      "ballDistanceMax": 150.0,
+      "ballSize": 0.35,
+      "ballRotationMultiplier": 2.0,
+      "ballRotationSpeedMax": 360.0,
+      "ballCollisionStep": 0.5,
+      "shipOffset": {"x": 1.5, "y": 0.3},
+      "bulletOffset": {"x": 1.5, "y": 0.3},
+      "thirdPersonOffset": {"x": 1.0, "y": 0.3, "z": 0.0},
+      "crosshairGeom": {"x": 0.04, "y": 0.02, "z": 0.005},
+      "crosshairMult": {"x": 3.0, "y": 2.5},
+      "cameraSpawn": {"x": 0.0, "y": 0.0, "z": 3.0},
+      "spawnAngles": {"x": -90.0, "y": 0.0},
+      "orbitLimits": {"x": 0.1, "y": 90.0},
+      "rotationRate": {"x": 20.0, "y": 10.0},
+      "biasMax": 10.0,
+      "bankFactor": 0.8,
+      "slerpFactor": 0.98,
+      "playerShipScale": 0.7
+    }
+  ]
+}

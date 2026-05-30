@@ -8,6 +8,9 @@ import gamegl.entites.ennemis.EnnemisBasic;
 import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.Manager2D;
 import gamegl.gestion.Manager3D;
+import gamegl.utils.ConfigEnnemis;
+import gamegl.utils.ConfigJeu;
+import gamegl.utils.ConfigVaisseau;
 import learngl.tools.camera.CameraPhysics;
 import learngl.tools.camera.vue.GestionnaireVue;
 import learngl.tools.shape.PreVerticesTable;
@@ -29,36 +32,28 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class PlayingState extends GameState {
     private ArrayList<TextHUD> texts;
-    private Joueur joueur;
-    private ArrayList<Ennemis> ennemis;
-    private ArrayList<Balls> balls;
-    private ArrayList<Entity2D> uiElements;
-    private Crosshair crosshair;
+    private final Joueur joueur;
+    private final ArrayList<Ennemis> ennemis;
+    private final ArrayList<Balls> balls;
+    private final ArrayList<Entity2D> uiElements;
+    private final Crosshair crosshair;
 
-    private Shader ennemisShader, ballShader, crosshairShader, textShader;
+    private final Shader ballShader;
+    private final Shader textShader;
 
     private double lastTime;
     private int score, ballsFiredTotal, enemiesKilledTotal;
-    private final int MAX_BALLS = 20;
-
     private final CameraPhysics cameraPhysics = new CameraPhysics();
     private final GestionnaireVue gestionnaireVue = new GestionnaireVue();
 
-    private final float vitesseRotation = 1.0f;
-    private final float rollSpeed = 1.5f;
-
-    private boolean mouseLocked = true;
+    private final boolean mouseLocked = true;
     private boolean firstMouseInput = true;
     private double lastMouseX, lastMouseY;
-    private final float mouseSensitivity = 0.1f;
 
     private final int[] inputAxes = new int[2];
 
-    private double shootCooldown = 0.5;
-    private int nbEnnemis = 35;
     private final Manager3D manager3D = new Manager3D();
     private final Manager2D manager2D = new Manager2D();
-    private Touche shift;
 
     /**
      * @param width  initial window width
@@ -70,42 +65,42 @@ public class PlayingState extends GameState {
 
         score = ballsFiredTotal = enemiesKilledTotal = 0;
 
-        ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
+        Shader ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
         ballShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
-        crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
+        Shader crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
-        Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(0.7f)));
+        Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(ConfigVaisseau.get().playerShipScale)));
         joueurShape.setShader(ballShader);
         joueur = new Joueur(joueurShape);
         joueur.setPosition(camera.getPosition());
 
-        Ennemis.setDespawnDistance(camera.getRenderSimulation());
         ennemis = new ArrayList<>();
-        for (int i = 0; i < nbEnnemis; i++) {
+        for (int i = 0; i < ConfigEnnemis.get().nbEnnemis; i++) {
+            ConfigEnnemis cfgEnemy = ConfigEnnemis.get();
             Ennemis e = new EnnemisBasic(
                     ennemisShader,
                     new float[]{camera.getPosition().x, camera.getPosition().y, camera.getPosition().z},
-                    PreVerticesTable.generateCubeSimple(1f),
-                    camera
+                    PreVerticesTable.generateCubeSimple(cfgEnemy.enemyBaseSize)
             );
-            float speed = 2.5f * (0.85f + (float)Math.random() * 0.5f);
-            if (i > 10) {
-                for (int puissance = 0; puissance < i/10; puissance++)
-                    speed += speed*1.5f;
+            float speed = cfgEnemy.enemyBaseSpeed * (cfgEnemy.enemySpeedRandomBase + (float)Math.random() * cfgEnemy.enemySpeedRandomRange);
+            if (i > cfgEnemy.enemySpeedPowerThreshold) {
+                for (int puissance = 0; puissance < i / cfgEnemy.enemySpeedPowerGroupSize; puissance++)
+                    speed += speed * cfgEnemy.enemySpeedPowerMultiplier;
             }
             e.setSpeed(speed);
+            float colorBase = cfgEnemy.enemyColorConfig.x;
+            float colorRange = cfgEnemy.enemyColorConfig.y;
             e.setBodyColor(
-                    0.3f + (float)Math.random() * 0.7f,
-                    0.3f + (float)Math.random() * 0.7f,
-                    0.3f + (float)Math.random() * 0.7f
+                    colorBase + (float)Math.random() * colorRange,
+                    colorBase + (float)Math.random() * colorRange,
+                    colorBase + (float)Math.random() * colorRange
             );
             ennemis.add(e);
         }
 
-        Balls.setMaxDistance(camera.getRenderSimulation());
         balls = new ArrayList<>();
-        for (int i = 0; i < MAX_BALLS; i++) balls.add(new BallsBasic(ballShader, 0.35f));
+        for (int i = 0; i < ConfigVaisseau.get().ballsMax; i++) balls.add(new BallsBasic(ballShader, ConfigVaisseau.get().ballSize));
 
         uiElements = new ArrayList<>();
         crosshair = new Crosshair(crosshairShader, camera);
@@ -129,7 +124,7 @@ public class PlayingState extends GameState {
         ArrayList<Touche> touches = new ArrayList<>();
         glfwSetInputMode(commande.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        glfwSetCursorPosCallback(commande.getWindow(), (window, xpos, ypos) -> {
+        glfwSetCursorPosCallback(commande.getWindow(), (_, xpos, ypos) -> {
             if (!mouseLocked) return;
             if (firstMouseInput) {
                 lastMouseX = xpos;
@@ -140,10 +135,10 @@ public class PlayingState extends GameState {
             double deltaY = lastMouseY - ypos;
             lastMouseX = xpos;
             lastMouseY = ypos;
-            camera.rotate((float)(deltaX * mouseSensitivity), (float)(deltaY * mouseSensitivity));
+            camera.rotate((float)(deltaX * ConfigVaisseau.get().mouseSensitivity), (float)(deltaY * ConfigVaisseau.get().mouseSensitivity));
         });
 
-        glfwSetWindowFocusCallback(commande.getWindow(), (window, focused) -> {
+        glfwSetWindowFocusCallback(commande.getWindow(), (_, focused) -> {
             if (!focused) firstMouseInput = true;
         });
 
@@ -151,21 +146,21 @@ public class PlayingState extends GameState {
                 () -> camera.setOrbitMode(false),
                 () -> camera.setOrbitMode(true)));
 
-        touches.add(new Touche(GLFW_KEY_Q, null, null, () -> camera.rotateRoll(-rollSpeed)));
-        touches.add(new Touche(GLFW_KEY_E, null, null, () -> camera.rotateRoll(rollSpeed)));
+        touches.add(new Touche(GLFW_KEY_Q, null, null, () -> camera.rotateRoll(-ConfigVaisseau.get().rollSpeed)));
+        touches.add(new Touche(GLFW_KEY_E, null, null, () -> camera.rotateRoll(ConfigVaisseau.get().rollSpeed)));
 
         touches.add(new Touche(GLFW_KEY_W, null, null, () -> cameraPhysics.addFront(1, camera)));
         touches.add(new Touche(GLFW_KEY_S, null, null, () -> cameraPhysics.addFront(-1, camera)));
         touches.add(new Touche(GLFW_KEY_D, null, null, () -> cameraPhysics.addRight(1, camera)));
-        touches.add(new Touche(GLFW_KEY_Q, null, null, () -> cameraPhysics.addRight(-1, camera)));
+        touches.add(new Touche(GLFW_KEY_A, null, null, () -> cameraPhysics.addRight(-1, camera)));
         touches.add(new Touche(GLFW_KEY_SPACE, null, null, () -> cameraPhysics.addUp(1, camera)));
         touches.add(new Touche(GLFW_KEY_LEFT_CONTROL, null, null, () -> cameraPhysics.addUp(-1, camera)));
 
-        shift = new Touche(GLFW_KEY_LEFT_SHIFT, null, null, null);
+        Touche shift = new Touche(GLFW_KEY_LEFT_SHIFT, null, null, null);
         touches.add(shift);
 
-        touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, () -> shoot()));
-        touches.add(new Touche(GLFW_KEY_GRAVE_ACCENT, null, null, () -> shoot()));
+        touches.add(new Touche(GLFW_MOUSE_BUTTON_LEFT, true, null, null, this::shoot));
+        touches.add(new Touche(GLFW_KEY_GRAVE_ACCENT, null, null, this::shoot));
 
         touches.add(new Touche(GLFW_KEY_ESCAPE,
                 () -> commande.getGameStateManager().setState(GameStateManager.GameStateEnum.PAUSE),
@@ -189,16 +184,18 @@ public class PlayingState extends GameState {
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) inputAxes[1]++;
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) inputAxes[1]--;
 
-        if (inputAxes[0] == 1) camera.rotate(-vitesseRotation * 60f * deltaTime, 0);
-        else if (inputAxes[0] == -1) camera.rotate(vitesseRotation * 60f * deltaTime, 0);
-        if (inputAxes[1] == 1) camera.rotate(0, vitesseRotation * 60f * deltaTime);
-        else if (inputAxes[1] == -1) camera.rotate(0, -vitesseRotation * 60f * deltaTime);
+        float fr = ConfigJeu.get().targetFramerate;
+        float vr = ConfigVaisseau.get().vitesseRotation;
+        if (inputAxes[0] == 1) camera.rotate(-vr * fr * deltaTime, 0);
+        else if (inputAxes[0] == -1) camera.rotate(vr * fr * deltaTime, 0);
+        if (inputAxes[1] == 1) camera.rotate(0, vr * fr * deltaTime);
+        else if (inputAxes[1] == -1) camera.rotate(0, -vr * fr * deltaTime);
 
         cameraPhysics.update(joueur.getPosition(), camera, deltaTime);
         gestionnaireVue.mettreAJour(camera, joueur.getPosition(), 0);
 
         joueur.update(inputAxes, deltaTime, camera.getFront(), camera.getUp());
-        Entity collised = joueur.checkCollision(new ArrayList<Entity>(ennemis));
+        Entity collised = joueur.checkCollision(new ArrayList<>(ennemis));
         if (collised != null) {
             joueur.decrementVie();
             if (collised instanceof Ennemis) {
@@ -242,7 +239,7 @@ public class PlayingState extends GameState {
         data.setFPS(1.0f / deltaTime);
         data.setSpeed(cameraPhysics.getVelocity().length());
 
-        hud.update(deltaTime, width, height);
+        hud.update(width, height);
     }
 
     @Override
@@ -253,9 +250,10 @@ public class PlayingState extends GameState {
         Matrix4f projection = camera.getProjection(width, height);
 
         if (!gestionnaireVue.estPremierePersonne()) {
+            ConfigVaisseau vaisseau = ConfigVaisseau.get();
             Vector3f shipFixedPos = new Vector3f(camera.getPosition())
-                    .add(new Vector3f(camera.getFront()).mul(1.5f))
-                    .sub(new Vector3f(camera.getUp()).mul(0.3f));
+                    .add(new Vector3f(camera.getFront()).mul(vaisseau.shipOffset.x))
+                    .sub(new Vector3f(camera.getUp()).mul(vaisseau.shipOffset.y));
 
             Matrix4f shipModel = new Matrix4f(joueur.getModelMatrix());
             shipModel.setTranslation(shipFixedPos);
@@ -288,14 +286,15 @@ public class PlayingState extends GameState {
 
     private void shoot() {
         double currentTime = glfwGetTime();
-        if (currentTime - lastTime < shootCooldown) return;
+        if (currentTime - lastTime < ConfigVaisseau.get().shootCooldown) return;
         lastTime = currentTime;
 
         Vector3f rayDir = crosshair.getRayDir();
 
+        ConfigVaisseau vaisseau = ConfigVaisseau.get();
         Vector3f spawnPos = new Vector3f(camera.getPosition())
-                .add(new Vector3f(camera.getFront()).mul(1.5f))
-                .sub(new Vector3f(camera.getUp()).mul(0.3f));
+                .add(new Vector3f(camera.getFront()).mul(vaisseau.bulletOffset.x))
+                .sub(new Vector3f(camera.getUp()).mul(vaisseau.bulletOffset.y));
 
         for (Balls b : balls) {
             if (!b.isActive()) {
@@ -308,22 +307,26 @@ public class PlayingState extends GameState {
 
     public void initHud() {
         texts = new ArrayList<>();
+        ConfigJeu cfg = ConfigJeu.get();
 
-        texts.add(new TextHUD(TextHUD.TextType.BESTSCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.SCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.LIVES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.TIME, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.BALLS, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
-        texts.add(new TextHUD(TextHUD.TextType.ENEMIES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 0.5f, 0f, 0.5f));
+        float lr = cfg.hudLeftColor.x, lg = cfg.hudLeftColor.y, lb = cfg.hudLeftColor.z;
+        float rr = cfg.hudRightColor.x, rg = cfg.hudRightColor.y, rb = cfg.hudRightColor.z;
 
-        texts.add(new TextHUD(TextHUD.TextType.VERSION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.FPS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.POSITION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.SPEED, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.ORIENTATION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.ACTIVE_BALLS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.ACTIVE_ENEMIES, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
-        texts.add(new TextHUD(TextHUD.TextType.DISTANCE_TARGET, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, 1f, 0f, 0f, true));
+        texts.add(new TextHUD(TextHUD.TextType.BESTSCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, lr, lg, lb));
+        texts.add(new TextHUD(TextHUD.TextType.SCORE, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, lr, lg, lb));
+        texts.add(new TextHUD(TextHUD.TextType.LIVES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, lr, lg, lb));
+        texts.add(new TextHUD(TextHUD.TextType.TIME, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, lr, lg, lb));
+        texts.add(new TextHUD(TextHUD.TextType.BALLS, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, lr, lg, lb));
+        texts.add(new TextHUD(TextHUD.TextType.ENEMIES, TextHUD.HorizontalAlignment.LEFT, TextHUD.VerticalAlignment.TOP, uniformTextScale, lr, lg, lb));
+
+        texts.add(new TextHUD(TextHUD.TextType.VERSION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, rr, rg, rb, true));
+        texts.add(new TextHUD(TextHUD.TextType.FPS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, rr, rg, rb, true));
+        texts.add(new TextHUD(TextHUD.TextType.POSITION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, rr, rg, rb, true));
+        texts.add(new TextHUD(TextHUD.TextType.SPEED, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, rr, rg, rb, true));
+        texts.add(new TextHUD(TextHUD.TextType.ORIENTATION, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, rr, rg, rb, true));
+        texts.add(new TextHUD(TextHUD.TextType.ACTIVE_BALLS, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, rr, rg, rb, true));
+        texts.add(new TextHUD(TextHUD.TextType.ACTIVE_ENEMIES, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, rr, rg, rb, true));
+        texts.add(new TextHUD(TextHUD.TextType.DISTANCE_TARGET, TextHUD.HorizontalAlignment.RIGHT, TextHUD.VerticalAlignment.TOP, uniformTextScale, rr, rg, rb, true));
 
         hud.setTexts(texts);
     }

@@ -22,15 +22,14 @@ import static org.lwjgl.opengl.GL11.*;
 public class MainMenuState extends GameState {
 
     private ArrayList<TextHUD> texts;
-    private String[] textMenu = {"JOUER", "PARAMETRE", "QUITTER"};
+    private final String[] textMenu = {"JOUER", "PARAMETRE", "QUITTER"};
 
-    private Shader textShader;
+    private final Shader textShader;
 
     private int indexSelection;
-    private float rotationRadius = 175;
 
-    private ArrayList<AnimatedText> animatedTexts = new ArrayList<>();
-    private TextManager animatedTextManager;
+    private final ArrayList<AnimatedText> animatedTexts = new ArrayList<>();
+    private final TextManager animatedTextManager;
 
     /**
      * Constructs the main menu state.
@@ -47,13 +46,6 @@ public class MainMenuState extends GameState {
     }
 
     @Override
-    /**
-     * Initializes the menu state, including input bindings, HUD, and mouse callbacks.
-     *
-     * @param commande the command handler for input
-     * @param width    the window width
-     * @param height   the window height
-     */
     public void init(Commande commande, int width, int height) {
         texts = new ArrayList<>();
         super.init(commande, width, height);
@@ -78,9 +70,6 @@ public class MainMenuState extends GameState {
     }
 
     @Override
-    /**
-     * Initializes keyboard and mouse input bindings for menu navigation.
-     */
     public void initTouches() {
         ArrayList<Touche> touches = new ArrayList<>();
         touches.add(new Touche(GLFW_KEY_UP, () -> indexSelection--, null, null));
@@ -92,10 +81,6 @@ public class MainMenuState extends GameState {
     }
 
     @Override
-    /**
-     * Initializes the HUD text elements, including static menu items, score/version display,
-     * and animated text (selection highlight and decorative stars).
-     */
     public void initHud() {
         for (String t : textMenu) {
             texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER,
@@ -122,13 +107,14 @@ public class MainMenuState extends GameState {
 
                     return new double[]{x, y};
                 },
-                width, height, 1,
+                width, height,
                 data
         );
         animatedTexts.add(MenuText);
 
         String starsText = "*****";
         int nbStars = starsText.length();
+        float rotationRadius = 175;
         AnimatedText stars = new AnimatedText(
                 starsText,
                 uniformTextScale,
@@ -138,7 +124,7 @@ public class MainMenuState extends GameState {
                 0.5,
                 (time, radius, cx, cy, tps, i) ->
                         PosDeltaTime.circle(time, radius, cx, cy, tps, i, nbStars),
-                width, height, 1,
+                width, height,
                 data
         );
         animatedTexts.add(stars);
@@ -181,7 +167,7 @@ public class MainMenuState extends GameState {
     private void updateAnimatedTexts(double deltaTime) {
         animatedTextManager.getTexts().clear();
 
-        animatedTexts.get(0).setText(textMenu[indexSelection]);
+        animatedTexts.getFirst().setText(textMenu[indexSelection]);
 
         for (AnimatedText at : animatedTexts) {
             at.update(deltaTime, width, height);
@@ -190,23 +176,15 @@ public class MainMenuState extends GameState {
     }
 
     @Override
-    /**
-     * Updates the menu state, including selection highlighting and animated text.
-     *
-     * @param deltaTime time elapsed since the last update
-     */
     public void update(float deltaTime) {
         commande.update();
         updateMenuSelection();
         updateAnimatedTexts(deltaTime);
-        hud.update(deltaTime, width, height);
-        animatedTextManager.update(deltaTime, width, height);
+        hud.update(width, height);
+        animatedTextManager.update(width, height);
     }
 
     @Override
-    /**
-     * Renders the menu background, HUD text, and animated text elements.
-     */
     public void render() {
         glClearColor(0f, 0f, 0f, 1f);
         hud.render(textShader);
@@ -214,9 +192,6 @@ public class MainMenuState extends GameState {
     }
 
     @Override
-    /**
-     * Releases resources held by this menu state.
-     */
     public void cleanup() {
         super.cleanup();
     }

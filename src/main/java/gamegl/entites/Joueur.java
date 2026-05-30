@@ -1,6 +1,7 @@
 package gamegl.entites;
 
 import gamegl.entites.balls.Balls;
+import gamegl.utils.ConfigVaisseau;
 import learngl.tools.shape.Shape;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -20,14 +21,9 @@ public class Joueur extends Entity {
     private final Quaternionf rawRot = new Quaternionf();
     private final Vector3f zero = new Vector3f(0, 0, 0);
 
-    private static final float H_RATE = 20f;
-    private static final float V_RATE = 10f;
-    private static final float BIAS_MAX = 10f;
-    private static final float BANK_FACTOR = 0.8f;
-
     public Joueur(Shape corps) {
         this.corps = corps;
-        this.vie = 3;
+        this.vie = ConfigVaisseau.get().initialLives;
     }
 
     @Override
@@ -37,33 +33,38 @@ public class Joueur extends Entity {
         int hInput = axes[0];
         int vInput = axes[1];
 
+        ConfigVaisseau cfg = ConfigVaisseau.get();
+
+        float hRate = cfg.rotationRate.x;
+        float vRate = cfg.rotationRate.y;
+
         if (hInput != lastHInput && hInput != 0 && lastHInput != 0)
             hBias = 0;
         lastHInput = hInput;
 
         if (hInput == 1)
-            hBias = Math.min(BIAS_MAX, hBias + H_RATE * deltaTime);
+            hBias = Math.min(cfg.biasMax, hBias + hRate * deltaTime);
         else if (hInput == -1)
-            hBias = Math.max(-BIAS_MAX, hBias - H_RATE * deltaTime);
+            hBias = Math.max(-cfg.biasMax, hBias - hRate * deltaTime);
         else if (hBias > 0)
-            hBias = Math.max(0, hBias - H_RATE * deltaTime);
+            hBias = Math.max(0, hBias - hRate * deltaTime);
         else if (hBias < 0)
-            hBias = Math.min(0, hBias + H_RATE * deltaTime);
+            hBias = Math.min(0, hBias + hRate * deltaTime);
 
         if (vInput != lastVInput && vInput != 0 && lastVInput != 0)
             vBias = 0;
         lastVInput = vInput;
 
         if (vInput == 1)
-            vBias = Math.min(BIAS_MAX, vBias + V_RATE * deltaTime);
+            vBias = Math.min(cfg.biasMax, vBias + vRate * deltaTime);
         else if (vInput == -1)
-            vBias = Math.max(-BIAS_MAX, vBias - V_RATE * deltaTime);
+            vBias = Math.max(-cfg.biasMax, vBias - vRate * deltaTime);
         else if (vBias > 0)
-            vBias = Math.max(0, vBias - V_RATE * deltaTime);
+            vBias = Math.max(0, vBias - vRate * deltaTime);
         else if (vBias < 0)
-            vBias = Math.min(0, vBias + V_RATE * deltaTime);
+            vBias = Math.min(0, vBias + vRate * deltaTime);
 
-        float bankDeg = hBias * BANK_FACTOR;
+        float bankDeg = hBias * cfg.bankFactor;
 
         rotMatrix.identity()
                 .lookAt(zero, camFront, camUp)
@@ -73,7 +74,7 @@ public class Joueur extends Entity {
                 .rotateZ((float) Math.toRadians(bankDeg));
 
         rawRot.setFromNormalized(rotMatrix);
-        smoothRot.slerp(rawRot, 0.98f);
+        smoothRot.slerp(rawRot, cfg.slerpFactor);
         smoothRot.get(rotMatrix);
 
         modelMatrix.identity()
@@ -99,7 +100,6 @@ public class Joueur extends Entity {
         return null;
     }
 
-    public void setVie(int v) { vie = v; }
     public int getVie() { return vie; }
     public void decrementVie() { if (vie > 0) vie--; }
     public Vector3f getPosition() { return position; }

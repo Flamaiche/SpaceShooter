@@ -5,7 +5,7 @@ package learngl.tools.commandes;
  * a secondary key are both pressed simultaneously.
  */
 public class ComboTouche extends Touche {
-    private Touche t1;
+    private final Touche t1;
 
     /**
      * Creates a combo binding requiring the given modifier Touche and a

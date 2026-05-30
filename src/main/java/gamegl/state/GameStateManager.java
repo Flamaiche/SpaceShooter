@@ -15,11 +15,11 @@ import java.util.List;
  */
 public class GameStateManager {
     private GameState currentState;
-    private Commande commande;
+    private final Commande commande;
     private int width;
     private int height;
     private GameState playing;
-    private GameData gameData;
+    private final GameData gameData;
 
     /**
      * Enumeration of possible game states.

@@ -1,7 +1,8 @@
 package gamegl.entites.ennemis;
 
 import gamegl.entites.Entity;
-import learngl.tools.camera.Camera;
+import gamegl.utils.ConfigEnnemis;
+import gamegl.utils.ConfigJeu;
 import learngl.tools.Shader;
 import learngl.tools.shape.Shape;
 import learngl.tools.VertexUtils;
@@ -20,8 +21,6 @@ import static org.lwjgl.opengl.GL11C.*;
  */
 public abstract class Ennemis extends Entity {
     protected static Random rand = new Random();
-    protected float spawnSize = 10f;
-    protected float exclusionSize = 5f;
 
     protected Shape corps;
     protected Shader shader;
@@ -29,18 +28,11 @@ public abstract class Ennemis extends Entity {
     protected Vector3f direction;
     protected Vector3f target;
     protected float speed = 2.5f;
-    protected static float despawnDistance = 150f;
     protected boolean highlighted = false;
 
-    protected final int MAX_VIE = 1;
-    protected int vie = MAX_VIE;
-    protected int score = 10;
-    protected final float RESPAWN_TIME_MIN = 1f;
-    protected final float RESPAWN_TIME_MAX = 9f;
+    protected int vie;
     protected float respawn_time = -1f;
     protected float deathTime = -1f;
-
-    protected final int moduloMutationDeltaTime = 6;
     protected Vector3f bodyColor = new Vector3f(0f, 0f, 0f);
 
     /**
@@ -49,13 +41,13 @@ public abstract class Ennemis extends Entity {
      * @param shader        the shader used for rendering
      * @param centerPlayer  the player's position {x, y, z} used as spawn origin
      * @param verticesShape the vertex data defining the enemy's shape
-     * @param camera        the camera (unused in constructor but kept for subclasses)
      */
-    public Ennemis(Shader shader, float[] centerPlayer, float[] verticesShape, Camera camera) {
+    public Ennemis(Shader shader, float[] centerPlayer, float[] verticesShape) {
         corps = new Shape(VertexUtils.autoAddSlotColor(verticesShape));
         corps.setShader(shader);
         corps.setColor(0f,0f,0f);
         this.shader = shader;
+        this.vie = ConfigEnnemis.get().enemyMaxVie;
         setDeplacement(centerPlayer);
         updateModelMatrix();
     }
@@ -85,7 +77,10 @@ public abstract class Ennemis extends Entity {
      * @return an array {x, y, z} with the absolute spawn coordinates
      */
     public float[] generateSpawn(float playerX, float playerY, float playerZ) {
+        ConfigEnnemis cfg = ConfigEnnemis.get();
         float x,y,z;
+        float spawnSize = cfg.spawnZone.x;
+        float exclusionSize = cfg.spawnZone.y;
         do {
             x = rand.nextFloat() * (2*spawnSize) - spawnSize;
             y = rand.nextFloat() * (2*spawnSize) - spawnSize;
@@ -103,7 +98,7 @@ public abstract class Ennemis extends Entity {
      * @return true if the enemy is beyond despawn distance
      */
     public boolean shouldDespawn(Vector3f cameraPos) {
-        return position.distance(cameraPos) > despawnDistance;
+        return position.distance(cameraPos) > ConfigJeu.get().renderSimulation;
     }
 
     /**
@@ -113,11 +108,12 @@ public abstract class Ennemis extends Entity {
      * @param deltaTime time elapsed since the last update
      */
     public void update(float deltaTime) {
-        if (deltaTime%moduloMutationDeltaTime == 0) mutation();
+        ConfigEnnemis cfg = ConfigEnnemis.get();
+        if (deltaTime%cfg.mutationDeltaTimeInterval == 0) mutation();
         if (vie <= 0) {
             if (deathTime < 0) {
                 deathTime = (float) glfwGetTime();
-                respawn_time = rand.nextFloat(RESPAWN_TIME_MAX - RESPAWN_TIME_MIN + 1) + RESPAWN_TIME_MIN;
+                respawn_time = rand.nextFloat(cfg.respawnTime.y - cfg.respawnTime.x + 1) + cfg.respawnTime.x;
             } else {
                 float currentTime = (float) glfwGetTime();
                 if (currentTime - deathTime >= respawn_time) {
@@ -156,14 +152,17 @@ public abstract class Ennemis extends Entity {
         corps.render();
 
         if (highlighted) {
-            Matrix4f outlineModel = new Matrix4f(modelMatrix).scale(1.05f);
+            ConfigEnnemis cfg = ConfigEnnemis.get();
+            float outlineScale = cfg.enemyOutline.x;
+            float outlineWidth = cfg.enemyOutline.y;
+            Matrix4f outlineModel = new Matrix4f(modelMatrix).scale(outlineScale);
             shader.setUniformMat4f("model", outlineModel);
 
             glEnable(GL_DEPTH_TEST);
             glDepthMask(false);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glLineWidth(2.5f);
-            corps.setColor(1f,0f,0f);
+            glLineWidth(outlineWidth);
+            corps.setColor(cfg.enemyHighlightColor.x, cfg.enemyHighlightColor.y, cfg.enemyHighlightColor.z);
             corps.render();
 
             glDepthMask(true);
@@ -182,8 +181,9 @@ public abstract class Ennemis extends Entity {
     public int touched() {
         decrementVie();
         if (getVie() <= 0) {
-            setDeplacement(new float[]{getDespawnDistance()*2, getDespawnDistance()*2, getDespawnDistance()*2});
-            return getScore();
+            float d = ConfigJeu.get().renderSimulation * ConfigEnnemis.get().respawnDistanceMultiplier;
+            setDeplacement(new float[]{d, d, d});
+            return ConfigEnnemis.get().enemyScore;
         }
         return 0;
     }
@@ -194,17 +194,8 @@ public abstract class Ennemis extends Entity {
     public Shape getBody() { return corps; }
     public int getVie() { return vie; }
     public void decrementVie() { if (vie>0) vie--; }
-    public void resetVie() { vie = MAX_VIE; }
-    public int getScore() { return score; }
-    public float getDespawnDistance() { return despawnDistance; }
+    public void resetVie() { vie = ConfigEnnemis.get().enemyMaxVie; }
     public void setHighlighted(boolean h) { highlighted = h; }
-
-    /**
-     * Sets the despawn distance for all enemy instances.
-     *
-     * @param d the despawn distance
-     */
-    public static void setDespawnDistance(float d) { despawnDistance = d; }
 
     /**
      * Sets the movement speed for this enemy.
@@ -234,27 +225,24 @@ public abstract class Ennemis extends Entity {
      * Applies random mutations to speed, size, and respawn time with defined probabilities.
      */
     public void mutation() {
-        float MUTATIONVITESSE = 0.02f;
-        float MUTATIONTAILLE = 0.02f;
-        float MUTATIONSLEEP = 0.03f;
-        float MUTATIONSHAPE = 0.01f;
+        ConfigEnnemis cfg = ConfigEnnemis.get();
 
-        if (testMutation(MUTATIONVITESSE))
-            speed *= 1f + rand.nextFloat() * rand.nextFloat();
-        else if (!testMutation(100 - MUTATIONVITESSE))
-            speed *= 1f - rand.nextFloat() * rand.nextFloat();
+        if (testMutation(cfg.mutationVitesseProb))
+            speed *= 1f + rand.nextFloat() * rand.nextFloat() * cfg.mutationSpeedRange.x;
+        else if (!testMutation(100 - cfg.mutationVitesseProb))
+            speed *= 1f - rand.nextFloat() * rand.nextFloat() * cfg.mutationSpeedRange.y;
 
-        if (testMutation(MUTATIONTAILLE))
-            corps.setScale((1f + rand.nextFloat() / 6f));
-        else if (!testMutation(100 - MUTATIONTAILLE))
-            corps.setScale((1f - rand.nextFloat() / 6f));
+        if (testMutation(cfg.mutationTailleProb))
+            corps.setScale(1f + rand.nextFloat() * cfg.mutationSizeRange.x);
+        else if (!testMutation(100 - cfg.mutationTailleProb))
+            corps.setScale(1f - rand.nextFloat() * cfg.mutationSizeRange.y);
 
-        if (testMutation(MUTATIONSLEEP))
-            respawn_time *= 1f + rand.nextFloat();
-        else if (!testMutation(100 - MUTATIONSLEEP))
-            respawn_time *= Math.min(0.00001f, 1f - rand.nextFloat());
+        if (testMutation(cfg.mutationSleepProb))
+            respawn_time *= 1f + rand.nextFloat() * cfg.mutationSleepRange.x;
+        else if (!testMutation(100 - cfg.mutationSleepProb))
+            respawn_time *= Math.max(cfg.mutationSleepClampMin, 1f - rand.nextFloat() * cfg.mutationSleepRange.y);
 
-        if (testMutation(MUTATIONSHAPE)) {
+        if (testMutation(cfg.mutationShapeProb)) {
         }
     }
 
@@ -262,12 +250,4 @@ public abstract class Ennemis extends Entity {
         return rand.nextFloat() * 100 < chance;
     }
 
-    /**
-     * Returns the maximum health value for this enemy type.
-     *
-     * @return the maximum health
-     */
-    public int getMAX_VIE() {
-        return MAX_VIE;
-    }
 }

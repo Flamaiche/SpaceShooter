@@ -83,11 +83,10 @@ public class TextManager {
     /**
      * Met à jour le gestionnaire avec la taille actuelle de la fenêtre.
      *
-     * @param deltaTime             temps écoulé depuis la dernière mise à jour
      * @param currentWindowWidth    largeur actuelle de la fenêtre
      * @param currentWindowHeight   hauteur actuelle de la fenêtre
      */
-    public void update(float deltaTime, int currentWindowWidth, int currentWindowHeight) {
+    public void update(int currentWindowWidth, int currentWindowHeight) {
         setWindowSize(currentWindowWidth, currentWindowHeight);
     }
 

@@ -13,29 +13,6 @@ public final class AxesCalculator {
     private AxesCalculator() {}
 
     /**
-     * Computes the front, right, and up vectors from yaw and pitch angles.
-     *
-     * @param yawDeg   the yaw angle in degrees
-     * @param pitchDeg the pitch angle in degrees
-     * @param worldUp  the world up reference vector
-     * @param outFront output vector set to the computed front direction
-     * @param outRight output vector set to the computed right direction
-     * @param outUp    output vector set to the computed up direction
-     */
-    public static void fromYawPitch(float yawDeg, float pitchDeg, Vector3f worldUp,
-                                    Vector3f outFront, Vector3f outRight, Vector3f outUp) {
-        double yawRad = Math.toRadians(yawDeg);
-        double pitchRad = Math.toRadians(pitchDeg);
-        double cosPitch = Math.cos(pitchRad);
-        double sinPitch = Math.sin(pitchRad);
-        double cosYaw = Math.cos(yawRad);
-        double sinYaw = Math.sin(yawRad);
-
-        outFront.set((float) (cosYaw * cosPitch), (float) sinPitch, (float) (sinYaw * cosPitch)).normalize();
-        computeRightAndUp(outFront, worldUp, outRight, outUp);
-    }
-
-    /**
      * Computes the front, right, and up vectors from a position and a target point.
      *
      * @param position the camera or entity position

@@ -1,15 +1,11 @@
 package learngl.tools.camera;
 
-import learngl.tools.camera.Camera;
+import gamegl.utils.ConfigVaisseau;
 import org.joml.Vector3f;
 
 public class CameraPhysics {
-    private Vector3f velocity = new Vector3f(0, 0, 0);
-    private Vector3f moveDirection = new Vector3f(0, 0, 0);
-    private final float maxSpeed = 17.5f;
-    private final float tempsMaxSpeed = 4.0f;
-    private final float acceleration = maxSpeed / tempsMaxSpeed;
-    private final float deceleration = acceleration / 2;
+    private final Vector3f velocity = new Vector3f(0, 0, 0);
+    private final Vector3f moveDirection = new Vector3f(0, 0, 0);
 
     public void addFront(float amount, Camera camera) {
         moveDirection.add(new Vector3f(camera.getFront()).mul(amount));
@@ -25,6 +21,11 @@ public class CameraPhysics {
 
     public void update(Vector3f position, Camera camera, float deltaTime) {
         if (camera.isOrbitMode()) return;
+
+        ConfigVaisseau cfg = ConfigVaisseau.get();
+        float maxSpeed = cfg.cameraPhysics.x;
+        float acceleration = maxSpeed / cfg.cameraPhysics.y;
+        float deceleration = acceleration * cfg.cameraPhysics.z;
 
         if (moveDirection.lengthSquared() > 0) {
             moveDirection.normalize();

@@ -19,7 +19,7 @@ public class Text {
     private static boolean initialized = false;
     private static ByteBuffer textBuffer;
     private static int lastVpW = -1, lastVpH = -1;
-    private static Matrix4f orthoMatrix = new Matrix4f();
+    private static final Matrix4f orthoMatrix = new Matrix4f();
     private static final int[] vp = new int[4];
 
     private static void init() {
