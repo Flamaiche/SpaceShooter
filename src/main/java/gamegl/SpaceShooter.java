@@ -1,6 +1,6 @@
 package gamegl;
 
-import gamegl.gestion.donnees.GameData;
+import  gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.Text;
 import gamegl.state.GameStateManager;
 import gamegl.utils.ConfigJeu;

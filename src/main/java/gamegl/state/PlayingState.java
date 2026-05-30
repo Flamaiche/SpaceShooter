@@ -105,6 +105,7 @@ public class PlayingState extends GameState {
 
         uiElements = new ArrayList<>();
         crosshair = new Crosshair(crosshairShader, camera);
+        crosshair.initDirection();
         uiElements.add(crosshair);
 
         data.resetVal();
@@ -195,6 +196,7 @@ public class PlayingState extends GameState {
         cameraPhysics.update(joueur.getPosition(), camera, deltaTime);
         gestionnaireVue.mettreAJour(camera, joueur.getPosition(), 0);
 
+        crosshair.updateLag(camera.getFront(), deltaTime);
         joueur.update(inputAxes, deltaTime, camera.getFront(), camera.getUp());
         Entity collised = joueur.checkCollision(new ArrayList<>(ennemis));
         if (collised != null) {
