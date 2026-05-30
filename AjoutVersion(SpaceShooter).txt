@@ -1,26 +1,109 @@
 Version : (A:Alpha)
 [A1.0]
-    08/09/2025: base du jeu Space Shooter avec vaisseau, ennemis, tirs et collisions.
-    09/09/2025: corrections mineures et améliorations de la jouabilité. Ajout collision joueur-ennemi.
-    09/09/2025: ajout deplacement souris
-    11/09/2025: ajout roll
-    16/09/2025: correction roll et amélioration de Commande avec Touche
-    17/09/2025: ajout menu principale et pause (sans affichage)
-    23/09/2025: semi-fix roll, amelioration Commande, Ajout de touches, modif Crosshair
-    24/09/2025: fix roll, amelioration Commande, Ajout de touches, modif Crosshair
-    24/09/2025: creation d'un git juste pour ce projet
-    30/09/2025: refonte du code (Aucun changement du jeu)
-    01/10/2025: reset et replay fonctionnels entierement
-    02/10/2025: menu principale et menu pause fonctionnelles !!!
-    03/10/2025: probleme mineur et finition des menus et SAVE Score !
-    06/10/2025: correction et modif minim sur hud
+    08/09/2025:
+        - base du jeu Space Shooter avec vaisseau, ennemis, tirs et collisions.
+    09/09/2025:
+        - corrections mineures et améliorations de la jouabilité
+        - ajout collision joueur-ennemi
+        - ajout deplacement souris
+    11/09/2025:
+        - ajout roll
+    16/09/2025:
+        - correction roll
+        - amelioration de Commande avec Touche
+    17/09/2025:
+        - ajout menu principale et pause (sans affichage)
+    23/09/2025:
+        - semi-fix roll
+        - amelioration Commande, ajout de touches
+        - modif Crosshair
+    24/09/2025:
+        - fix roll
+        - amelioration Commande, ajout de touches
+        - modif Crosshair
+        - creation d'un git pour ce projet
+    30/09/2025:
+        - refonte du code (Aucun changement du jeu)
+        - TextHUD + TextManager
+        - switch playing-pause + ignoreTouche
+        - GameState avec init + initTouches + initHud
+    01/10/2025:
+        - reset et replay fonctionnels entierement
+        - save score debut + bestScore
+        - commandes globales + touches.txt
+        - refonte Text + TextHUD + TextManager + menu pause
+    02/10/2025:
+        - menu principale et menu pause fonctionnelles
+        - refonte TextManager + menu stable
+        - auto-scale + nouveau AnimatedText refondu
+        - PosDeltaTime + texte rotatif + coordonnees HUD
+        - selection souris menu principal
+        - animation cercle
+    03/10/2025:
+        - camera separee par state + modulo 360 angle horizontal
+        - save score fonctionnel + affichage bestScore
+        - touche U debug
+        - correction souris + preparation save
+    04/10/2025:
+        - lose + surprise mort joueur
+        - GameData centralise + totalScore + Sauvegardable refactored
+    05/10/2025:
+        - TextManager global dans AnimatedText
+        - corrections
+    06/10/2025:
+        - wave + version A1.1 automatique
+        - correction placement ennemis
+        - suppression perdu + simplification menus
 [A1.1]
-    07/10/2025: ajout d'acceleration et deceleration
-    20/11/2025: modulation du code pour futur ajout de fonctionnalités
-    27/05/2026: refonte complete du code : packages lowercase, singleton supprime, managers instances, CameraPhysics extrait
-    27/05/2026: extraction de Camera.java vers AxesCalculator + OrbitController
-    27/05/2026: extraction de Shape.java vers MeshCollider + VertexUtils (509 a 169 lignes)
-    27/05/2026: refonte Text : getTextExtent, cache ortho, deduplication, switch vers Map+Builder
-     27/05/2026: buffer texte auto-redimensionnable, ArrayLists reutilisees, plus de lettres coupees
-     29/05/2026: fix vaisseau : Joueur utilise Vector3f camFront/camUp + lookAt + slerp au lieu de float yaw/pitch
-     29/05/2026: fix camera : gimbal lock à pitch=90° — nearGimbalTop, negation sautée seulement sp>0
+    07/10/2025:
+        - acceleration et deceleration progressive de la camera
+        - ajustement tir crosshair
+        - ajout click souris pour tirer
+    10/10/2025:
+        - modif touche
+        - suppression gradlew, gradlew.bat, settings.gradle
+    13/10/2025:
+        - deplacement obliques crosshair selon vitesse
+        - ajout speed dans HUD debug
+    14/10/2025:
+        - constantes static protected Ennemis
+        - debut methode mutation
+        - structure vertices modulable (VertexStructure)
+    15/10/2025:
+        - mutations ennemis (vitesse, taille, respawn)
+    13/11/2025:
+        - annulation des mutations de transformation
+    19/11/2025:
+        - classes abstraites EnnemisBasic + BallsBasic
+        - suppression VertexStructure
+        - debut reglage camera
+    20/11/2025:
+        - modulation du code pour futur ajout de fonctionnalites
+        - update AjoutVersion
+    27/05/2026:
+        - refonte packages lowercase, singleton supprime, managers instances
+        - extraction CameraPhysics + AxesCalculator + OrbitController
+        - extraction Shape (MeshCollider + VertexUtils, 509 a 169 lignes)
+        - refonte Text (getTextExtent, cache ortho, Map+Builder, buffer auto-redimensionnable)
+        - reorganisation packages + vues 1ere/3eme + vaisseau joueur 3D
+        - GestionnaireVue simplifie (inner enum)
+        - Camera : Euler→Quaternionf pitch 360°
+    28/05/2026:
+        - Camera : pitch 360° smooth loop + refUp yaw-dependant poles
+        - Vaisseau : orientation suit camera (pitch x2 + bank yaw)
+        - Vaisseau : position fixe ecran (camera-relative)
+        - Vaisseau : rotation incrementale (delta) + axes locaux yaw→pitch→roll
+        - Vaisseau : pitch max ±85°
+    29/05/2026:
+        - inputAxes int[2] + orientation fixe Ry(90°)
+        - rotation accumulation deltaTime
+        - 35 ennemis couleurs aleatoires
+        - spawn balles position camera-relative
+        - Vaisseau : camFront/camUp + lookAt + slerp
+        - Camera : skip negation gimbal zone + nearGimbalTop
+        - Camera : reconstruction Ry(-yaw)*Rx(pitch)
+        - roll unifie (Q/E) dans rotationMatrix
+    30/05/2026:
+        - centralisation configuration (ConfigVaisseau/Ennemis/Jeu en JSON)
+        - nettoyage code mort
+        - renommage de tous les commits avec messages precis (version + description)
