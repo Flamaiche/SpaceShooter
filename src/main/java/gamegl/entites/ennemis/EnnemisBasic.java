@@ -1,6 +1,6 @@
 package gamegl.entites.ennemis;
 
-import learngl.tools.Shader;
+import learngl.Shader;
 
 /**
  * A basic enemy type with default behavior.

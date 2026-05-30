@@ -6,10 +6,10 @@ import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.TextHUD;
 import gamegl.utils.ConfigEnnemis;
 import gamegl.utils.ConfigVaisseau;
-import learngl.tools.shape.PreVerticesTable;
-import learngl.tools.commandes.Commande;
-import learngl.tools.Shader;
-import learngl.tools.commandes.Touche;
+import learngl.shape.PreVerticesTable;
+import learngl.commandes.Commande;
+import learngl.Shader;
+import learngl.commandes.Touche;
 
 import java.util.ArrayList;
 

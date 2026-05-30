@@ -1,6 +1,6 @@
 package gamegl.entites;
 
-import learngl.tools.shape.Shape;
+import learngl.shape.Shape;
 import org.joml.Matrix4f;
 
 /**

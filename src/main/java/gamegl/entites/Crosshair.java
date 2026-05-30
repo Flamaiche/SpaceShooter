@@ -3,10 +3,10 @@ package gamegl.entites;
 import gamegl.entites.ennemis.Ennemis;
 import gamegl.utils.ConfigJeu;
 import gamegl.utils.ConfigVaisseau;
-import learngl.tools.camera.Camera;
-import learngl.tools.Shader;
-import learngl.tools.shape.Shape;
-import learngl.tools.VertexUtils;
+import learngl.camera.Camera;
+import learngl.Shader;
+import learngl.shape.Shape;
+import learngl.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
