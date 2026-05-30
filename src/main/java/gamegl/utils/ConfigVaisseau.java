@@ -46,8 +46,6 @@ public class ConfigVaisseau {
     /* === OFFSETS VISUELS === */
     /* Décalage de la caméra par rapport au vaisseau en vue 3e personne (x=avant, y=vertical) */
     public Vector2f shipOffset;
-    /* Décalage de l'origine du tir par rapport à la caméra (x=avant, y=vertical) */
-    public Vector2f bulletOffset;
     /* Décalage X,Y,Z supplémentaire de la caméra en vue 3e personne */
     public Vector3f thirdPersonOffset;
 
@@ -90,16 +88,6 @@ public class ConfigVaisseau {
     public float crosshairLagDamping;
     /* Vitesse angulaire max du crosshair orbital */
     public float crosshairLagMaxSpeed;
-    /* Multiplicateur de temps pour la force de poursuite */
-    public float crosshairTimeMultiplier;
-    /* Multiplicateur de la vitesse angulaire de la caméra */
-    public float crosshairCameraForce;
-    /* Vitesse minimale du crosshair en phase d'overshoot */
-    public float crosshairMinSpeed;
-    /* Force d'accroche finale pour le placement du crosshair */
-    public float crosshairSnap;
-    /* Bias d'arrêt : pousse le crosshair quand la rotation caméra décélère */
-    public float crosshairStopBias;
 
     private static ConfigVaisseau instance;
 
@@ -141,11 +129,6 @@ public class ConfigVaisseau {
             && limites.shipOffset[0] != null && limites.shipOffset[1] != null) {
             shipOffset.x = clamp(shipOffset.x, limites.shipOffset[0].x, limites.shipOffset[1].x);
             shipOffset.y = clamp(shipOffset.y, limites.shipOffset[0].y, limites.shipOffset[1].y);
-        }
-        if (bulletOffset != null && limites.bulletOffset != null && limites.bulletOffset.length >= 2
-            && limites.bulletOffset[0] != null && limites.bulletOffset[1] != null) {
-            bulletOffset.x = clamp(bulletOffset.x, limites.bulletOffset[0].x, limites.bulletOffset[1].x);
-            bulletOffset.y = clamp(bulletOffset.y, limites.bulletOffset[0].y, limites.bulletOffset[1].y);
         }
         if (thirdPersonOffset != null && limites.thirdPersonOffset != null && limites.thirdPersonOffset.length >= 2
             && limites.thirdPersonOffset[0] != null && limites.thirdPersonOffset[1] != null) {
@@ -197,11 +180,6 @@ public class ConfigVaisseau {
         crosshairStiffness = clamp(crosshairStiffness, limites.crosshairStiffness[0], limites.crosshairStiffness[1]);
         crosshairLagDamping = clamp(crosshairLagDamping, limites.crosshairLagDamping[0], limites.crosshairLagDamping[1]);
         crosshairLagMaxSpeed = clamp(crosshairLagMaxSpeed, limites.crosshairLagMaxSpeed[0], limites.crosshairLagMaxSpeed[1]);
-        crosshairTimeMultiplier = clamp(crosshairTimeMultiplier, limites.crosshairTimeMultiplier[0], limites.crosshairTimeMultiplier[1]);
-        crosshairCameraForce = clamp(crosshairCameraForce, limites.crosshairCameraForce[0], limites.crosshairCameraForce[1]);
-        crosshairMinSpeed = clamp(crosshairMinSpeed, limites.crosshairMinSpeed[0], limites.crosshairMinSpeed[1]);
-        crosshairSnap = clamp(crosshairSnap, limites.crosshairSnap[0], limites.crosshairSnap[1]);
-        crosshairStopBias = clamp(crosshairStopBias, limites.crosshairStopBias[0], limites.crosshairStopBias[1]);
     }
 
     private static int clamp(int value, int min, int max) {
