@@ -70,14 +70,14 @@ public class Crosshair extends Entity2D {
         prevAngularSpeed = angularSpeed;
         prevTargetDir.set(targetDir);
 
-        chaseTimer += deltaTime;
+        float approach = error.dot(crosshairVel);
+        if (approach >= 0) chaseTimer += deltaTime;
         float timeMul = 1f + chaseTimer * cfg.crosshairTimeMultiplier;
-        float cameraMul = 1f + angularSpeed * cfg.crosshairCameraForce;
+        float cameraMul = Math.min(3f, 1f + angularSpeed * cfg.crosshairCameraForce);
 
         float forceMag = cfg.crosshairStiffness * errorMag * (0.02f + errorMag * errorMag) * timeMul * cameraMul;
         Vector3f force = new Vector3f(error).mul(forceMag);
 
-        float approach = error.dot(crosshairVel);
         float damping = (approach >= 0)
             ? cfg.crosshairLagDamping * 1.5f
             : cfg.crosshairLagDamping;
