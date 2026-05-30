@@ -17,7 +17,6 @@
       "ballRotationSpeedMax": 360.0,
       "ballCollisionStep": 0.5,
       "shipOffset": {"x": 1.5, "y": 0.3},
-      "bulletOffset": {"x": 1.5, "y": 0.3},
       "thirdPersonOffset": {"x": 2.0, "y": 0.3, "z": 0.0},
       "crosshairGeom": {"x": 0.04, "y": 0.02, "z": 0.005},
       "crosshairMult": {"x": 3.0, "y": 2.5},
@@ -32,12 +31,7 @@
       "offsetVisuelY": 0.0,
       "crosshairStiffness": 100.0,
       "crosshairLagDamping": 8.0,
-      "crosshairLagMaxSpeed": 10.0,
-      "crosshairTimeMultiplier": 3.0,
-      "crosshairCameraForce": 5.0,
-      "crosshairMinSpeed": 2.0,
-      "crosshairSnap": 50.0,
-      "crosshairStopBias": 0.1
+      "crosshairLagMaxSpeed": 10.0
     }
   ]
 }
