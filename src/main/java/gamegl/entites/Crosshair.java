@@ -224,13 +224,16 @@ public class Crosshair extends Entity2D {
         shapeOblique.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur * vaisseau.crosshairMult.y)));
     }
 
+    public void setRayOrigin(Vector3f origin) {
+        rayOrigin.set(origin);
+    }
+
     public void updateHighlightedEnemy(java.util.ArrayList<Ennemis> ennemis) {
         for (Ennemis e : ennemis) e.setHighlighted(false);
 
         Ennemis closest = null;
         float minDistance = Float.MAX_VALUE;
 
-        rayOrigin.set(camera.getPosition());
         rayDir.set(crosshairDir).normalize();
 
         for (Ennemis e : ennemis) {
