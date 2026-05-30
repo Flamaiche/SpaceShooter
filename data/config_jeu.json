@@ -75,6 +75,16 @@
 
       "offsetVisuelY": [-1000.0, 1000.0],
 
+      "crosshairStiffness": [0.0, 100.0],
+      "crosshairLagDamping": [0.0, 100.0],
+      "crosshairLagMaxSpeed": [0.0, 50.0],
+
+      "crosshairTimeMultiplier": [0.0, 50.0],
+
+      "crosshairCameraForce": [0.0, 50.0],
+
+      "crosshairMinSpeed": [0.0, 20.0],
+
       "nbEnnemis": [0, 10000],
       "enemyBaseSpeed": [0.0, 500.0],
       "enemyBaseSize": [0.01, 50.0],

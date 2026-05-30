@@ -83,6 +83,20 @@ public class ConfigVaisseau {
     /* Hauteur Y des FAKE cameras en mode 3e personne */
     public float offsetVisuelY;
 
+    /* === CROSSHAIR LAG === */
+    /* Raideur du ressort du crosshair orbital */
+    public float crosshairStiffness;
+    /* Amortissement du suivi du crosshair orbital */
+    public float crosshairLagDamping;
+    /* Vitesse angulaire max du crosshair orbital */
+    public float crosshairLagMaxSpeed;
+    /* Multiplicateur de temps pour la force de poursuite */
+    public float crosshairTimeMultiplier;
+    /* Multiplicateur de la vitesse angulaire de la caméra */
+    public float crosshairCameraForce;
+    /* Vitesse minimale du crosshair en phase d'overshoot */
+    public float crosshairMinSpeed;
+
     private static ConfigVaisseau instance;
 
     public static ConfigVaisseau get() {
@@ -176,6 +190,12 @@ public class ConfigVaisseau {
         slerpFactor = clamp(slerpFactor, limites.slerpFactor[0], limites.slerpFactor[1]);
         playerShipScale = clamp(playerShipScale, limites.playerShipScale[0], limites.playerShipScale[1]);
         offsetVisuelY = clamp(offsetVisuelY, limites.offsetVisuelY[0], limites.offsetVisuelY[1]);
+        crosshairStiffness = clamp(crosshairStiffness, limites.crosshairStiffness[0], limites.crosshairStiffness[1]);
+        crosshairLagDamping = clamp(crosshairLagDamping, limites.crosshairLagDamping[0], limites.crosshairLagDamping[1]);
+        crosshairLagMaxSpeed = clamp(crosshairLagMaxSpeed, limites.crosshairLagMaxSpeed[0], limites.crosshairLagMaxSpeed[1]);
+        crosshairTimeMultiplier = clamp(crosshairTimeMultiplier, limites.crosshairTimeMultiplier[0], limites.crosshairTimeMultiplier[1]);
+        crosshairCameraForce = clamp(crosshairCameraForce, limites.crosshairCameraForce[0], limites.crosshairCameraForce[1]);
+        crosshairMinSpeed = clamp(crosshairMinSpeed, limites.crosshairMinSpeed[0], limites.crosshairMinSpeed[1]);
     }
 
     private static int clamp(int value, int min, int max) {

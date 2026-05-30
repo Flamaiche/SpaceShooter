@@ -162,6 +162,20 @@ public class ConfigJeu {
     /* Hauteur Y des FAKE cameras (bornes [min, max]) */
     public float[] offsetVisuelY;
 
+    /* === CROSSHAIR LAG === */
+    /* Raideur du ressort du crosshair orbital (bornes [min, max]) */
+    public float[] crosshairStiffness;
+    /* Amortissement du suivi du crosshair orbital (bornes [min, max]) */
+    public float[] crosshairLagDamping;
+    /* Vitesse angulaire max du crosshair orbital (bornes [min, max]) */
+    public float[] crosshairLagMaxSpeed;
+    /* Multiplicateur de temps pour la force de poursuite (bornes [min, max]) */
+    public float[] crosshairTimeMultiplier;
+    /* Multiplicateur de la vitesse angulaire de la caméra (bornes [min, max]) */
+    public float[] crosshairCameraForce;
+    /* Vitesse minimale du crosshair en overshoot (bornes [min, max]) */
+    public float[] crosshairMinSpeed;
+
     /* === ENNEMIS - stats de base === */
     /* Nombre d'ennemis générés */
     public int[] nbEnnemis;
