@@ -84,10 +84,10 @@ public class Crosshair extends Entity2D {
             : cfg.crosshairLagDamping;
         force.add(new Vector3f(crosshairVel).mul(-damping));
 
-        // Force de centrage : ramène et maintient le crosshair au centre quand la caméra est stable
-        // Sensible, facilement dominée par les forces orbitales quand le vaisseau bouge
+        // Force de centrage (~10% de la force principale) : évite le balancement
+        // Sensible, dominée par les forces orbitales dès que la caméra bouge
         float speedFactor = Math.max(0, 1f - angularSpeed * 10f);
-        float centerPull = cfg.crosshairStopBias * speedFactor * (errorMag + 0.01f);
+        float centerPull = forceMag * cfg.crosshairStopBias * speedFactor;
         force.add(new Vector3f(error).mul(centerPull));
 
         // Snap boost pour le placement final : quand proche, lent et en approche

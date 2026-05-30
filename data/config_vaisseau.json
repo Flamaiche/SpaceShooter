@@ -37,7 +37,7 @@
       "crosshairCameraForce": 5.0,
       "crosshairMinSpeed": 2.0,
       "crosshairSnap": 50.0,
-      "crosshairStopBias": 10.0
+      "crosshairStopBias": 0.1
     }
   ]
 }
