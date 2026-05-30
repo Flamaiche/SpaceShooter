@@ -77,7 +77,7 @@ public class Crosshair extends Entity2D {
 
         float approach = error.dot(crosshairVel);
         float damping = (approach >= 0)
-            ? cfg.crosshairLagDamping * 0.2f
+            ? cfg.crosshairLagDamping * 0.5f
             : cfg.crosshairLagDamping;
         force.add(new Vector3f(crosshairVel).mul(-damping));
 
