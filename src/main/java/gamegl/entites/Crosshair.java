@@ -81,6 +81,12 @@ public class Crosshair extends Entity2D {
             : cfg.crosshairLagDamping;
         force.add(new Vector3f(crosshairVel).mul(-damping));
 
+        // Snap boost pour le placement final : quand proche, lent et en approche
+        if (errorMag < 0.15f && approach > 0 && crosshairVel.length() < 2f) {
+            float snapStrength = cfg.crosshairSnap * (0.15f - errorMag) / 0.15f;
+            force.add(new Vector3f(error).mul(snapStrength));
+        }
+
         crosshairVel.fma(deltaTime, force);
 
         float speed = crosshairVel.length();
