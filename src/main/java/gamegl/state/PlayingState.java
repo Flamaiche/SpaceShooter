@@ -294,9 +294,7 @@ public class PlayingState extends GameState {
         Vector3f rayDir = crosshair.getRayDir();
 
         ConfigVaisseau vaisseau = ConfigVaisseau.get();
-        Vector3f spawnPos = new Vector3f(joueur.getPosition())
-                .add(new Vector3f(rayDir).mul(vaisseau.bulletOffset.x))
-                .sub(new Vector3f(camera.getUp()).mul(vaisseau.bulletOffset.y));
+        Vector3f spawnPos = new Vector3f(joueur.getPosition());
 
         for (Balls b : balls) {
             if (!b.isActive()) {
