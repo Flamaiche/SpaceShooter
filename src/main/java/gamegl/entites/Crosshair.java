@@ -26,6 +26,11 @@ public class Crosshair extends Entity2D {
 
     private float playerSpeed = 0f;
 
+    private final Vector3f crosshairDir = new Vector3f(0, 0, -1);
+    private final Vector3f crosshairVel = new Vector3f();
+    private final Vector3f prevTargetDir = new Vector3f(0, 0, -1);
+    private float chaseTimer = 0f;
+
     public Crosshair(Shader shader, Camera camera) {
         this.shader = shader;
         this.camera = camera;
@@ -47,11 +52,48 @@ public class Crosshair extends Entity2D {
         shapeOblique.setShader(shader);
     }
 
-    /**
-     * Updates the player speed used to dynamically adjust the crosshair gap.
-     *
-     * @param velocity the player's velocity vector
-     */
+    public void initDirection() {
+        Vector3f front = camera.getFront();
+        crosshairDir.set(front);
+        prevTargetDir.set(front);
+        chaseTimer = 0f;
+    }
+
+    public void updateLag(Vector3f targetDir, float deltaTime) {
+        ConfigVaisseau cfg = ConfigVaisseau.get();
+
+        Vector3f error = new Vector3f(targetDir).sub(crosshairDir);
+        float errorMag = error.length();
+
+        float angularSpeed = prevTargetDir.distance(targetDir) / Math.max(deltaTime, 0.0001f);
+        prevTargetDir.set(targetDir);
+
+        chaseTimer += deltaTime;
+        float timeMul = 1f + chaseTimer * cfg.crosshairTimeMultiplier;
+        float cameraMul = 1f + angularSpeed * cfg.crosshairCameraForce;
+
+        float forceMag = cfg.crosshairStiffness * errorMag * (0.02f + errorMag * errorMag) * timeMul * cameraMul;
+        Vector3f force = new Vector3f(error).mul(forceMag);
+
+        float approach = error.dot(crosshairVel);
+        float damping = (approach >= 0)
+            ? cfg.crosshairLagDamping * 0.2f
+            : cfg.crosshairLagDamping;
+        force.add(new Vector3f(crosshairVel).mul(-damping));
+
+        crosshairVel.fma(deltaTime, force);
+
+        float speed = crosshairVel.length();
+        if (speed > cfg.crosshairLagMaxSpeed)
+            crosshairVel.mul(cfg.crosshairLagMaxSpeed / speed);
+        else if (approach < 0 && speed < cfg.crosshairMinSpeed)
+            crosshairVel.mul(cfg.crosshairMinSpeed / speed);
+
+        crosshairDir.fma(deltaTime, crosshairVel).normalize();
+
+        if (errorMag < 0.02f) chaseTimer = 0;
+    }
+
     public void setPlayerSpeed(Vector3f velocity) {
         this.playerSpeed = velocity.length();
     }
@@ -130,11 +172,24 @@ public class Crosshair extends Entity2D {
 
         shader.bind();
 
+        Vector3f front = camera.getFront();
+        Vector3f right = camera.getRight();
+        Vector3f up = camera.getUp();
+
+        float x = crosshairDir.dot(right);
+        float y = crosshairDir.dot(up);
+        float z = crosshairDir.dot(front);
+        float halfFovTan = (float)Math.tan(Math.toRadians(ConfigJeu.get().fov / 2));
+        float aspect = (float) lastWidth / (float) lastHeight;
+        float ndcX = Math.max(-1f, Math.min(1f, x / (z * halfFovTan * aspect)));
+        float ndcY = Math.max(-1f, Math.min(1f, y / (z * halfFovTan)));
+
         float scaleX = (float) lastHeight / (float) lastWidth;
         float scaleY = 1.0f;
 
         Matrix4f model = new Matrix4f()
                 .identity()
+                .translate(ndcX, ndcY, 0)
                 .scale(scaleX, scaleY, 1.0f);
 
         shader.setUniformMat4f("model", model);
@@ -148,12 +203,7 @@ public class Crosshair extends Entity2D {
         if (depth) glEnable(GL_DEPTH_TEST);
     }
 
-    /**
-     * Updates the crosshair dimensions and dynamic gap based on window size and player speed.
-     *
-     * @param width  the current window width
-     * @param height the current window height
-     */
+    @Override
     public void update(int width, int height) {
         lastWidth = width;
         lastHeight = height;
@@ -174,11 +224,6 @@ public class Crosshair extends Entity2D {
         shapeOblique.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur * vaisseau.crosshairMult.y)));
     }
 
-    /**
-     * Raycasts against all enemies and highlights the closest one under the crosshair.
-     *
-     * @param ennemis the list of enemies to check
-     */
     public void updateHighlightedEnemy(java.util.ArrayList<Ennemis> ennemis) {
         for (Ennemis e : ennemis) e.setHighlighted(false);
 
@@ -186,7 +231,7 @@ public class Crosshair extends Entity2D {
         float minDistance = Float.MAX_VALUE;
 
         rayOrigin.set(camera.getPosition());
-        rayDir.set(camera.getFront()).normalize();
+        rayDir.set(crosshairDir).normalize();
 
         for (Ennemis e : ennemis) {
             float t = e.getBody().intersectRayDistance(rayOrigin, rayDir, e.getModelMatrix());
@@ -205,12 +250,7 @@ public class Crosshair extends Entity2D {
         shapeOblique.cleanup();
     }
 
-    /**
-     * Returns a copy of the ray direction used for targeting.
-     *
-     * @return the ray direction vector
-     */
     public Vector3f getRayDir() {
-        return new Vector3f(rayDir);
+        return new Vector3f(crosshairDir);
     }
 }
