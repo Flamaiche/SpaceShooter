@@ -31,7 +31,7 @@
       "playerShipScale": 0.7,
       "offsetVisuelY": 0.0,
       "crosshairStiffness": 100.0,
-      "crosshairLagDamping": 10.0,
+      "crosshairLagDamping": 8.0,
       "crosshairLagMaxSpeed": 10.0,
       "crosshairTimeMultiplier": 3.0,
       "crosshairCameraForce": 5.0,
