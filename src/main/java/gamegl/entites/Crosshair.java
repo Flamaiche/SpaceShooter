@@ -28,9 +28,6 @@ public class Crosshair extends Entity2D {
 
     private final Vector3f crosshairDir = new Vector3f(0, 0, -1);
     private final Vector3f crosshairVel = new Vector3f();
-    private final Vector3f prevTargetDir = new Vector3f(0, 0, -1);
-    private float chaseTimer = 0f;
-    private float prevAngularSpeed = 0f;
 
     public Crosshair(Shader shader, Camera camera) {
         this.shader = shader;
@@ -54,10 +51,8 @@ public class Crosshair extends Entity2D {
     }
 
     public void initDirection() {
-        Vector3f front = camera.getFront();
-        crosshairDir.set(front);
-        prevTargetDir.set(front);
-        chaseTimer = 0f;
+        crosshairDir.set(camera.getFront());
+        crosshairVel.set(0);
     }
 
     public void updateLag(Vector3f targetDir, float deltaTime) {
@@ -66,47 +61,19 @@ public class Crosshair extends Entity2D {
         Vector3f error = new Vector3f(targetDir).sub(crosshairDir);
         float errorMag = error.length();
 
-        float angularSpeed = prevTargetDir.distance(targetDir) / Math.max(deltaTime, 0.0001f);
-        prevAngularSpeed = angularSpeed;
-        prevTargetDir.set(targetDir);
-
-        float approach = error.dot(crosshairVel);
-        if (approach >= 0) chaseTimer += deltaTime;
-        else if (angularSpeed < 0.05f) chaseTimer = Math.max(0f, chaseTimer - deltaTime * 2f);
-        float timeMul = 1f + chaseTimer * cfg.crosshairTimeMultiplier / (1f + errorMag * 10f);
-        float cameraMul = Math.min(1.5f, 1f + angularSpeed * cfg.crosshairCameraForce);
-
-        float forceMag = cfg.crosshairStiffness * errorMag * (0.05f + 0.5f * errorMag * errorMag) * timeMul * cameraMul;
+        float forceMag = cfg.crosshairStiffness * errorMag;
         Vector3f force = new Vector3f(error).mul(forceMag);
 
-        float damping = (approach >= 0)
-            ? cfg.crosshairLagDamping * 1.0f
-            : cfg.crosshairLagDamping;
-        force.add(new Vector3f(crosshairVel).mul(-damping));
-
-        // Force de centrage (~10% de la force principale) : évite le balancement
-        // Sensible, dominée par les forces orbitales dès que la caméra bouge
-        float speedFactor = Math.max(0, 1f - angularSpeed * 10f);
-        float centerPull = forceMag * cfg.crosshairStopBias * speedFactor;
-        force.add(new Vector3f(error).mul(centerPull));
-
-        // Snap boost pour le placement final : quand proche, lent et en approche
-        if (errorMag < 0.15f && approach > 0 && crosshairVel.length() < 2f) {
-            float snapStrength = cfg.crosshairSnap * (0.15f - errorMag) / 0.15f;
-            force.add(new Vector3f(error).mul(snapStrength));
-        }
+        force.add(new Vector3f(crosshairVel).mul(-cfg.crosshairLagDamping));
 
         crosshairVel.fma(deltaTime, force);
 
         float speed = crosshairVel.length();
-        if (speed > cfg.crosshairLagMaxSpeed)
+        if (speed > cfg.crosshairLagMaxSpeed) {
             crosshairVel.mul(cfg.crosshairLagMaxSpeed / speed);
-        else if (angularSpeed > 0.1f && approach < 0 && speed < cfg.crosshairMinSpeed)
-            crosshairVel.mul(cfg.crosshairMinSpeed / speed);
+        }
 
         crosshairDir.fma(deltaTime, crosshairVel).normalize();
-
-        if (errorMag < 0.02f) chaseTimer = 0;
     }
 
     public void setPlayerSpeed(Vector3f velocity) {
