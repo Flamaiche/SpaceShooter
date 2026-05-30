@@ -1,4 +1,4 @@
-package learngl.tools;
+package learngl;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;

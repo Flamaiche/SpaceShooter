@@ -5,12 +5,14 @@ import gamegl.entites.ennemis.EnnemisBasic;
 import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.TextHUD;
 import gamegl.utils.ConfigEnnemis;
+import gamegl.utils.ConfigJeu;
 import gamegl.utils.ConfigVaisseau;
-import learngl.tools.shape.PreVerticesTable;
-import learngl.tools.commandes.Commande;
-import learngl.tools.Shader;
-import learngl.tools.commandes.Touche;
+import learngl.shape.PreVerticesTable;
+import learngl.commandes.Commande;
+import learngl.Shader;
+import learngl.commandes.Touche;
 
+import org.joml.Vector4f;
 import java.util.ArrayList;
 
 import static gamegl.gestion.texte.TextManager.uniformTextScale;
@@ -49,7 +51,8 @@ public class PausedState extends GameState {
         super(commande, data, width, height);
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
         ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
-        listeFakeEnnemis = new Ennemis[50];
+        int nbFakeEnnemis = ConfigJeu.get().menuFakeEnnemisCount;
+        listeFakeEnnemis = new Ennemis[nbFakeEnnemis];
         for (int i=0; i < listeFakeEnnemis.length; i++) {
             listeFakeEnnemis[i] = generateEnnemis((i/10+1)*2);
         }
@@ -117,8 +120,14 @@ public class PausedState extends GameState {
 
     @Override
     public void initHud() {
+        ConfigJeu cfg = ConfigJeu.get();
+        float menuItemScale = cfg.menuItemScale;
+        float unselR = cfg.menuUnselectedColor.x;
+        float unselG = cfg.menuUnselectedColor.y;
+        float unselB = cfg.menuUnselectedColor.z;
         for (String t : textMenu)
-            texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER, (float)(uniformTextScale*1.2), 1.0f, 1.0f, 1.0f));
+            texts.add(new TextHUD(null, t, TextHUD.HorizontalAlignment.CENTER, TextHUD.VerticalAlignment.CENTER,
+                    uniformTextScale * menuItemScale, unselR, unselG, unselB));
 
         hud.setTexts(texts);
     }
@@ -143,17 +152,26 @@ public class PausedState extends GameState {
     public void updateHUD() {
         indexSelection = ((indexSelection % textMenu.length) + textMenu.length) % textMenu.length;
 
+        ConfigJeu cfg = ConfigJeu.get();
+        float menuSelectedScale = cfg.menuSelectedScale;
+        float menuItemScale = cfg.menuItemScale;
+        float selR = cfg.menuSelectedColor.x;
+        float selG = cfg.menuSelectedColor.y;
+        float selB = cfg.menuSelectedColor.z;
+        float unselR = cfg.menuUnselectedColor.x;
+        float unselG = cfg.menuUnselectedColor.y;
+        float unselB = cfg.menuUnselectedColor.z;
         for (int i = 0; i < texts.size(); i++) {
             TextHUD t = texts.get(i);
 
             if (i == indexSelection) {
                 t.setText(">> " + textMenu[i]);
-                t.setScale((float)(uniformTextScale * 2.5));
-                t.setRGB(1.0f, 1.0f, 0f);
+                t.setScale(uniformTextScale * menuSelectedScale);
+                t.setRGB(selR, selG, selB);
             } else {
                 t.setText(textMenu[i]);
-                t.setScale(uniformTextScale * 1.2f);
-                t.setRGB(1.0f, 1.0f, 1.0f);
+                t.setScale(uniformTextScale * menuItemScale);
+                t.setRGB(unselR, unselG, unselB);
             }
         }
         hud.update(width, height);
@@ -170,7 +188,8 @@ public class PausedState extends GameState {
 
     @Override
     public void render() {
-        glClearColor(0.2f, 0.2f, 0.2f, 1f);
+        Vector4f bgColorPause = ConfigJeu.get().bgColorPause;
+        glClearColor(bgColorPause.x, bgColorPause.y, bgColorPause.z, bgColorPause.w);
         hud.render(textShader);
         for (Ennemis listeFakeEnnemi : listeFakeEnnemis) {
             listeFakeEnnemi.render(camera.getViewMatrix(), camera.getProjection(width, height));

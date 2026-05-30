@@ -4,8 +4,8 @@ import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.Text;
 import gamegl.gestion.texte.TextManager;
 import gamegl.utils.ConfigVaisseau;
-import learngl.tools.camera.Camera;
-import learngl.tools.commandes.Commande;
+import learngl.camera.Camera;
+import learngl.commandes.Commande;
 import org.joml.Vector3f;
 
 /**
