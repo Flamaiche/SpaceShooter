@@ -23,6 +23,7 @@ import learngl.commandes.Commande;
 import learngl.commandes.Touche;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.ArrayList;
 
@@ -244,16 +245,14 @@ public class PlayingState extends GameState {
 
     @Override
     public void render() {
-        glClearColor(1f, 1f, 0f, 0f);
+        Vector4f bgColorGameplay = ConfigJeu.get().bgColorGameplay;
+        glClearColor(bgColorGameplay.x, bgColorGameplay.y, bgColorGameplay.z, bgColorGameplay.w);
 
         Matrix4f view = gestionnaireVue.obtenirVue(camera, joueur.getPosition());
         Matrix4f projection = camera.getProjection(width, height);
 
         if (!gestionnaireVue.estPremierePersonne()) {
-            ConfigVaisseau vaisseau = ConfigVaisseau.get();
-            Vector3f shipFixedPos = new Vector3f(camera.getPosition())
-                    .add(new Vector3f(camera.getFront()).mul(vaisseau.shipOffset.x))
-                    .sub(new Vector3f(camera.getUp()).mul(vaisseau.shipOffset.y));
+            Vector3f shipFixedPos = gestionnaireVue.getDernierePosNavire();
 
             Matrix4f shipModel = new Matrix4f(joueur.getModelMatrix());
             shipModel.setTranslation(shipFixedPos);

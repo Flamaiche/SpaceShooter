@@ -79,6 +79,10 @@ public class ConfigVaisseau {
     /* Échelle d'affichage du modèle 3D du vaisseau joueur */
     public float playerShipScale;
 
+    /* === FAKE CAMERA === */
+    /* Hauteur Y des FAKE cameras en mode 3e personne */
+    public float offsetVisuelY;
+
     private static ConfigVaisseau instance;
 
     public static ConfigVaisseau get() {
@@ -171,6 +175,7 @@ public class ConfigVaisseau {
         bankFactor = clamp(bankFactor, limites.bankFactor[0], limites.bankFactor[1]);
         slerpFactor = clamp(slerpFactor, limites.slerpFactor[0], limites.slerpFactor[1]);
         playerShipScale = clamp(playerShipScale, limites.playerShipScale[0], limites.playerShipScale[1]);
+        offsetVisuelY = clamp(offsetVisuelY, limites.offsetVisuelY[0], limites.offsetVisuelY[1]);
     }
 
     private static int clamp(int value, int min, int max) {
