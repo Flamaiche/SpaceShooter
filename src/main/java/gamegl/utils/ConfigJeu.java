@@ -175,6 +175,8 @@ public class ConfigJeu {
     public float[] crosshairCameraForce;
     /* Vitesse minimale du crosshair en overshoot (bornes [min, max]) */
     public float[] crosshairMinSpeed;
+    /* Force d'accroche finale (bornes [min, max]) */
+    public float[] crosshairSnap;
 
     /* === ENNEMIS - stats de base === */
     /* Nombre d'ennemis générés */

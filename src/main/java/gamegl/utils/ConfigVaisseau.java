@@ -96,6 +96,8 @@ public class ConfigVaisseau {
     public float crosshairCameraForce;
     /* Vitesse minimale du crosshair en phase d'overshoot */
     public float crosshairMinSpeed;
+    /* Force d'accroche finale pour le placement du crosshair */
+    public float crosshairSnap;
 
     private static ConfigVaisseau instance;
 
@@ -196,6 +198,7 @@ public class ConfigVaisseau {
         crosshairTimeMultiplier = clamp(crosshairTimeMultiplier, limites.crosshairTimeMultiplier[0], limites.crosshairTimeMultiplier[1]);
         crosshairCameraForce = clamp(crosshairCameraForce, limites.crosshairCameraForce[0], limites.crosshairCameraForce[1]);
         crosshairMinSpeed = clamp(crosshairMinSpeed, limites.crosshairMinSpeed[0], limites.crosshairMinSpeed[1]);
+        crosshairSnap = clamp(crosshairSnap, limites.crosshairSnap[0], limites.crosshairSnap[1]);
     }
 
     private static int clamp(int value, int min, int max) {
