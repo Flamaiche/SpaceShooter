@@ -2,6 +2,8 @@ package gamegl.entites.balls;
 
 import gamegl.entites.ennemis.Ennemis;
 import gamegl.entites.Entity;
+import gamegl.utils.ConfigJeu;
+import gamegl.utils.ConfigVaisseau;
 import learngl.tools.shape.PreVerticesTable;
 import learngl.tools.Shader;
 import learngl.tools.shape.Shape;
@@ -24,10 +26,6 @@ public abstract class Balls extends Entity {
     protected Vector3f rotation = new Vector3f();
     protected Vector3f rotationSpeed = new Vector3f();
 
-    protected static float speed = 25f;
-    protected static float maxDistance = 150f;
-    protected static float rotationMultiplier = 2f;
-
     protected boolean active = false;
     protected Random rand = new Random();
     protected boolean modelDirty = true;
@@ -43,7 +41,7 @@ public abstract class Balls extends Entity {
         this.shader = shader;
         corps = new Shape(VertexUtils.autoAddSlotColor(PreVerticesTable.generatePyramid(baseSize)));
         corps.setShader(shader);
-        corps.setColor(1f,0f,0f);
+        corps.setColor(ConfigJeu.get().ballColor.x, ConfigJeu.get().ballColor.y, ConfigJeu.get().ballColor.z);
     }
 
     /**
@@ -57,7 +55,8 @@ public abstract class Balls extends Entity {
         spawnPos = new Vector3f(startPos);
         direction.set(forwardDir).normalize();
         rotation.set(0f,0f,0f);
-        rotationSpeed.set(rand.nextFloat()*720-360f, rand.nextFloat()*720-360f, rand.nextFloat()*720-360f);
+        float rMax = ConfigVaisseau.get().ballRotationSpeedMax;
+        rotationSpeed.set(rand.nextFloat()*rMax*2-rMax, rand.nextFloat()*rMax*2-rMax, rand.nextFloat()*rMax*2-rMax);
         active = true;
         modelDirty = true;
     }
@@ -76,9 +75,9 @@ public abstract class Balls extends Entity {
     public void update(float deltaTime) {
         if (!active) return;
 
-        Vector3f delta = new Vector3f(direction).mul(speed * deltaTime);
+        Vector3f delta = new Vector3f(direction).mul(ConfigVaisseau.get().ballSpeed * deltaTime);
 
-        float maxStep = 0.5f;
+        float maxStep = ConfigVaisseau.get().ballCollisionStep;
         int steps = (int) Math.ceil(delta.length() / maxStep);
         Vector3f step = new Vector3f(delta).div(steps);
 
@@ -86,11 +85,12 @@ public abstract class Balls extends Entity {
             position.add(step);
         }
 
-        rotation.x += rotationSpeed.x * deltaTime * rotationMultiplier;
-        rotation.y += rotationSpeed.y * deltaTime * rotationMultiplier;
-        rotation.z += rotationSpeed.z * deltaTime * rotationMultiplier;
+        float rotMult = ConfigVaisseau.get().ballRotationMultiplier;
+        rotation.x += rotationSpeed.x * deltaTime * rotMult;
+        rotation.y += rotationSpeed.y * deltaTime * rotMult;
+        rotation.z += rotationSpeed.z * deltaTime * rotMult;
 
-        if (position.distance(spawnPos) > maxDistance) deactivate();
+        if (position.distance(spawnPos) > ConfigVaisseau.get().ballDistanceMax) deactivate();
 
         modelDirty = true;
         updateModelMatrix();
@@ -170,24 +170,4 @@ public abstract class Balls extends Entity {
      */
     public Vector3f getPosition() { return position; }
 
-    /**
-     * Sets the maximum travel distance for all projectile instances.
-     *
-     * @param d the maximum distance
-     */
-    public static void setMaxDistance(float d) { maxDistance = d; }
-
-    /**
-     * Sets the speed for all projectile instances.
-     *
-     * @param s the speed value
-     */
-    public static void setSpeed(float s) { speed = s; }
-
-    /**
-     * Sets the rotation multiplier for all projectile instances.
-     *
-     * @param r the rotation multiplier
-     */
-    public static void setRotationMultiplier(float r) { rotationMultiplier = r; }
 }

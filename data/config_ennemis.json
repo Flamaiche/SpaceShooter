@@ -1,0 +1,33 @@
+{
+  "type": "gamegl.utils.ConfigEnnemis",
+  "data": [
+    {
+      "name": "default",
+      "nbEnnemis": 35,
+      "enemyBaseSize": 1.0,
+      "enemyColorConfig": {"x": 0.3, "y": 0.7},
+      "spawnZone": {"x": 10.0, "y": 5.0},
+      "enemyMaxVie": 1,
+      "enemyScore": 10,
+      "respawnTime": {"x": 1.0, "y": 9.0},
+      "enemyBaseSpeed": 2.5,
+      "enemySpeedRandomBase": 0.85,
+      "enemySpeedRandomRange": 0.5,
+      "enemySpeedPowerMultiplier": 1.5,
+      "enemySpeedPowerThreshold": 10,
+      "enemySpeedPowerGroupSize": 10,
+      "enemyOutline": {"x": 1.05, "y": 2.5},
+      "enemyHighlightColor": {"x": 1.0, "y": 0.0, "z": 0.0},
+      "respawnDistanceMultiplier": 2.0,
+      "mutationDeltaTimeInterval": 6,
+      "mutationVitesseProb": 0.02,
+      "mutationTailleProb": 0.02,
+      "mutationSleepProb": 0.03,
+      "mutationShapeProb": 0.01,
+      "mutationSpeedRange": {"x": 1.0, "y": 1.0},
+      "mutationSizeRange": {"x": 0.16666667, "y": 0.16666667},
+      "mutationSleepRange": {"x": 1.0, "y": 1.0},
+      "mutationSleepClampMin": 1.0E-5
+    }
+  ]
+}

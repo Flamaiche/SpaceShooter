@@ -1,0 +1,86 @@
+{
+  "type": "gamegl.utils.ConfigJeu",
+  "data": [
+    {
+      "name": "default",
+      "fov": 60.0,
+      "nearPlane": 0.1,
+      "renderDistance": 100.0,
+      "renderSimulation": 150.0,
+      "windowWidth": 800,
+      "windowHeight": 600,
+      "ballColor": {"x": 1.0, "y": 0.0, "z": 0.0},
+      "crosshairColor": {"x": 1.0, "y": 0.0, "z": 1.0},
+      "crosshairRefHeight": 600.0,
+      "hudLeftColor": {"x": 0.5, "y": 0.0, "z": 0.5},
+      "hudRightColor": {"x": 1.0, "y": 0.0, "z": 0.0},
+      "targetFramerate": 60.0,
+
+      "initialLives": [1, 100],
+
+      "cameraPhysics": [{"x": 0.1, "y": 0.01, "z": 0.01}, {"x": 500.0, "y": 20.0, "z": 0.999}],
+
+      "mouseSensitivity": [0.001, 1.0],
+      "vitesseRotation": [0.01, 20.0],
+      "rollSpeed": [0.01, 20.0],
+
+      "shootCooldown": [0.01, 10.0],
+      "ballsMax": [1, 1000],
+      "ballSpeed": [0.1, 500.0],
+      "ballDistanceMax": [1.0, 5000.0],
+      "ballSize": [0.01, 10.0],
+      "ballRotationMultiplier": [0.0, 100.0],
+      "ballRotationSpeedMax": [0.0, 2000.0],
+      "ballCollisionStep": [0.01, 50.0],
+
+      "shipOffset": [{"x": -100.0, "y": -100.0}, {"x": 100.0, "y": 100.0}],
+      "bulletOffset": [{"x": -100.0, "y": -100.0}, {"x": 100.0, "y": 100.0}],
+      "thirdPersonOffset": [{"x": -1000.0, "y": -1000.0, "z": -1000.0}, {"x": 1000.0, "y": 1000.0, "z": 1000.0}],
+
+      "crosshairGeom": [{"x": 0.001, "y": 0.0, "z": 0.0001}, {"x": 1.0, "y": 1.0, "z": 0.1}],
+      "crosshairMult": [{"x": 0.0, "y": 0.0}, {"x": 100.0, "y": 100.0}],
+
+      "cameraSpawn": [{"x": -10000.0, "y": -10000.0, "z": -10000.0}, {"x": 10000.0, "y": 10000.0, "z": 10000.0}],
+
+      "spawnAngles": [{"x": -360.0, "y": -360.0}, {"x": 360.0, "y": 360.0}],
+      "orbitLimits": [{"x": 0.001, "y": 0.0}, {"x": 1000.0, "y": 180.0}],
+
+      "rotationRate": [{"x": 0.1, "y": 0.1}, {"x": 500.0, "y": 500.0}],
+      "biasMax": [0.0, 90.0],
+      "bankFactor": [0.0, 1.0],
+      "slerpFactor": [0.0, 1.0],
+      "playerShipScale": [0.01, 50.0],
+
+      "nbEnnemis": [0, 10000],
+      "enemyBaseSpeed": [0.0, 500.0],
+      "enemyBaseSize": [0.01, 50.0],
+      "enemyMaxVie": [1, 100000],
+      "enemyScore": [0, 10000000],
+      "enemyColorConfig": [{"x": 0.0, "y": 0.0}, {"x": 1.0, "y": 1.0}],
+
+      "spawnZone": [{"x": 0.0, "y": 0.0}, {"x": 10000.0, "y": 10000.0}],
+      "respawnTime": [{"x": 0.01, "y": 0.01}, {"x": 10000.0, "y": 10000.0}],
+
+      "enemySpeedRandomBase": [-100.0, 100.0],
+      "enemySpeedRandomRange": [0.0, 100.0],
+      "enemySpeedPowerMultiplier": [0.0, 100.0],
+      "enemySpeedPowerThreshold": [1, 100000],
+      "enemySpeedPowerGroupSize": [1, 10000],
+
+      "enemyOutline": [{"x": 0.0, "y": 0.0}, {"x": 100.0, "y": 100.0}],
+      "enemyHighlightColor": [{"x": 0.0, "y": 0.0, "z": 0.0}, {"x": 1.0, "y": 1.0, "z": 1.0}],
+
+      "respawnDistanceMultiplier": [0.0, 100.0],
+
+      "mutationDeltaTimeInterval": [1, 100000],
+      "mutationVitesseProb": [0.0, 100.0],
+      "mutationTailleProb": [0.0, 100.0],
+      "mutationSleepProb": [0.0, 100.0],
+      "mutationShapeProb": [0.0, 100.0],
+      "mutationSpeedRange": [{"x": 0.0, "y": 0.0}, {"x": 10000.0, "y": 10000.0}],
+      "mutationSizeRange": [{"x": 0.0, "y": 0.0}, {"x": 10000.0, "y": 10000.0}],
+      "mutationSleepRange": [{"x": 0.0, "y": 0.0}, {"x": 10000.0, "y": 10000.0}],
+      "mutationSleepClampMin": [0.0, 10000.0]
+    }
+  ]
+}

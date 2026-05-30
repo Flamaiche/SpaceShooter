@@ -3,10 +3,12 @@ package gamegl;
 import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.Text;
 import gamegl.state.GameStateManager;
-import learngl.tools.*;
+import gamegl.utils.ConfigJeu;
+import gamegl.utils.ConfigVaisseau;
 import learngl.tools.camera.Camera;
 import learngl.tools.commandes.Commande;
 import learngl.tools.commandes.Touche;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
@@ -35,8 +37,8 @@ import java.util.regex.*;
 public class SpaceShooter {
 
     private long window;
-    private int width = 800;
-    private int height = 600;
+    private int width;
+    private int height;
     private boolean mouseLocked = true;
     private static String gameVersion = "A1.1";
     public static String filenameSaveScore = "SauvegardeScore";
@@ -55,14 +57,17 @@ public class SpaceShooter {
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         glfwTerminate();
-        glfwSetErrorCallback(null).free();
+        Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
     private void init() {
+        ConfigJeu cfg = ConfigJeu.get();
+        width = cfg.windowWidth;
+        height = cfg.windowHeight;
         boolean isWayland = System.getenv("WAYLAND_DISPLAY") != null;
         GLFWErrorCallback.createPrint(isWayland
                 ? new java.io.PrintStream(System.err) {
-                    @Override public java.io.PrintStream printf(String format, Object... args) {
+                    @Override public java.io.PrintStream printf(@NotNull String format, Object... args) {
                         if (args != null && args.length > 0 && args[0] != null
                                 && args[0].toString().contains("FEATURE_UNAVAILABLE"))
                             return this;
@@ -82,7 +87,7 @@ public class SpaceShooter {
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
-        glfwSetFramebufferSizeCallback(window, (win, newWidth, newHeight) -> {
+        glfwSetFramebufferSizeCallback(window, (_, newWidth, newHeight) -> {
             width = newWidth;
             height = newHeight;
             glViewport(0, 0, width, height);
@@ -99,6 +104,7 @@ public class SpaceShooter {
                 IntBuffer pHeight = stack.mallocInt(1);
                 glfwGetWindowSize(window, pWidth, pHeight);
                 GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+                assert vidmode != null;
                 glfwSetWindowPos(
                         window,
                         (vidmode.width() - pWidth.get(0)) / 2,
@@ -116,10 +122,12 @@ public class SpaceShooter {
         GameData gameData = new GameData();
         gameData.setVersion(gameVersion);
 
-        Camera camera = new Camera(new Vector3f(0, 0, 3));
-        GameStateManager gsm = null;
-        Commande commande = new Commande(camera, window, gsm);
-        Commande commandeGlobal = new Commande(camera, window, gsm);
+        ConfigJeu.get();
+        ConfigVaisseau vaisseau = ConfigVaisseau.get();
+        Camera camera = new Camera(new Vector3f(vaisseau.cameraSpawn));
+        GameStateManager gsm;
+        Commande commande = new Commande(camera, window, null);
+        Commande commandeGlobal = new Commande(camera, window, null);
         touchesGlobal(commandeGlobal);
 
         gsm = new GameStateManager(commande, gameData, width, height);
@@ -195,7 +203,7 @@ public class SpaceShooter {
 
             String contenu = Files.readString(chemin);
 
-            Pattern pattern = Pattern.compile("\\[(.*?)\\]");
+            Pattern pattern = Pattern.compile("\\[(.*?)]");
             Matcher matcher = pattern.matcher(contenu);
 
             List<String> versions = new ArrayList<>();

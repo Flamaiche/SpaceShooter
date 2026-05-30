@@ -1,5 +1,6 @@
 package learngl.tools.camera.vue;
 
+import gamegl.utils.ConfigVaisseau;
 import learngl.tools.camera.Camera;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -15,12 +16,14 @@ public class GestionnaireVue {
         },
         TROISIEME_PERSONNE {
             public List<Vector3f> params() {
-                return List.of(new Vector3f(1.0f, 0.30f, 0), new Vector3f());
+                ConfigVaisseau cfg = ConfigVaisseau.get();
+                return List.of(new Vector3f(cfg.thirdPersonOffset), new Vector3f());
             }
         },
         TROISIEME_PERSONNE_AVANT {
             public List<Vector3f> params() {
-                return List.of(new Vector3f(-1.0f, 0.30f, 0), new Vector3f(0, 0, 1));
+                ConfigVaisseau cfg = ConfigVaisseau.get();
+                return List.of(new Vector3f(cfg.thirdPersonOffset).mul(-1, 1, 1), new Vector3f(0, 0, 1));
             }
         };
 
@@ -69,7 +72,4 @@ public class GestionnaireVue {
         return modeActuel == ModeVue.PREMIERE_PERSONNE;
     }
 
-    public ModeVue modeActuel() {
-        return modeActuel;
-    }
 }

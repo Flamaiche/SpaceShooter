@@ -1,6 +1,5 @@
 package gamegl.entites.ennemis;
 
-import learngl.tools.camera.Camera;
 import learngl.tools.Shader;
 
 /**
@@ -14,9 +13,8 @@ public class EnnemisBasic extends Ennemis {
      * @param shader        the shader used for rendering
      * @param centerPlayer  the player's current position as {x, y, z}
      * @param verticesShape the vertex data defining the enemy's shape
-     * @param camera        the camera for view calculations
      */
-    public EnnemisBasic(Shader shader, float[] centerPlayer, float[] verticesShape, Camera camera) {
-        super(shader, centerPlayer, verticesShape, camera);
+    public EnnemisBasic(Shader shader, float[] centerPlayer, float[] verticesShape) {
+        super(shader, centerPlayer, verticesShape);
     }
 }

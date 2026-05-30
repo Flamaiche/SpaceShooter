@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public class Commande {
     private Camera camera;
-    private long window;
+    private final long window;
     private ArrayList<Touche> touches = new ArrayList<>();
     private GameStateManager gsm;
 

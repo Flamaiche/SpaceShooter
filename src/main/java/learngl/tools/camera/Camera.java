@@ -1,5 +1,7 @@
 package learngl.tools.camera;
 
+import gamegl.utils.ConfigJeu;
+import gamegl.utils.ConfigVaisseau;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -10,7 +12,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Camera {
     private Vector3f position;
-    private Vector3f startPosition;
+    private final Vector3f startPosition;
     private Vector3f front;
     private Vector3f up;
     private Vector3f right;
@@ -25,8 +27,7 @@ public class Camera {
 
     private final OrbitController orbitController = new OrbitController();
 
-    private float renderDistance = 100f;
-    private float renderSimulation = 150f;
+    private float renderDistance;
 
     private final Matrix4f rotationMatrix = new Matrix4f();
 
@@ -40,9 +41,10 @@ public class Camera {
         this.up = new Vector3f(0, 1, 0);
         this.worldUp = new Vector3f(0, 1, 0);
         this.right = new Vector3f();
-        this.yaw = -90f;
-        this.pitch = 0f;
-        this.fov = 60f;
+        this.yaw = ConfigVaisseau.get().spawnAngles.x;
+        this.pitch = ConfigVaisseau.get().spawnAngles.y;
+        this.fov = ConfigJeu.get().fov;
+        this.renderDistance = ConfigJeu.get().renderDistance;
         reconstruireAxes();
         orbitController.init(position, new Vector3f(0, 0, 0));
     }
@@ -53,9 +55,10 @@ public class Camera {
         this.up = new Vector3f(0, 1, 0);
         this.worldUp = new Vector3f(0, 1, 0);
         this.right = new Vector3f();
-        this.yaw = -90f;
-        this.pitch = 0f;
-        this.fov = 60f;
+        this.yaw = ConfigVaisseau.get().spawnAngles.x;
+        this.pitch = ConfigVaisseau.get().spawnAngles.y;
+        this.fov = ConfigJeu.get().fov;
+        this.renderDistance = ConfigJeu.get().renderDistance;
         reconstruireAxes();
         orbitController.init(position, new Vector3f(0, 0, 0));
     }
@@ -95,11 +98,7 @@ public class Camera {
 
     public Matrix4f getProjection(int width, int height) {
         float aspect = (float) width / height;
-        return new Matrix4f().perspective((float) Math.toRadians(fov), aspect, 0.1f, renderDistance);
-    }
-
-    public void move(Vector3f offset) {
-        if (!orbitMode) position.add(offset);
+        return new Matrix4f().perspective((float) Math.toRadians(fov), aspect, ConfigJeu.get().nearPlane, renderDistance);
     }
 
     public void rotate(float offsetYaw, float offsetPitch) {
@@ -164,20 +163,4 @@ public class Camera {
     public float getYaw() { return yaw; }
     public float getPitch() { return pitch; }
 
-    public void setYawPitch(float yawDeg, float pitchDeg) {
-        yaw = yawDeg;
-        pitch = pitchDeg;
-        reconstruireAxes();
-    }
-
-    public float distanceTo(Vector3f point) { return position.distance(point); }
-
-    public float getRenderDistance() { return renderDistance; }
-    public void setRenderDistance(float d) { renderDistance = d; }
-
-    public float getRenderSimulation() { return renderSimulation; }
-    public void setRenderSimulation(float s) { renderSimulation = s; }
-
-    public float getFov() { return fov; }
-    public void setFov(float fovDeg) { fov = fovDeg; }
 }

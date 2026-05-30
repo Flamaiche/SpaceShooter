@@ -1,5 +1,6 @@
 package learngl.tools.camera;
 
+import gamegl.utils.ConfigVaisseau;
 import org.joml.Vector3f;
 
 /**
@@ -24,7 +25,7 @@ public final class OrbitController {
         target.set(newTarget);
         Vector3f rel = new Vector3f(position).sub(target);
         radius = rel.length();
-        if (radius < 0.1f) radius = 0.1f;
+        if (radius < ConfigVaisseau.get().orbitLimits.x) radius = ConfigVaisseau.get().orbitLimits.x;
         rel.div(radius);
         theta = (float) Math.atan2(rel.z, rel.x);
         phi = (float) Math.asin(rel.y);
@@ -39,10 +40,10 @@ public final class OrbitController {
      * @param outPosition    output vector receiving the new position
      */
     public void rotate(float offsetYawDeg, float offsetPitchDeg, Vector3f outPosition) {
-        theta += Math.toRadians(offsetYawDeg);
-        phi += Math.toRadians(offsetPitchDeg);
-        float limit = (float) (Math.PI / 2);
-        phi = Math.max(-limit, Math.min(limit, phi));
+        theta += (float) Math.toRadians(offsetYawDeg);
+        phi += (float) Math.toRadians(offsetPitchDeg);
+        float limit = (float) Math.toRadians(ConfigVaisseau.get().orbitLimits.y);
+        phi = Math.clamp(phi, -limit, limit);
 
         float cosPhi = (float) Math.cos(phi);
         float sinPhi = (float) Math.sin(phi);
@@ -63,14 +64,4 @@ public final class OrbitController {
         return new Vector3f(target);
     }
 
-    /**
-     * Resets the orbit controller to its default state: target at origin,
-     * angles at zero, radius at 1.
-     */
-    public void reset() {
-        target.set(0, 0, 0);
-        theta = 0;
-        phi = 0;
-        radius = 1f;
-    }
 }

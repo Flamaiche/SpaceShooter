@@ -66,7 +66,6 @@ public class PreVerticesTable {
     }
 
     public static float[] generatePlayerShip(float size) {
-        float s = size;
 
         // ---- VERTICES -------------------------------------------------------
         // Fuselage: triangular cross-section (top, bottom-left, bottom-right)
@@ -89,46 +88,46 @@ public class PreVerticesTable {
           FIN_F  =32, FIN_T  =33, FIN_R  =34;    // vertical fin
 
         Vector3f[] v = new Vector3f[35];
-        v[NOSE]    = new Vector3f(0,      0,      -s*0.55f);
-        v[FS1_T]   = new Vector3f(0,      s*0.07f, -s*0.40f);
-        v[FS1_BL]  = new Vector3f(-s*0.07f,-s*0.04f,-s*0.40f);
-        v[FS1_BR]  = new Vector3f( s*0.07f,-s*0.04f,-s*0.40f);
-        v[FS2_T]   = new Vector3f(0,      s*0.09f, -s*0.08f);
-        v[FS2_BL]  = new Vector3f(-s*0.12f,-s*0.06f,-s*0.08f);
-        v[FS2_BR]  = new Vector3f( s*0.12f,-s*0.06f,-s*0.08f);
-        v[FS3_T]   = new Vector3f(0,      s*0.07f,  s*0.15f);
-        v[FS3_BL]  = new Vector3f(-s*0.10f,-s*0.05f, s*0.15f);
-        v[FS3_BR]  = new Vector3f( s*0.10f,-s*0.05f, s*0.15f);
-        v[FS4_T]   = new Vector3f(0,      s*0.05f,  s*0.30f);
-        v[FS4_BL]  = new Vector3f(-s*0.07f,-s*0.04f, s*0.30f);
-        v[FS4_BR]  = new Vector3f( s*0.07f,-s*0.04f, s*0.30f);
+        v[NOSE]    = new Vector3f(0,      0,      -size *0.55f);
+        v[FS1_T]   = new Vector3f(0,      size *0.07f, -size *0.40f);
+        v[FS1_BL]  = new Vector3f(-size *0.07f,-size *0.04f,-size *0.40f);
+        v[FS1_BR]  = new Vector3f( size *0.07f,-size *0.04f,-size *0.40f);
+        v[FS2_T]   = new Vector3f(0,      size *0.09f, -size *0.08f);
+        v[FS2_BL]  = new Vector3f(-size *0.12f,-size *0.06f,-size *0.08f);
+        v[FS2_BR]  = new Vector3f( size *0.12f,-size *0.06f,-size *0.08f);
+        v[FS3_T]   = new Vector3f(0,      size *0.07f,  size *0.15f);
+        v[FS3_BL]  = new Vector3f(-size *0.10f,-size *0.05f, size *0.15f);
+        v[FS3_BR]  = new Vector3f( size *0.10f,-size *0.05f, size *0.15f);
+        v[FS4_T]   = new Vector3f(0,      size *0.05f,  size *0.30f);
+        v[FS4_BL]  = new Vector3f(-size *0.07f,-size *0.04f, size *0.30f);
+        v[FS4_BR]  = new Vector3f( size *0.07f,-size *0.04f, size *0.30f);
 
-        v[CAN_F]   = new Vector3f(0,      s*0.16f, -s*0.24f);
-        v[CAN_T]   = new Vector3f(0,      s*0.20f, -s*0.08f);
-        v[CAN_R]   = new Vector3f(0,      s*0.14f,  s*0.06f);
+        v[CAN_F]   = new Vector3f(0,      size *0.16f, -size *0.24f);
+        v[CAN_T]   = new Vector3f(0,      size *0.20f, -size *0.08f);
+        v[CAN_R]   = new Vector3f(0,      size *0.14f,  size *0.06f);
 
-        v[LW_RF_T] = new Vector3f(-s*0.10f, s*0.02f, -s*0.05f);
-        v[LW_RF_B] = new Vector3f(-s*0.10f,-s*0.02f, -s*0.05f);
-        v[LW_T_T]  = new Vector3f(-s*0.40f, s*0.01f,  s*0.18f);
-        v[LW_T_B]  = new Vector3f(-s*0.40f,-s*0.03f,  s*0.18f);
-        v[LW_RR_T] = new Vector3f(-s*0.10f, s*0.02f,  s*0.25f);
-        v[LW_RR_B] = new Vector3f(-s*0.10f,-s*0.02f,  s*0.25f);
+        v[LW_RF_T] = new Vector3f(-size *0.10f, size *0.02f, -size *0.05f);
+        v[LW_RF_B] = new Vector3f(-size *0.10f,-size *0.02f, -size *0.05f);
+        v[LW_T_T]  = new Vector3f(-size *0.40f, size *0.01f,  size *0.18f);
+        v[LW_T_B]  = new Vector3f(-size *0.40f,-size *0.03f,  size *0.18f);
+        v[LW_RR_T] = new Vector3f(-size *0.10f, size *0.02f,  size *0.25f);
+        v[LW_RR_B] = new Vector3f(-size *0.10f,-size *0.02f,  size *0.25f);
 
-        v[RW_RF_T] = new Vector3f( s*0.10f, s*0.02f, -s*0.05f);
-        v[RW_RF_B] = new Vector3f( s*0.10f,-s*0.02f, -s*0.05f);
-        v[RW_T_T]  = new Vector3f( s*0.40f, s*0.01f,  s*0.18f);
-        v[RW_T_B]  = new Vector3f( s*0.40f,-s*0.03f,  s*0.18f);
-        v[RW_RR_T] = new Vector3f( s*0.10f, s*0.02f,  s*0.25f);
-        v[RW_RR_B] = new Vector3f( s*0.10f,-s*0.02f,  s*0.25f);
+        v[RW_RF_T] = new Vector3f( size *0.10f, size *0.02f, -size *0.05f);
+        v[RW_RF_B] = new Vector3f( size *0.10f,-size *0.02f, -size *0.05f);
+        v[RW_T_T]  = new Vector3f( size *0.40f, size *0.01f,  size *0.18f);
+        v[RW_T_B]  = new Vector3f( size *0.40f,-size *0.03f,  size *0.18f);
+        v[RW_RR_T] = new Vector3f( size *0.10f, size *0.02f,  size *0.25f);
+        v[RW_RR_B] = new Vector3f( size *0.10f,-size *0.02f,  size *0.25f);
 
-        v[ENG_L_F] = new Vector3f(-s*0.05f,-s*0.04f,  s*0.28f);
-        v[ENG_L_B] = new Vector3f(-s*0.05f,-s*0.04f,  s*0.42f);
-        v[ENG_R_F] = new Vector3f( s*0.05f,-s*0.04f,  s*0.28f);
-        v[ENG_R_B] = new Vector3f( s*0.05f,-s*0.04f,  s*0.42f);
+        v[ENG_L_F] = new Vector3f(-size *0.05f,-size *0.04f,  size *0.28f);
+        v[ENG_L_B] = new Vector3f(-size *0.05f,-size *0.04f,  size *0.42f);
+        v[ENG_R_F] = new Vector3f( size *0.05f,-size *0.04f,  size *0.28f);
+        v[ENG_R_B] = new Vector3f( size *0.05f,-size *0.04f,  size *0.42f);
 
-        v[FIN_F]   = new Vector3f(0,      s*0.12f,  s*0.05f);
-        v[FIN_T]   = new Vector3f(0,      s*0.22f,  s*0.15f);
-        v[FIN_R]   = new Vector3f(0,      s*0.08f,  s*0.28f);
+        v[FIN_F]   = new Vector3f(0,      size *0.12f,  size *0.05f);
+        v[FIN_T]   = new Vector3f(0,      size *0.22f,  size *0.15f);
+        v[FIN_R]   = new Vector3f(0,      size *0.08f,  size *0.28f);
 
         // ---- TRIANGLES ------------------------------------------------------
         // Each entry = {a, b, c, colorIndex}

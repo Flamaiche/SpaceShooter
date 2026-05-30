@@ -1,6 +1,8 @@
 package gamegl.entites;
 
 import gamegl.entites.ennemis.Ennemis;
+import gamegl.utils.ConfigJeu;
+import gamegl.utils.ConfigVaisseau;
 import learngl.tools.camera.Camera;
 import learngl.tools.Shader;
 import learngl.tools.shape.Shape;
@@ -10,11 +12,6 @@ import org.joml.Vector3f;
 
 import static org.lwjgl.opengl.GL11C.*;
 
-/**
- * A 2D crosshair overlay rendered on screen.
- * Includes a dynamic gap that widens based on the player's movement speed,
- * and raycasting to highlight the targeted enemy.
- */
 public class Crosshair extends Entity2D {
 
     private final Shape shapeCross;
@@ -25,30 +22,28 @@ public class Crosshair extends Entity2D {
     private final Vector3f rayOrigin = new Vector3f();
     private final Vector3f rayDir = new Vector3f();
 
-    private int lastWidth = 800, lastHeight = 600;
-
-    private final float longueurSegment = 0.04f;
-    private final float espaceCentral = 0.02f;
-    private final float epaisseurLigne = 0.005f;
+    private int lastWidth, lastHeight;
 
     private float playerSpeed = 0f;
 
-    /**
-     * Constructs a Crosshair with the given shader and camera.
-     *
-     * @param shader the shader used for rendering the crosshair
-     * @param camera the camera used for orientation and roll
-     */
     public Crosshair(Shader shader, Camera camera) {
         this.shader = shader;
         this.camera = camera;
 
-        shapeCross = new Shape(VertexUtils.autoAddSlotColor(createCrosshairRectangle(longueurSegment, espaceCentral, epaisseurLigne)));
-        shapeCross.setColor(1f, 0f, 1f);
+        ConfigVaisseau vaisseau = ConfigVaisseau.get();
+        ConfigJeu cfg = ConfigJeu.get();
+        float crossR = cfg.crosshairColor.x;
+        float crossG = cfg.crosshairColor.y;
+        float crossB = cfg.crosshairColor.z;
+        float crossLen = vaisseau.crosshairGeom.x;
+        float crossGap = vaisseau.crosshairGeom.y;
+        float crossThick = vaisseau.crosshairGeom.z;
+        shapeCross = new Shape(VertexUtils.autoAddSlotColor(createCrosshairRectangle(crossLen, crossGap, crossThick)));
+        shapeCross.setColor(crossR, crossG, crossB);
         shapeCross.setShader(shader);
 
-        shapeOblique = new Shape(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueurSegment, espaceCentral, epaisseurLigne)));
-        shapeOblique.setColor(1f, 0f, 1f);
+        shapeOblique = new Shape(VertexUtils.autoAddSlotColor(createCrosshairOblique(crossLen, crossGap, crossThick)));
+        shapeOblique.setColor(crossR, crossG, crossB);
         shapeOblique.setShader(shader);
     }
 
@@ -67,10 +62,9 @@ public class Crosshair extends Entity2D {
         float halfT = t * 0.5f;
         float halfGap = gap * 0.5f;
         float topY = halfGap + len;
-        float midY = halfGap;
 
-        addRotatedRect(v, idx, -halfGap, midY, -len - halfGap, topY, halfT);
-        addRotatedRect(v, idx, +halfGap, midY, len + halfGap, topY, halfT);
+        addRotatedRect(v, idx, -halfGap, halfGap, -len - halfGap, topY, halfT);
+        addRotatedRect(v, idx, +halfGap, halfGap, len + halfGap, topY, halfT);
 
         return v;
     }
@@ -81,11 +75,10 @@ public class Crosshair extends Entity2D {
         float halfT = t * 0.5f;
         float halfGap = gap * 0.5f;
         float topY = halfGap + len;
-        float midY = halfGap;
 
-        putRect(v, idx, -halfT, midY, +halfT, topY);
+        putRect(v, idx, -halfT, halfGap, +halfT, topY);
         putRect(v, idx, -(halfGap + len), -halfT, -halfGap, +halfT);
-        putRect(v, idx, +halfGap, -halfT, +(halfGap + len), +halfT);
+        putRect(v, idx, +halfGap, -halfT, (halfGap + len), +halfT);
         putRect(v, idx, -halfT, -(halfGap + len), +halfT, -halfGap);
 
         return v;
@@ -131,12 +124,6 @@ public class Crosshair extends Entity2D {
     }
 
     @Override
-    /**
-     * Renders the crosshair overlay. Disables depth testing so the crosshair
-     * always appears on top. Applies camera roll rotation and aspect ratio scaling.
-     *
-     * @param orthoProjection the orthographic projection matrix
-     */
     public void render(Matrix4f orthoProjection) {
         boolean depth = glIsEnabled(GL_DEPTH_TEST);
         if (depth) glDisable(GL_DEPTH_TEST);
@@ -171,18 +158,20 @@ public class Crosshair extends Entity2D {
         lastWidth = width;
         lastHeight = height;
 
+        ConfigJeu cfg = ConfigJeu.get();
+        ConfigVaisseau vaisseau = ConfigVaisseau.get();
+
         float minDim = Math.min(width, height);
 
-        float longueur = (minDim / 600f) * longueurSegment;
-        float epaisseur = (minDim / 600f) * epaisseurLigne;
-        float baseGap = (minDim / 600f) * espaceCentral;
+        float longueur = (minDim / cfg.crosshairRefHeight) * vaisseau.crosshairGeom.x;
+        float epaisseur = (minDim / cfg.crosshairRefHeight) * vaisseau.crosshairGeom.z;
+        float baseGap = (minDim / cfg.crosshairRefHeight) * vaisseau.crosshairGeom.y;
 
-        float maxSpeed = 17.5f;
-        float normalizedSpeed = Math.min(playerSpeed / maxSpeed, 1f);
-        float dynamicGap = baseGap * (1f + normalizedSpeed * 3f);
+        float normalizedSpeed = Math.min(playerSpeed / vaisseau.cameraPhysics.x, 1f);
+        float dynamicGap = baseGap * (1f + normalizedSpeed * vaisseau.crosshairMult.x);
 
         shapeCross.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairRectangle(longueur, baseGap, epaisseur)));
-        shapeOblique.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur*2.5f)));
+        shapeOblique.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur * vaisseau.crosshairMult.y)));
     }
 
     /**
@@ -214,15 +203,6 @@ public class Crosshair extends Entity2D {
     public void cleanup() {
         shapeCross.cleanup();
         shapeOblique.cleanup();
-    }
-
-    /**
-     * Returns a copy of the ray origin used for targeting.
-     *
-     * @return the ray origin vector
-     */
-    public Vector3f getRayOrigin() {
-        return new Vector3f(rayOrigin);
     }
 
     /**

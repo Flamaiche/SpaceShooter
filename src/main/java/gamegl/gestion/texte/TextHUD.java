@@ -65,7 +65,7 @@ public class TextHUD {
     private float scale;
     private float r, g, b;
     private boolean active = true;
-    private boolean debugActive;
+    private final boolean debugActive;
     private String text = null;
 
     private float x = 0f;
@@ -246,13 +246,6 @@ public class TextHUD {
     public void setActive(boolean active) { this.active = active; }
 
     /**
-     * Retourne le type de texte.
-     *
-     * @return type de texte
-     */
-    public TextType getType() { return type; }
-
-    /**
      * Retourne l'alignement horizontal.
      *
      * @return alignement horizontal
@@ -354,84 +347,4 @@ public class TextHUD {
                 mouseY >= y && mouseY <= y + h;
     }
 
-    /**
-     * Builder pour construire un TextHUD de manière fluide.
-     */
-    public static class Builder {
-        private final TextType type;
-        private String text;
-        private HorizontalAlignment hAlign;
-        private VerticalAlignment vAlign;
-        private float scale = 1.0f;
-        private float r = 1f, g = 1f, b = 1f;
-        private boolean debugActive = false;
-
-        /**
-         * Constructeur du Builder.
-         *
-         * @param type type de texte
-         */
-        public Builder(TextType type) { this.type = type; }
-
-        /**
-         * Définit le texte statique.
-         *
-         * @param text texte statique
-         * @return ce builder
-         */
-        public Builder text(String text) { this.text = text; return this; }
-
-        /**
-         * Définit l'alignement horizontal.
-         *
-         * @param hAlign alignement horizontal
-         * @return ce builder
-         */
-        public Builder hAlign(HorizontalAlignment hAlign) { this.hAlign = hAlign; return this; }
-
-        /**
-         * Définit l'alignement vertical.
-         *
-         * @param vAlign alignement vertical
-         * @return ce builder
-         */
-        public Builder vAlign(VerticalAlignment vAlign) { this.vAlign = vAlign; return this; }
-
-        /**
-         * Définit l'échelle.
-         *
-         * @param scale échelle
-         * @return ce builder
-         */
-        public Builder scale(float scale) { this.scale = scale; return this; }
-
-        /**
-         * Définit la couleur RGB.
-         *
-         * @param r rouge
-         * @param g vert
-         * @param b bleu
-         * @return ce builder
-         */
-        public Builder color(float r, float g, float b) { this.r = r; this.g = g; this.b = b; return this; }
-
-        /**
-         * Définit le mode debug.
-         *
-         * @param debug mode debug
-         * @return ce builder
-         */
-        public Builder debug(boolean debug) { this.debugActive = debug; return this; }
-
-        /**
-         * Construit le TextHUD avec les paramètres définis.
-         *
-         * @return le TextHUD construit
-         */
-        public TextHUD build() {
-            TextHUD hud = new TextHUD(type, hAlign, vAlign, scale, r, g, b, debugActive);
-            hud.text = text;
-            return hud;
-        }
-    }
 }
