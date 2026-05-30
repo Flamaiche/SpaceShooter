@@ -212,6 +212,7 @@ public class PlayingState extends GameState {
             enemiesKilledTotal++;
         }
 
+        crosshair.setRayOrigin(joueur.getPosition());
         manager2D.updateAll(uiElements, width, height, ennemis, cameraPhysics.getVelocity());
         updateHUD(deltaTime);
 
@@ -293,8 +294,8 @@ public class PlayingState extends GameState {
         Vector3f rayDir = crosshair.getRayDir();
 
         ConfigVaisseau vaisseau = ConfigVaisseau.get();
-        Vector3f spawnPos = new Vector3f(camera.getPosition())
-                .add(new Vector3f(camera.getFront()).mul(vaisseau.bulletOffset.x))
+        Vector3f spawnPos = new Vector3f(joueur.getPosition())
+                .add(new Vector3f(rayDir).mul(vaisseau.bulletOffset.x))
                 .sub(new Vector3f(camera.getUp()).mul(vaisseau.bulletOffset.y));
 
         for (Balls b : balls) {
