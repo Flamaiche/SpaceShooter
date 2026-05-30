@@ -30,6 +30,7 @@ public class Crosshair extends Entity2D {
     private final Vector3f crosshairVel = new Vector3f();
     private final Vector3f prevTargetDir = new Vector3f(0, 0, -1);
     private float chaseTimer = 0f;
+    private float prevAngularSpeed = 0f;
 
     public Crosshair(Shader shader, Camera camera) {
         this.shader = shader;
@@ -66,6 +67,8 @@ public class Crosshair extends Entity2D {
         float errorMag = error.length();
 
         float angularSpeed = prevTargetDir.distance(targetDir) / Math.max(deltaTime, 0.0001f);
+        float angularDecel = prevAngularSpeed - angularSpeed;
+        prevAngularSpeed = angularSpeed;
         prevTargetDir.set(targetDir);
 
         chaseTimer += deltaTime;
@@ -77,9 +80,21 @@ public class Crosshair extends Entity2D {
 
         float approach = error.dot(crosshairVel);
         float damping = (approach >= 0)
-            ? cfg.crosshairLagDamping * 0.2f
+            ? cfg.crosshairLagDamping * (0.2f + Math.min(1f, crosshairVel.length() / 3f) * 0.6f)
             : cfg.crosshairLagDamping;
         force.add(new Vector3f(crosshairVel).mul(-damping));
+
+        // Force de centrage (~10% de la force principale) : évite le balancement
+        // Sensible, dominée par les forces orbitales dès que la caméra bouge
+        float speedFactor = Math.max(0, 1f - angularSpeed * 10f);
+        float centerPull = forceMag * cfg.crosshairStopBias * speedFactor;
+        force.add(new Vector3f(error).mul(centerPull));
+
+        // Snap boost pour le placement final : quand proche, lent et en approche
+        if (errorMag < 0.15f && approach > 0 && crosshairVel.length() < 2f) {
+            float snapStrength = cfg.crosshairSnap * (0.15f - errorMag) / 0.15f;
+            force.add(new Vector3f(error).mul(snapStrength));
+        }
 
         crosshairVel.fma(deltaTime, force);
 
@@ -224,13 +239,16 @@ public class Crosshair extends Entity2D {
         shapeOblique.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur * vaisseau.crosshairMult.y)));
     }
 
+    public void setRayOrigin(Vector3f origin) {
+        rayOrigin.set(origin);
+    }
+
     public void updateHighlightedEnemy(java.util.ArrayList<Ennemis> ennemis) {
         for (Ennemis e : ennemis) e.setHighlighted(false);
 
         Ennemis closest = null;
         float minDistance = Float.MAX_VALUE;
 
-        rayOrigin.set(camera.getPosition());
         rayDir.set(crosshairDir).normalize();
 
         for (Ennemis e : ennemis) {
