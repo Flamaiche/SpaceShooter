@@ -67,7 +67,6 @@ public class Crosshair extends Entity2D {
         float errorMag = error.length();
 
         float angularSpeed = prevTargetDir.distance(targetDir) / Math.max(deltaTime, 0.0001f);
-        float angularDecel = prevAngularSpeed - angularSpeed;
         prevAngularSpeed = angularSpeed;
         prevTargetDir.set(targetDir);
 
