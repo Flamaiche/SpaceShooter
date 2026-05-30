@@ -177,6 +177,8 @@ public class ConfigJeu {
     public float[] crosshairMinSpeed;
     /* Force d'accroche finale (bornes [min, max]) */
     public float[] crosshairSnap;
+    /* Bias d'arrêt (bornes [min, max]) */
+    public float[] crosshairStopBias;
 
     /* === ENNEMIS - stats de base === */
     /* Nombre d'ennemis générés */
