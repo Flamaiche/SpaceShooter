@@ -1,4 +1,4 @@
-package learngl.tools.commandes;
+package learngl.commandes;
 
 /**
  * A composite key binding that is active only when a modifier Touche AND

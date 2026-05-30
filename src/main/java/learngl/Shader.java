@@ -1,4 +1,4 @@
-package learngl.tools;
+package learngl;
 
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;

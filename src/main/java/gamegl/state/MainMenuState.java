@@ -5,9 +5,9 @@ import gamegl.gestion.texte.AnimatedText;
 import gamegl.gestion.texte.TextHUD;
 import gamegl.gestion.texte.TextManager;
 import gamegl.utils.PosDeltaTime;
-import learngl.tools.commandes.Commande;
-import learngl.tools.Shader;
-import learngl.tools.commandes.Touche;
+import learngl.commandes.Commande;
+import learngl.Shader;
+import learngl.commandes.Touche;
 
 import java.util.ArrayList;
 

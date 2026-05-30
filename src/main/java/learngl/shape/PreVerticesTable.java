@@ -1,4 +1,4 @@
-package learngl.tools.shape;
+package learngl.shape;
 
 import org.joml.Vector3f;
 

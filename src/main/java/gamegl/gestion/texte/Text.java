@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-import learngl.tools.Shader;
+import learngl.Shader;
 
 /**
  * Gestion de l'affichage de texte avec OpenGL et STB Easy Font.

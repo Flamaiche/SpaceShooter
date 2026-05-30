@@ -4,10 +4,10 @@ import gamegl.entites.ennemis.Ennemis;
 import gamegl.entites.Entity;
 import gamegl.utils.ConfigJeu;
 import gamegl.utils.ConfigVaisseau;
-import learngl.tools.shape.PreVerticesTable;
-import learngl.tools.Shader;
-import learngl.tools.shape.Shape;
-import learngl.tools.VertexUtils;
+import learngl.shape.PreVerticesTable;
+import learngl.Shader;
+import learngl.shape.Shape;
+import learngl.VertexUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
