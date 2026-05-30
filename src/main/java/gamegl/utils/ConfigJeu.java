@@ -81,8 +81,6 @@ public class ConfigJeu {
     /* === OFFSETS === */
     /* Décalage caméra vaisseau (x=avant, y=vertical) */
     public Vector2f[] shipOffset;
-    /* Décalage origine tir (x=avant, y=vertical) */
-    public Vector2f[] bulletOffset;
     /* Décalage X,Y,Z caméra 3e personne */
     public Vector3f[] thirdPersonOffset;
 
@@ -169,16 +167,6 @@ public class ConfigJeu {
     public float[] crosshairLagDamping;
     /* Vitesse angulaire max du crosshair orbital (bornes [min, max]) */
     public float[] crosshairLagMaxSpeed;
-    /* Multiplicateur de temps pour la force de poursuite (bornes [min, max]) */
-    public float[] crosshairTimeMultiplier;
-    /* Multiplicateur de la vitesse angulaire de la caméra (bornes [min, max]) */
-    public float[] crosshairCameraForce;
-    /* Vitesse minimale du crosshair en overshoot (bornes [min, max]) */
-    public float[] crosshairMinSpeed;
-    /* Force d'accroche finale (bornes [min, max]) */
-    public float[] crosshairSnap;
-    /* Bias d'arrêt (bornes [min, max]) */
-    public float[] crosshairStopBias;
 
     /* === ENNEMIS - stats de base === */
     /* Nombre d'ennemis générés */
