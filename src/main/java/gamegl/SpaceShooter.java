@@ -203,7 +203,7 @@ public class SpaceShooter {
 
             String contenu = Files.readString(chemin);
 
-            Pattern pattern = Pattern.compile("\\[(.*?)]");
+            Pattern pattern = Pattern.compile("\\[*?]");
             Matcher matcher = pattern.matcher(contenu);
 
             List<String> versions = new ArrayList<>();
