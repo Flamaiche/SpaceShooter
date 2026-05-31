@@ -109,4 +109,16 @@ Version : (A:Alpha)
         - crosshair : suppression timeMul, cameraForce, minSpeed, snap, stopBias
         - crosshair : bullet spawn direct a joueur.getPosition() sans offset
         - nettoyage code mort (bulletOffset, params inutilises)
-        - renommage de tous les commits avec messages precis (version + description)
+         - renommage de tous les commits avec messages precis (version + description)
+    31/05/2026:
+        - Shape : drawMode instance, GL_DYNAMIC_DRAW, isVisible Vector4f réutilisé
+        - Shape : setColor→updateBuffers, vertexAttrib color=4/offset=7, glGetError check
+        - MeshCollider : réécrit sans clone/alloc (AABB modèle + 8 coins, triangles on-the-fly JOML, comp())
+        - Crosshair : pre-alloc full-format buffers, 0 alloc/frame update()
+        - Ennemis : mutationTimer accumulateur, setColor hors render
+        - Balls : getModelMatrix supprimé (utilise modelMatrix pré-existant)
+        - PreVerticesTable : FLOATS_PER_TRI constant
+        - Crosshair shaders morts supprimés
+        - fix : fuites mémoire shaders dans tous les états (cleanup PlayingState, MainMenuState, PausedState)
+        - fix : PlayingState leak (cleanup avant NEWPLAY et MAIN)
+        - fix : Text.cleanup() statique retiré de GameState (réservé à l'extinction)
