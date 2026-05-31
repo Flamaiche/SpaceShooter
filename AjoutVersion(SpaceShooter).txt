@@ -105,5 +105,8 @@ Version : (A:Alpha)
         - roll unifie (Q/E) dans rotationMatrix
     30/05/2026:
         - centralisation configuration (ConfigVaisseau/Ennemis/Jeu en JSON)
-        - nettoyage code mort
+        - crosshair : simplification ressort lineaire F = k·e - d·v (ζ=0.4)
+        - crosshair : suppression timeMul, cameraForce, minSpeed, snap, stopBias
+        - crosshair : bullet spawn direct a joueur.getPosition() sans offset
+        - nettoyage code mort (bulletOffset, params inutilises)
         - renommage de tous les commits avec messages precis (version + description)
