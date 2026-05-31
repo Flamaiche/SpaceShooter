@@ -199,6 +199,9 @@ public class PausedState extends GameState {
     @Override
     public void cleanup() {
         super.cleanup();
+        textShader.cleanup();
+        ennemisShader.cleanup();
+        for (Ennemis e : listeFakeEnnemis) e.cleanup();
     }
 
     /**

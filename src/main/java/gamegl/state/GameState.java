@@ -1,7 +1,6 @@
 package gamegl.state;
 
 import gamegl.gestion.donnees.GameData;
-import gamegl.gestion.texte.Text;
 import gamegl.gestion.texte.TextManager;
 import gamegl.utils.ConfigVaisseau;
 import learngl.camera.Camera;
@@ -73,7 +72,6 @@ public abstract class GameState {
 
     /** Releases resources held by this state. */
     public void cleanup() {
-        Text.cleanup();
     }
 
     /**

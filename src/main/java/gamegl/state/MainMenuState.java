@@ -218,5 +218,6 @@ public class MainMenuState extends GameState {
     @Override
     public void cleanup() {
         super.cleanup();
+        textShader.cleanup();
     }
 }
