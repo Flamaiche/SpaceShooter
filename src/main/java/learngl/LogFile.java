@@ -30,14 +30,12 @@ public class LogFile {
                 }
             }));
 
-            System.err.println("LogFile: writing to " + filePath);
         } catch (IOException e) {
             System.err.println("LogFile.init: " + e.getMessage());
         }
     }
 
     public static void log(String msg) {
-        System.out.println(msg);
         if (writer != null) {
             writer.println(msg);
             writer.flush();
@@ -49,7 +47,6 @@ public class LogFile {
     }
 
     public static void printf(String format, Object... args) {
-        System.out.printf(format + "%n", args);
         if (writer != null) {
             writer.printf(format + "%n", args);
             writer.flush();
