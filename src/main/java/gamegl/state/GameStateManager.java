@@ -73,17 +73,19 @@ public class GameStateManager {
             case PLAY: currentState = playing;
                 break;
             case MAIN:
-                MainMenuState mms = new MainMenuState(commande, gameData, width, height);
                 if (playing != null) {
                     sauvegarde();
                     gameData.setTotalScore(gameData.getTotalScore() + gameData.getScore());
                     if (gameData.getScore() > gameData.getBestScore()) {
                         gameData.setBestScore(gameData.getScore());
                     }
+                    playing.cleanup();
+                    playing = null;
                 }
-                currentState = mms;
+                currentState = new MainMenuState(commande, gameData, width, height);
                 break;
             case NEWPLAY:
+                if (playing != null) playing.cleanup();
                 playing = new PlayingState(commande, gameData, width, height);
                 currentState = playing;
                 break;

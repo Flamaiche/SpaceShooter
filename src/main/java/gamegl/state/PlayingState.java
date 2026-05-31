@@ -41,6 +41,8 @@ public class PlayingState extends GameState {
 
     private final Shader ballShader;
     private final Shader textShader;
+    private final Shader ennemisShader;
+    private final Shader crosshairShader;
 
     private double lastTime;
     private int score, ballsFiredTotal, enemiesKilledTotal;
@@ -66,9 +68,9 @@ public class PlayingState extends GameState {
 
         score = ballsFiredTotal = enemiesKilledTotal = 0;
 
-        Shader ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
+        ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
         ballShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
-        Shader crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
+        crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
         Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(ConfigVaisseau.get().playerShipScale)));
@@ -284,6 +286,10 @@ public class PlayingState extends GameState {
         manager3D.cleanupAll(ennemis, balls);
         manager2D.cleanupAll(uiElements);
         joueur.cleanup();
+        ennemisShader.cleanup();
+        ballShader.cleanup();
+        crosshairShader.cleanup();
+        textShader.cleanup();
     }
 
     private void shoot() {
