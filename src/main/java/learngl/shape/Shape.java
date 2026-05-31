@@ -15,7 +15,7 @@ import org.joml.Vector4f;
  * detection via MeshCollider, cloning, color modification, and scaling.
  */
 public class Shape {
-    private final float[] vertices;
+    private float[] vertices;
     private final int vaoId;
     private final int vboId;
     private final int vertexCount;
@@ -23,7 +23,7 @@ public class Shape {
     /**
      * The OpenGL draw mode used when rendering this shape.
      */
-    public static int drawMode = GL_TRIANGLES;
+    public int drawMode;
 
     private Shader shader = null;
     private Texture texture = null;
@@ -37,6 +37,7 @@ public class Shape {
     public Shape(float[] vertices) {
         this.vertexCount = vertices.length / VertexUtils.FLOATS_PER_VERTEX;
         this.vertices = vertices;
+        this.drawMode = GL_TRIANGLES;
 
         vaoId = glGenVertexArrays();
         glBindVertexArray(vaoId);
@@ -103,22 +104,17 @@ public class Shape {
      */
     public boolean isVisible(Matrix4f projection, Matrix4f view, Matrix4f modelMatrix) {
         Matrix4f vpMatrix = new Matrix4f(projection).mul(view);
+        Vector4f pos = new Vector4f();
 
         for (int i = 0; i < vertexCount; i++) {
-            Vector4f pos = new Vector4f(
+            pos.set(
                     vertices[i * VertexUtils.FLOATS_PER_VERTEX],
                     vertices[i * VertexUtils.FLOATS_PER_VERTEX + 1],
                     vertices[i * VertexUtils.FLOATS_PER_VERTEX + 2],
                     1.0f
             );
             pos.mul(modelMatrix).mul(vpMatrix);
-
-            if (pos.w != 0.0f) {
-                pos.x /= pos.w;
-                pos.y /= pos.w;
-                pos.z /= pos.w;
-            }
-
+            if (pos.w != 0f) { pos.x /= pos.w; pos.y /= pos.w; pos.z /= pos.w; }
             if (pos.x >= -1f && pos.x <= 1f &&
                 pos.y >= -1f && pos.y <= 1f &&
                 pos.z >= -1f && pos.z <= 1f) return true;
@@ -137,21 +133,28 @@ public class Shape {
         glDeleteVertexArrays(vaoId);
     }
 
+    private static void checkGlError(String label) {
+        int err;
+        while ((err = glGetError()) != GL_NO_ERROR)
+            System.err.println("[GL ERROR] " + label + ": 0x" + Integer.toHexString(err));
+    }
+
     /**
      * Re-uploads the vertex data to the GPU and re-specifies the vertex attribute
-     * pointers for position (3 floats), color (3 floats), and texture coordinates (2 floats).
+     * pointers for position (3 floats), color (4 floats), and texture coordinates (2 floats).
      */
     public void updateBuffers() {
         glBindVertexArray(vaoId);
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_DRAW);
+        checkGlError("updateBuffers glBufferData");
 
         int stride = VertexUtils.FLOATS_PER_VERTEX * Float.BYTES;
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, 3 * Float.BYTES);
+        glVertexAttribPointer(1, 4, GL_FLOAT, false, stride, 3 * Float.BYTES);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, 6 * Float.BYTES);
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, 7 * Float.BYTES);
         glEnableVertexAttribArray(2);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);

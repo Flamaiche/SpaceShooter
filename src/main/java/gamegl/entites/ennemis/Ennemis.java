@@ -22,7 +22,6 @@ import static org.lwjgl.opengl.GL11C.*;
 public abstract class Ennemis extends Entity {
     protected static Random rand = new Random();
 
-    protected Shape corps;
     protected Shader shader;
     protected Vector3f position;
     protected Vector3f direction;
@@ -31,6 +30,7 @@ public abstract class Ennemis extends Entity {
     protected boolean highlighted = false;
 
     protected int vie;
+    protected float mutationTimer = 0f;
     protected float respawn_time = -1f;
     protected float deathTime = -1f;
     protected Vector3f bodyColor = new Vector3f(0f, 0f, 0f);
@@ -109,19 +109,26 @@ public abstract class Ennemis extends Entity {
      */
     public void update(float deltaTime) {
         ConfigEnnemis cfg = ConfigEnnemis.get();
-        if (deltaTime%cfg.mutationDeltaTimeInterval == 0) mutation();
         if (vie <= 0) {
             if (deathTime < 0) {
                 deathTime = (float) glfwGetTime();
+                mutationTimer = 0f;
                 respawn_time = rand.nextFloat(cfg.respawnTime.y - cfg.respawnTime.x + 1) + cfg.respawnTime.x;
             } else {
                 float currentTime = (float) glfwGetTime();
                 if (currentTime - deathTime >= respawn_time) {
                     resetVie();
                     deathTime = -1f;
+                    mutationTimer = 0f;
                 }
             }
             return;
+        }
+
+        mutationTimer += deltaTime;
+        if (mutationTimer >= cfg.mutationDeltaTimeInterval) {
+            mutationTimer = 0f;
+            mutation();
         }
 
         updateModelMatrix();
@@ -148,7 +155,6 @@ public abstract class Ennemis extends Entity {
         shader.setUniformMat4f("model", modelMatrix);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        corps.setColor(bodyColor.x, bodyColor.y, bodyColor.z);
         corps.render();
 
         if (highlighted) {
@@ -164,6 +170,7 @@ public abstract class Ennemis extends Entity {
             glLineWidth(outlineWidth);
             corps.setColor(cfg.enemyHighlightColor.x, cfg.enemyHighlightColor.y, cfg.enemyHighlightColor.z);
             corps.render();
+            corps.setColor(bodyColor.x, bodyColor.y, bodyColor.z);
 
             glDepthMask(true);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -191,7 +198,6 @@ public abstract class Ennemis extends Entity {
     /** Releases the shape resources. */
     public void cleanup() { corps.cleanup(); }
 
-    public Shape getBody() { return corps; }
     public int getVie() { return vie; }
     public void decrementVie() { if (vie>0) vie--; }
     public void resetVie() { vie = ConfigEnnemis.get().enemyMaxVie; }
@@ -203,7 +209,10 @@ public abstract class Ennemis extends Entity {
      * @param s the speed value
      */
     public void setSpeed(float s) { speed = s; }
-    public void setBodyColor(float r, float g, float b) { bodyColor.set(r, g, b); }
+    public void setBodyColor(float r, float g, float b) {
+        bodyColor.set(r, g, b);
+        corps.setColor(r, g, b);
+    }
 
     /**
      * Returns whether this enemy is currently highlighted.
@@ -241,9 +250,6 @@ public abstract class Ennemis extends Entity {
             respawn_time *= 1f + rand.nextFloat() * cfg.mutationSleepRange.x;
         else if (!testMutation(100 - cfg.mutationSleepProb))
             respawn_time *= Math.max(cfg.mutationSleepClampMin, 1f - rand.nextFloat() * cfg.mutationSleepRange.y);
-
-        if (testMutation(cfg.mutationShapeProb)) {
-        }
     }
 
     private boolean testMutation(float chance) {

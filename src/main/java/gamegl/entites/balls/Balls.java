@@ -19,7 +19,6 @@ import java.util.Random;
  * Handles movement, rotation, collision detection, and lifecycle (activate/deactivate).
  */
 public abstract class Balls extends Entity {
-    protected Shape corps;
     protected Shader shader;
     protected Vector3f position = new Vector3f();
     protected Vector3f direction = new Vector3f();
@@ -124,21 +123,6 @@ public abstract class Balls extends Entity {
 
     /** Releases the shape resources. */
     public void cleanup() { corps.cleanup(); }
-
-    /**
-     * Returns the model matrix for this projectile.
-     *
-     * @return the model matrix
-     */
-    public Matrix4f getModelMatrix() {
-        Matrix4f m = new Matrix4f();
-        m.identity()
-                .translate(position)
-                .rotateX((float)Math.toRadians(rotation.x))
-                .rotateY((float)Math.toRadians(rotation.y))
-                .rotateZ((float)Math.toRadians(rotation.z));
-        return m;
-    }
 
     /**
      * Checks collision against a list of enemies. Deactivates on first hit.
