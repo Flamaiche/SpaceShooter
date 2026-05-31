@@ -23,6 +23,8 @@ public class Crosshair extends Entity2D {
     private final Vector3f rayDir = new Vector3f();
 
     private int lastWidth, lastHeight;
+    private final float[] rectFull = new float[4 * 6 * VertexUtils.FLOATS_PER_VERTEX];
+    private final float[] obliqueFull = new float[2 * 6 * VertexUtils.FLOATS_PER_VERTEX];
 
     private float playerSpeed = 0f;
 
@@ -147,6 +149,48 @@ public class Crosshair extends Entity2D {
         idx[0] = i;
     }
 
+    private static void putRectFull(float[] a, int[] idx, float x1, float y1, float x2, float y2) {
+        int i = idx[0];
+        for (int v = 0; v < 6; v++) {
+            float px, py;
+            switch (v) {
+                case 0: px = x1; py = y1; break;
+                case 1: px = x2; py = y1; break;
+                case 2: px = x2; py = y2; break;
+                case 3: px = x1; py = y1; break;
+                case 4: px = x2; py = y2; break;
+                default: px = x1; py = y2; break;
+            }
+            a[i++] = px; a[i++] = py; a[i++] = 0f;
+            a[i++] = 1f; a[i++] = 1f; a[i++] = 1f;
+            a[i++] = 0f; a[i++] = 0f;
+        }
+        idx[0] = i;
+    }
+
+    private static void addRotatedRectFull(float[] v, int[] idx, float x1, float y1, float x2, float y2, float thickness) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float len = (float)Math.sqrt(dx*dx + dy*dy);
+        float offsetX = -dy / len * thickness / 2f;
+        float offsetY = dx / len * thickness / 2f;
+
+        float cx1 = x1 + offsetX, cy1 = y1 + offsetY;
+        float cx2 = x2 + offsetX, cy2 = y2 + offsetY;
+        float cx3 = x2 - offsetX, cy3 = y2 - offsetY;
+        float cx4 = x1 - offsetX, cy4 = y1 - offsetY;
+
+        int i = idx[0];
+        float[][] verts = {{cx1, cy1}, {cx2, cy2}, {cx3, cy3},
+                           {cx1, cy1}, {cx3, cy3}, {cx4, cy4}};
+        for (float[] p : verts) {
+            v[i++] = p[0]; v[i++] = p[1]; v[i++] = 0f;
+            v[i++] = 1f; v[i++] = 1f; v[i++] = 1f;
+            v[i++] = 0f; v[i++] = 0f;
+        }
+        idx[0] = i;
+    }
+
     @Override
     public void render(Matrix4f orthoProjection) {
         boolean depth = glIsEnabled(GL_DEPTH_TEST);
@@ -185,6 +229,26 @@ public class Crosshair extends Entity2D {
         if (depth) glEnable(GL_DEPTH_TEST);
     }
 
+    private void fillRectFull(float len, float gap, float t, float[] out) {
+        int[] idx = new int[]{0};
+        float halfT = t * 0.5f;
+        float halfGap = gap * 0.5f;
+        float topY = halfGap + len;
+        putRectFull(out, idx, -halfT, halfGap, +halfT, topY);
+        putRectFull(out, idx, -(halfGap + len), -halfT, -halfGap, +halfT);
+        putRectFull(out, idx, +halfGap, -halfT, (halfGap + len), +halfT);
+        putRectFull(out, idx, -halfT, -(halfGap + len), +halfT, -halfGap);
+    }
+
+    private void fillObliqueFull(float len, float gap, float t, float[] out) {
+        int[] idx = new int[]{0};
+        float halfT = t * 0.5f;
+        float halfGap = gap * 0.5f;
+        float topY = halfGap + len;
+        addRotatedRectFull(out, idx, -halfGap, halfGap, -len - halfGap, topY, halfT);
+        addRotatedRectFull(out, idx, +halfGap, halfGap, len + halfGap, topY, halfT);
+    }
+
     @Override
     public void update(int width, int height) {
         lastWidth = width;
@@ -202,8 +266,10 @@ public class Crosshair extends Entity2D {
         float normalizedSpeed = Math.min(playerSpeed / vaisseau.cameraPhysics.x, 1f);
         float dynamicGap = baseGap * (1f + normalizedSpeed * vaisseau.crosshairMult.x);
 
-        shapeCross.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairRectangle(longueur, baseGap, epaisseur)));
-        shapeOblique.updatePositions(VertexUtils.autoAddSlotColor(createCrosshairOblique(longueur, dynamicGap, epaisseur * vaisseau.crosshairMult.y)));
+        fillRectFull(longueur, baseGap, epaisseur, rectFull);
+        shapeCross.updatePositions(rectFull);
+        fillObliqueFull(longueur, dynamicGap, epaisseur * vaisseau.crosshairMult.y, obliqueFull);
+        shapeOblique.updatePositions(obliqueFull);
     }
 
     public void setRayOrigin(Vector3f origin) {

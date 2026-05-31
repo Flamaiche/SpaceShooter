@@ -243,7 +243,8 @@ public class PreVerticesTable {
             {1.00f, 0.55f, 0.00f},
         };
 
-        float[] result = new float[tris.length * 18];
+        int FLOATS_PER_TRI = 3 * 6; // 3 sommets × (pos3 + color3)
+        float[] result = new float[tris.length * FLOATS_PER_TRI];
         int idx = 0;
         for (int[] tri : tris) {
             float[] col = triColors[tri[3]];

@@ -26,79 +26,65 @@ public final class MeshCollider {
      * @param modelB model matrix for the second mesh
      * @return true if any triangles intersect
      */
-    public static boolean intersectsOptimized(float[] vertsA, float[] vertsB, Matrix4f modelA, Matrix4f modelB) {
-        float[] ta = applyTransform(vertsA, modelA);
-        float[] tb = applyTransform(vertsB, modelB);
+    public static boolean intersectsOptimized(float[] vertsA, float[] vertsB,
+                                               Matrix4f modelA, Matrix4f modelB) {
+        float[] mbA = new float[6];
+        float[] mbB = new float[6];
+        computeBounds(vertsA, mbA);
+        computeBounds(vertsB, mbB);
 
-        int countA = ta.length / VertexUtils.FLOATS_PER_VERTEX;
-        int countB = tb.length / VertexUtils.FLOATS_PER_VERTEX;
+        float[] wbA = new float[6];
+        float[] wbB = new float[6];
+        transformBounds(mbA, modelA, wbA);
+        transformBounds(mbB, modelB, wbB);
 
-        float[] minA = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
-        float[] maxA = {-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
-        float[] minB = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
-        float[] maxB = {-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
+        if (wbA[3] < wbB[0] || wbA[0] > wbB[3] ||
+            wbA[4] < wbB[1] || wbA[1] > wbB[4] ||
+            wbA[5] < wbB[2] || wbA[2] > wbB[5]) return false;
 
-        for (int i = 0; i < countA; i++) {
-            for (int j = 0; j < 3; j++) {
-                float v = ta[i * VertexUtils.FLOATS_PER_VERTEX + j];
-                minA[j] = Math.min(minA[j], v);
-                maxA[j] = Math.max(maxA[j], v);
-            }
-        }
-        for (int i = 0; i < countB; i++) {
-            for (int j = 0; j < 3; j++) {
-                float v = tb[i * VertexUtils.FLOATS_PER_VERTEX + j];
-                minB[j] = Math.min(minB[j], v);
-                maxB[j] = Math.max(maxB[j], v);
-            }
-        }
-
-        if (maxA[0] < minB[0] || minA[0] > maxB[0] ||
-            maxA[1] < minB[1] || minA[1] > maxB[1] ||
-            maxA[2] < minB[2] || minA[2] > maxB[2]) return false;
-
+        int countA = vertsA.length / VertexUtils.FLOATS_PER_VERTEX;
+        int countB = vertsB.length / VertexUtils.FLOATS_PER_VERTEX;
+        Vector3f[] triA = {new Vector3f(), new Vector3f(), new Vector3f()};
+        Vector3f[] triB = {new Vector3f(), new Vector3f(), new Vector3f()};
         for (int i = 0; i < countA; i += 3) {
+            readTri(vertsA, i, modelA, triA);
             for (int j = 0; j < countB; j += 3) {
-                if (triTriIntersectRaw(ta, i, tb, j)) return true;
+                readTri(vertsB, j, modelB, triB);
+                if (triTriIntersect(triA[0], triA[1], triA[2], triB[0], triB[1], triB[2]))
+                    return true;
             }
         }
         return false;
     }
 
     /**
-     * Casts a ray against a transformed mesh and returns the distance to the nearest
-     * triangle hit, or -1 if no intersection is found. Uses AABB culling before
-     * testing individual triangles.
+     * Casts a ray against a mesh transformed by the given model matrix and returns
+     * the distance to the nearest intersection, or -1 if no intersection occurs.
      *
-     * @param vertices the vertex data of the mesh
-     * @param origin   the ray origin in world space
-     * @param dir      the ray direction in world space
-     * @param model    the model matrix to transform the mesh
-     * @return the distance along the ray to the nearest hit, or -1 if none
+     * @param vertices vertex data of the mesh
+     * @param origin   ray origin in world space
+     * @param dir      ray direction in world space
+     * @param model    model matrix for the mesh
+     * @return the distance to the nearest intersection, or -1 if none
      */
-    public static float intersectRayDistance(float[] vertices, Vector3f origin, Vector3f dir, Matrix4f model) {
-        float[] transformed = applyTransform(vertices, model);
-        int count = transformed.length / VertexUtils.FLOATS_PER_VERTEX;
+    public static float intersectRayDistance(float[] vertices, Vector3f origin,
+                                               Vector3f dir, Matrix4f model) {
+        float[] mb = new float[6];
+        computeBounds(vertices, mb);
+        float[] wb = new float[6];
+        transformBounds(mb, model, wb);
 
-        float[] min = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
-        float[] max = {-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
-        for (int i = 0; i < count; i++) {
-            for (int j = 0; j < 3; j++) {
-                float v = transformed[i * VertexUtils.FLOATS_PER_VERTEX + j];
-                min[j] = Math.min(min[j], v);
-                max[j] = Math.max(max[j], v);
-            }
-        }
-
+        float[] min = {wb[0], wb[1], wb[2]};
+        float[] max = {wb[3], wb[4], wb[5]};
         if (!rayIntersectsAABB(origin, dir, min, max)) return -1f;
 
+        int count = vertices.length / VertexUtils.FLOATS_PER_VERTEX;
         float minT = Float.MAX_VALUE;
         boolean hit = false;
+        Vector3f[] tri = {new Vector3f(), new Vector3f(), new Vector3f()};
         for (int i = 0; i < count; i += 3) {
-            float[] v0 = {transformed[i * VertexUtils.FLOATS_PER_VERTEX],     transformed[i * VertexUtils.FLOATS_PER_VERTEX + 1], transformed[i * VertexUtils.FLOATS_PER_VERTEX + 2]};
-            float[] v1 = {transformed[(i+1) * VertexUtils.FLOATS_PER_VERTEX], transformed[(i+1) * VertexUtils.FLOATS_PER_VERTEX + 1], transformed[(i+1) * VertexUtils.FLOATS_PER_VERTEX + 2]};
-            float[] v2 = {transformed[(i+2) * VertexUtils.FLOATS_PER_VERTEX], transformed[(i+2) * VertexUtils.FLOATS_PER_VERTEX + 1], transformed[(i+2) * VertexUtils.FLOATS_PER_VERTEX + 2]};
-            float t = rayIntersectsTriangleDistance(origin, dir, v0, v1, v2);
+            readTri(vertices, i, model, tri);
+            float t = rayIntersectsTriangleDistance(origin, dir, tri[0], tri[1], tri[2]);
             if (t >= 0 && t < minT) {
                 minT = t;
                 hit = true;
@@ -107,117 +93,150 @@ public final class MeshCollider {
         return hit ? minT : -1f;
     }
 
-    private static float[] applyTransform(float[] vertices, Matrix4f model) {
-        float[] transformed = vertices.clone();
-        Vector3f tmp = new Vector3f();
-        for (int i = 0; i < vertices.length / VertexUtils.FLOATS_PER_VERTEX; i++) {
-            tmp.set(vertices[i * VertexUtils.FLOATS_PER_VERTEX],
-                    vertices[i * VertexUtils.FLOATS_PER_VERTEX + 1],
-                    vertices[i * VertexUtils.FLOATS_PER_VERTEX + 2]);
-            tmp.mulPosition(model);
-            transformed[i * VertexUtils.FLOATS_PER_VERTEX]     = tmp.x;
-            transformed[i * VertexUtils.FLOATS_PER_VERTEX + 1] = tmp.y;
-            transformed[i * VertexUtils.FLOATS_PER_VERTEX + 2] = tmp.z;
+    private static void computeBounds(float[] verts, float[] out) {
+        out[0] = out[1] = out[2] = Float.MAX_VALUE;
+        out[3] = out[4] = out[5] = -Float.MAX_VALUE;
+        int count = verts.length / VertexUtils.FLOATS_PER_VERTEX;
+        for (int i = 0; i < count; i++) {
+            int off = i * VertexUtils.FLOATS_PER_VERTEX;
+            float x = verts[off], y = verts[off + 1], z = verts[off + 2];
+            if (x < out[0]) out[0] = x;
+            if (y < out[1]) out[1] = y;
+            if (z < out[2]) out[2] = z;
+            if (x > out[3]) out[3] = x;
+            if (y > out[4]) out[4] = y;
+            if (z > out[5]) out[5] = z;
         }
-        return transformed;
     }
 
-    private static float[] sub(float[] a, float[] b) {
-        return new float[]{a[0] - b[0], a[1] - b[1], a[2] - b[2]};
+    private static void transformBounds(float[] mb, Matrix4f model, float[] wb) {
+        Vector3f tmp = new Vector3f();
+        wb[0] = wb[1] = wb[2] = Float.MAX_VALUE;
+        wb[3] = wb[4] = wb[5] = -Float.MAX_VALUE;
+        for (int i = 0; i < 8; i++) {
+            float x = (i & 1) == 0 ? mb[0] : mb[3];
+            float y = (i & 2) == 0 ? mb[1] : mb[4];
+            float z = (i & 4) == 0 ? mb[2] : mb[5];
+            tmp.set(x, y, z).mulPosition(model);
+            if (tmp.x < wb[0]) wb[0] = tmp.x;
+            if (tmp.y < wb[1]) wb[1] = tmp.y;
+            if (tmp.z < wb[2]) wb[2] = tmp.z;
+            if (tmp.x > wb[3]) wb[3] = tmp.x;
+            if (tmp.y > wb[4]) wb[4] = tmp.y;
+            if (tmp.z > wb[5]) wb[5] = tmp.z;
+        }
     }
 
-    private static float[] cross(float[] a, float[] b) {
-        return new float[]{a[1]*b[2] - a[2]*b[1],
-                           a[2]*b[0] - a[0]*b[2],
-                           a[0]*b[1] - a[1]*b[0]};
+    private static void readTri(float[] verts, int triIndex, Matrix4f model, Vector3f[] tri) {
+        int off = triIndex * VertexUtils.FLOATS_PER_VERTEX;
+        tri[0].set(verts[off], verts[off + 1], verts[off + 2]).mulPosition(model);
+        off += VertexUtils.FLOATS_PER_VERTEX;
+        tri[1].set(verts[off], verts[off + 1], verts[off + 2]).mulPosition(model);
+        off += VertexUtils.FLOATS_PER_VERTEX;
+        tri[2].set(verts[off], verts[off + 1], verts[off + 2]).mulPosition(model);
     }
 
-    private static float dot(float[] a, float[] b) {
-        return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+    private static float comp(Vector3f v, int axis) {
+        switch (axis) {
+            case 0: return v.x;
+            case 1: return v.y;
+            default: return v.z;
+        }
     }
 
-    private static float vecLength(float[] v) {
-        return (float) Math.sqrt(dot(v, v));
-    }
+    private static boolean triTriIntersect(Vector3f V0, Vector3f V1, Vector3f V2,
+                                            Vector3f U0, Vector3f U1, Vector3f U2) {
+        Vector3f e1 = new Vector3f();
+        Vector3f e2 = new Vector3f();
+        Vector3f n1 = new Vector3f();
+        Vector3f n2 = new Vector3f();
+        Vector3f tmp = new Vector3f();
 
-    private static float[] projectOnAxisRaw(int axis, float[] v0, float[] v1, float[] v2) {
-        float p0 = v0[axis], p1 = v1[axis], p2 = v2[axis];
-        return new float[]{Math.min(p0, Math.min(p1, p2)), Math.max(p0, Math.max(p1, p2))};
-    }
+        V1.sub(V0, e1);
+        V2.sub(V0, e2);
+        e1.cross(e2, n1);
+        if (n1.length() < EPSILON) return false;
 
-    private static boolean intervalsOverlap(float min1, float max1, float min2, float max2) {
-        return !(max1 < min2 || max2 < min1);
-    }
+        U1.sub(U0, e1);
+        U2.sub(U0, e2);
+        e1.cross(e2, n2);
+        if (n2.length() < EPSILON) return false;
 
-    private static boolean triTriIntersectRaw(float[] V, int vi, float[] U, int ui) {
-        float[] V0 = {V[vi * VertexUtils.FLOATS_PER_VERTEX],     V[vi * VertexUtils.FLOATS_PER_VERTEX + 1],     V[vi * VertexUtils.FLOATS_PER_VERTEX + 2]};
-        float[] V1 = {V[(vi+1) * VertexUtils.FLOATS_PER_VERTEX], V[(vi+1) * VertexUtils.FLOATS_PER_VERTEX + 1], V[(vi+1) * VertexUtils.FLOATS_PER_VERTEX + 2]};
-        float[] V2 = {V[(vi+2) * VertexUtils.FLOATS_PER_VERTEX], V[(vi+2) * VertexUtils.FLOATS_PER_VERTEX + 1], V[(vi+2) * VertexUtils.FLOATS_PER_VERTEX + 2]};
-        float[] U0 = {U[ui * VertexUtils.FLOATS_PER_VERTEX],     U[ui * VertexUtils.FLOATS_PER_VERTEX + 1],     U[ui * VertexUtils.FLOATS_PER_VERTEX + 2]};
-        float[] U1 = {U[(ui+1) * VertexUtils.FLOATS_PER_VERTEX], U[(ui+1) * VertexUtils.FLOATS_PER_VERTEX + 1], U[(ui+1) * VertexUtils.FLOATS_PER_VERTEX + 2]};
-        float[] U2 = {U[(ui+2) * VertexUtils.FLOATS_PER_VERTEX], U[(ui+2) * VertexUtils.FLOATS_PER_VERTEX + 1], U[(ui+2) * VertexUtils.FLOATS_PER_VERTEX + 2]};
-
-        float[] N1 = cross(sub(V1, V0), sub(V2, V0));
-        float[] N2 = cross(sub(U1, U0), sub(U2, U0));
-
-        if (vecLength(N1) == 0 || vecLength(N2) == 0) return false;
-
-        float du0 = dot(N1, sub(U0, V0));
-        float du1 = dot(N1, sub(U1, V0));
-        float du2 = dot(N1, sub(U2, V0));
-        float dv0 = dot(N2, sub(V0, U0));
-        float dv1 = dot(N2, sub(V1, U0));
-        float dv2 = dot(N2, sub(V2, U0));
-
+        U0.sub(V0, tmp);
+        float du0 = n1.dot(tmp);
+        U1.sub(V0, tmp);
+        float du1 = n1.dot(tmp);
+        U2.sub(V0, tmp);
+        float du2 = n1.dot(tmp);
         if (Math.abs(du0) < EPSILON) du0 = 0;
         if (Math.abs(du1) < EPSILON) du1 = 0;
         if (Math.abs(du2) < EPSILON) du2 = 0;
+        if (du0 * du1 > 0 && du0 * du2 > 0) return false;
+
+        V0.sub(U0, tmp);
+        float dv0 = n2.dot(tmp);
+        V1.sub(U0, tmp);
+        float dv1 = n2.dot(tmp);
+        V2.sub(U0, tmp);
+        float dv2 = n2.dot(tmp);
         if (Math.abs(dv0) < EPSILON) dv0 = 0;
         if (Math.abs(dv1) < EPSILON) dv1 = 0;
         if (Math.abs(dv2) < EPSILON) dv2 = 0;
-
-        if (du0 * du1 > 0 && du0 * du2 > 0) return false;
         if (dv0 * dv1 > 0 && dv0 * dv2 > 0) return false;
 
-        float[] D = cross(N1, N2);
-        int max = Math.abs(D[0]) > Math.abs(D[1]) ? 0 : 1;
-        max = Math.abs(D[2]) > Math.abs(D[max]) ? 2 : max;
+        n1.cross(n2, tmp);
+        int max = Math.abs(tmp.x) > Math.abs(tmp.y) ? 0 : 1;
+        max = Math.abs(comp(tmp, 2)) > Math.abs(comp(tmp, max)) ? 2 : max;
 
-        float[] tri1 = projectOnAxisRaw(max, V0, V1, V2);
-        float[] tri2 = projectOnAxisRaw(max, U0, U1, U2);
-        return intervalsOverlap(tri1[0], tri1[1], tri2[0], tri2[1]);
+        float vMin, vMax, uMin, uMax;
+        vMin = vMax = comp(V0, max);
+        vMin = Math.min(vMin, comp(V1, max));
+        vMin = Math.min(vMin, comp(V2, max));
+        vMax = Math.max(vMax, comp(V1, max));
+        vMax = Math.max(vMax, comp(V2, max));
+        uMin = uMax = comp(U0, max);
+        uMin = Math.min(uMin, comp(U1, max));
+        uMin = Math.min(uMin, comp(U2, max));
+        uMax = Math.max(uMax, comp(U1, max));
+        uMax = Math.max(uMax, comp(U2, max));
+
+        return vMin <= uMax && uMin <= vMax;
     }
 
     private static boolean rayIntersectsAABB(Vector3f origin, Vector3f dir, float[] min, float[] max) {
         float tmin = (min[0] - origin.x) / dir.x;
         float tmax = (max[0] - origin.x) / dir.x;
-        if (tmin > tmax) { float tmp = tmin; tmin = tmax; tmax = tmp; }
+        if (tmin > tmax) { float t = tmin; tmin = tmax; tmax = t; }
 
         float tymin = (min[1] - origin.y) / dir.y;
         float tymax = (max[1] - origin.y) / dir.y;
-        if (tymin > tymax) { float tmp = tymin; tymin = tymax; tymax = tmp; }
+        if (tymin > tymax) { float t = tymin; tymin = tymax; tymax = t; }
 
         if ((tmin > tymax) || (tymin > tmax)) return false;
-        tmin = Math.max(tmin, tymin);
-        tmax = Math.min(tmax, tymax);
+        if (tymin > tmin) tmin = tymin;
+        if (tymax < tmax) tmax = tymax;
 
         float tzmin = (min[2] - origin.z) / dir.z;
         float tzmax = (max[2] - origin.z) / dir.z;
-        if (tzmin > tzmax) { float tmp = tzmin; tzmin = tzmax; tzmax = tmp; }
+        if (tzmin > tzmax) { float t = tzmin; tzmin = tzmax; tzmax = t; }
 
         return !(tmin > tzmax || tzmin > tmax);
     }
 
-    private static float rayIntersectsTriangleDistance(Vector3f origin, Vector3f dir, float[] v0, float[] v1, float[] v2) {
-        Vector3f edge1 = new Vector3f(v1[0]-v0[0], v1[1]-v0[1], v1[2]-v0[2]);
-        Vector3f edge2 = new Vector3f(v2[0]-v0[0], v2[1]-v0[1], v2[2]-v0[2]);
+    private static float rayIntersectsTriangleDistance(Vector3f origin, Vector3f dir,
+                                                        Vector3f v0, Vector3f v1, Vector3f v2) {
+        Vector3f edge1 = new Vector3f();
+        Vector3f edge2 = new Vector3f();
+        v1.sub(v0, edge1);
+        v2.sub(v0, edge2);
+
         Vector3f h = new Vector3f();
         dir.cross(edge2, h);
         float a = edge1.dot(h);
         if (Math.abs(a) < 1e-6f) return -1;
 
-        Vector3f s = new Vector3f(origin.x - v0[0], origin.y - v0[1], origin.z - v0[2]);
         float f = 1.0f / a;
+        Vector3f s = new Vector3f(origin).sub(v0);
         float u = f * s.dot(h);
         if (u < 0.0f || u > 1.0f) return -1;
 
