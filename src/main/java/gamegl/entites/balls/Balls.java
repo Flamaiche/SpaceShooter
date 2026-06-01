@@ -2,8 +2,7 @@ package gamegl.entites.balls;
 
 import gamegl.entites.ennemis.Ennemis;
 import gamegl.entites.Entity;
-import gamegl.utils.ConfigJeu;
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigBalles;
 import learngl.shape.PreVerticesTable;
 import learngl.Shader;
 import learngl.shape.Shape;
@@ -38,9 +37,10 @@ public abstract class Balls extends Entity {
      */
     public Balls(Shader shader, float baseSize) {
         this.shader = shader;
+        ConfigBalles cfg = ConfigBalles.get();
         corps = new Shape(VertexUtils.autoAddSlotColor(PreVerticesTable.generatePyramid(baseSize)));
         corps.setShader(shader);
-        corps.setColor(ConfigJeu.get().ballColor.x, ConfigJeu.get().ballColor.y, ConfigJeu.get().ballColor.z);
+        corps.setColor(cfg.ballColor.x, cfg.ballColor.y, cfg.ballColor.z);
     }
 
     /**
@@ -54,7 +54,7 @@ public abstract class Balls extends Entity {
         spawnPos = new Vector3f(startPos);
         direction.set(forwardDir).normalize();
         rotation.set(0f,0f,0f);
-        float rMax = ConfigVaisseau.get().ballRotationSpeedMax;
+        float rMax = ConfigBalles.get().ballRotationSpeedMax;
         rotationSpeed.set(rand.nextFloat()*rMax*2-rMax, rand.nextFloat()*rMax*2-rMax, rand.nextFloat()*rMax*2-rMax);
         active = true;
         modelDirty = true;
@@ -74,9 +74,10 @@ public abstract class Balls extends Entity {
     public void update(float deltaTime) {
         if (!active) return;
 
-        Vector3f delta = new Vector3f(direction).mul(ConfigVaisseau.get().ballSpeed * deltaTime);
+        ConfigBalles cfg = ConfigBalles.get();
+        Vector3f delta = new Vector3f(direction).mul(cfg.ballSpeed * deltaTime);
 
-        float maxStep = ConfigVaisseau.get().ballCollisionStep;
+        float maxStep = cfg.ballCollisionStep;
         int steps = (int) Math.ceil(delta.length() / maxStep);
         Vector3f step = new Vector3f(delta).div(steps);
 
@@ -84,12 +85,12 @@ public abstract class Balls extends Entity {
             position.add(step);
         }
 
-        float rotMult = ConfigVaisseau.get().ballRotationMultiplier;
+        float rotMult = ConfigBalles.get().ballRotationMultiplier;
         rotation.x += rotationSpeed.x * deltaTime * rotMult;
         rotation.y += rotationSpeed.y * deltaTime * rotMult;
         rotation.z += rotationSpeed.z * deltaTime * rotMult;
 
-        if (position.distance(spawnPos) > ConfigVaisseau.get().ballDistanceMax) deactivate();
+        if (position.distance(spawnPos) > ConfigBalles.get().ballDistanceMax) deactivate();
 
         modelDirty = true;
         updateModelMatrix();

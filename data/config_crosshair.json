@@ -1,0 +1,17 @@
+{
+  "type": "gamegl.utils.config.ConfigCrosshair",
+  "data": [
+    {
+      "name": "default",
+      "shaderVertex": "shaders/DefaultVertex.glsl",
+      "shaderFragment": "shaders/DefaultFragment.glsl",
+      "crosshairColor": {"x": 1.0, "y": 0.0, "z": 1.0},
+      "crosshairRefHeight": 600.0,
+      "crosshairGeom": {"x": 0.04, "y": 0.02, "z": 0.005},
+      "crosshairMult": {"x": 3.0, "y": 2.5},
+      "crosshairStiffness": 100.0,
+      "crosshairLagDamping": 8.0,
+      "crosshairLagMaxSpeed": 10.0
+    }
+  ]
+}

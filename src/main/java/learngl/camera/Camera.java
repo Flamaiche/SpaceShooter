@@ -1,7 +1,7 @@
 package learngl.camera;
 
-import gamegl.utils.ConfigJeu;
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigCamera;
+import gamegl.utils.config.ConfigJeu;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -41,8 +41,8 @@ public class Camera {
         this.up = new Vector3f(0, 1, 0);
         this.worldUp = new Vector3f(0, 1, 0);
         this.right = new Vector3f();
-        this.yaw = ConfigVaisseau.get().spawnAngles.x;
-        this.pitch = ConfigVaisseau.get().spawnAngles.y;
+        this.yaw = ConfigCamera.get().spawnAngles.x;
+        this.pitch = ConfigCamera.get().spawnAngles.y;
         this.fov = ConfigJeu.get().fov;
         this.renderDistance = ConfigJeu.get().renderDistance;
         reconstruireAxes();
@@ -55,8 +55,8 @@ public class Camera {
         this.up = new Vector3f(0, 1, 0);
         this.worldUp = new Vector3f(0, 1, 0);
         this.right = new Vector3f();
-        this.yaw = ConfigVaisseau.get().spawnAngles.x;
-        this.pitch = ConfigVaisseau.get().spawnAngles.y;
+        this.yaw = ConfigCamera.get().spawnAngles.x;
+        this.pitch = ConfigCamera.get().spawnAngles.y;
         this.fov = ConfigJeu.get().fov;
         this.renderDistance = ConfigJeu.get().renderDistance;
         reconstruireAxes();

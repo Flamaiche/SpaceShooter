@@ -1,6 +1,8 @@
-package gamegl.utils;
+package gamegl.utils.config;
 
 import java.util.List;
+
+import gamegl.utils.GetDonnee;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -27,12 +29,6 @@ public class ConfigJeu {
     public int windowHeight;
 
     /* === COULEURS FIXES === */
-    /* Couleur des balles (R, G, B) */
-    public Vector3f ballColor;
-    /* Couleur du crosshair (R, G, B) */
-    public Vector3f crosshairColor;
-    /* Hauteur de référence (pixels) pour le dimensionnement du crosshair */
-    public float crosshairRefHeight;
     /* Couleur du texte HUD gauche (R, G, B) */
     public Vector3f hudLeftColor;
     /* Couleur du texte HUD droite (R, G, B) */

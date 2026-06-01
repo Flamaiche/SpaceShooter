@@ -1,7 +1,7 @@
 package gamegl.entites;
 
 import gamegl.entites.balls.Balls;
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigVaisseau;
 import learngl.shape.Shape;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;

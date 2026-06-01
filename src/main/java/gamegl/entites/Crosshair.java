@@ -1,8 +1,9 @@
 package gamegl.entites;
 
 import gamegl.entites.ennemis.Ennemis;
-import gamegl.utils.ConfigJeu;
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigCamera;
+import gamegl.utils.config.ConfigCrosshair;
+import gamegl.utils.config.ConfigJeu;
 import learngl.camera.Camera;
 import learngl.Shader;
 import learngl.shape.Shape;
@@ -35,14 +36,13 @@ public class Crosshair extends Entity2D {
         this.shader = shader;
         this.camera = camera;
 
-        ConfigVaisseau vaisseau = ConfigVaisseau.get();
-        ConfigJeu cfg = ConfigJeu.get();
+        ConfigCrosshair cfg = ConfigCrosshair.get();
         float crossR = cfg.crosshairColor.x;
         float crossG = cfg.crosshairColor.y;
         float crossB = cfg.crosshairColor.z;
-        float crossLen = vaisseau.crosshairGeom.x;
-        float crossGap = vaisseau.crosshairGeom.y;
-        float crossThick = vaisseau.crosshairGeom.z;
+        float crossLen = cfg.crosshairGeom.x;
+        float crossGap = cfg.crosshairGeom.y;
+        float crossThick = cfg.crosshairGeom.z;
         shapeCross = new Shape(VertexUtils.autoAddSlotColor(createCrosshairRectangle(crossLen, crossGap, crossThick)));
         shapeCross.setColor(crossR, crossG, crossB);
         shapeCross.setShader(shader);
@@ -58,7 +58,7 @@ public class Crosshair extends Entity2D {
     }
 
     public void updateLag(Vector3f targetDir, float deltaTime) {
-        ConfigVaisseau cfg = ConfigVaisseau.get();
+        ConfigCrosshair cfg = ConfigCrosshair.get();
 
         Vector3f error = new Vector3f(targetDir).sub(crosshairDir);
         float errorMag = error.length();
@@ -254,21 +254,20 @@ public class Crosshair extends Entity2D {
         lastWidth = width;
         lastHeight = height;
 
-        ConfigJeu cfg = ConfigJeu.get();
-        ConfigVaisseau vaisseau = ConfigVaisseau.get();
+        ConfigCrosshair cfg = ConfigCrosshair.get();
 
         float minDim = Math.min(width, height);
 
-        float longueur = (minDim / cfg.crosshairRefHeight) * vaisseau.crosshairGeom.x;
-        float epaisseur = (minDim / cfg.crosshairRefHeight) * vaisseau.crosshairGeom.z;
-        float baseGap = (minDim / cfg.crosshairRefHeight) * vaisseau.crosshairGeom.y;
+        float longueur = (minDim / cfg.crosshairRefHeight) * cfg.crosshairGeom.x;
+        float epaisseur = (minDim / cfg.crosshairRefHeight) * cfg.crosshairGeom.z;
+        float baseGap = (minDim / cfg.crosshairRefHeight) * cfg.crosshairGeom.y;
 
-        float normalizedSpeed = Math.min(playerSpeed / vaisseau.cameraPhysics.x, 1f);
-        float dynamicGap = baseGap * (1f + normalizedSpeed * vaisseau.crosshairMult.x);
+        float normalizedSpeed = Math.min(playerSpeed / ConfigCamera.get().cameraPhysics.x, 1f);
+        float dynamicGap = baseGap * (1f + normalizedSpeed * cfg.crosshairMult.x);
 
         fillRectFull(longueur, baseGap, epaisseur, rectFull);
         shapeCross.updatePositions(rectFull);
-        fillObliqueFull(longueur, dynamicGap, epaisseur * vaisseau.crosshairMult.y, obliqueFull);
+        fillObliqueFull(longueur, dynamicGap, epaisseur * cfg.crosshairMult.y, obliqueFull);
         shapeOblique.updatePositions(obliqueFull);
     }
 

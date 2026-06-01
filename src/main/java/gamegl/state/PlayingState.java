@@ -8,9 +8,12 @@ import gamegl.entites.ennemis.EnnemisBasic;
 import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.Manager2D;
 import gamegl.gestion.Manager3D;
-import gamegl.utils.ConfigEnnemis;
-import gamegl.utils.ConfigJeu;
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigEnnemis;
+import gamegl.utils.config.ConfigJeu;
+import gamegl.utils.config.ConfigBalles;
+import gamegl.utils.config.ConfigCamera;
+import gamegl.utils.config.ConfigCrosshair;
+import gamegl.utils.config.ConfigVaisseau;
 import learngl.camera.CameraPhysics;
 import learngl.camera.vue.GestionnaireVue;
 import learngl.shape.PreVerticesTable;
@@ -69,8 +72,10 @@ public class PlayingState extends GameState {
         score = ballsFiredTotal = enemiesKilledTotal = 0;
 
         ennemisShader = new Shader("shaders/EnnemisVertex.glsl", "shaders/EnnemisFragment.glsl");
-        ballShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
-        crosshairShader = new Shader("shaders/DefaultVertex.glsl", "shaders/DefaultFragment.glsl");
+        ConfigBalles cfgBalles = ConfigBalles.get();
+        ballShader = new Shader(cfgBalles.shaderVertex, cfgBalles.shaderFragment);
+        ConfigCrosshair cfgCrosshair = ConfigCrosshair.get();
+        crosshairShader = new Shader(cfgCrosshair.shaderVertex, cfgCrosshair.shaderFragment);
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
         Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(ConfigVaisseau.get().playerShipScale)));
@@ -103,7 +108,7 @@ public class PlayingState extends GameState {
         }
 
         balls = new ArrayList<>();
-        for (int i = 0; i < ConfigVaisseau.get().ballsMax; i++) balls.add(new BallsBasic(ballShader, ConfigVaisseau.get().ballSize));
+        for (int i = 0; i < ConfigBalles.get().ballsMax; i++) balls.add(new BallsBasic(ballShader, ConfigBalles.get().ballSize));
 
         uiElements = new ArrayList<>();
         crosshair = new Crosshair(crosshairShader, camera);
@@ -139,7 +144,7 @@ public class PlayingState extends GameState {
             double deltaY = lastMouseY - ypos;
             lastMouseX = xpos;
             lastMouseY = ypos;
-            camera.rotate((float)(deltaX * ConfigVaisseau.get().mouseSensitivity), (float)(deltaY * ConfigVaisseau.get().mouseSensitivity));
+            camera.rotate((float)(deltaX * ConfigCamera.get().mouseSensitivity), (float)(deltaY * ConfigCamera.get().mouseSensitivity));
         });
 
         glfwSetWindowFocusCallback(commande.getWindow(), (_, focused) -> {
@@ -150,8 +155,8 @@ public class PlayingState extends GameState {
                 () -> camera.setOrbitMode(false),
                 () -> camera.setOrbitMode(true)));
 
-        touches.add(new Touche(GLFW_KEY_Q, null, null, () -> camera.rotateRoll(-ConfigVaisseau.get().rollSpeed)));
-        touches.add(new Touche(GLFW_KEY_E, null, null, () -> camera.rotateRoll(ConfigVaisseau.get().rollSpeed)));
+        touches.add(new Touche(GLFW_KEY_Q, null, null, () -> camera.rotateRoll(-ConfigCamera.get().rollSpeed)));
+        touches.add(new Touche(GLFW_KEY_E, null, null, () -> camera.rotateRoll(ConfigCamera.get().rollSpeed)));
 
         touches.add(new Touche(GLFW_KEY_W, null, null, () -> cameraPhysics.addFront(1, camera)));
         touches.add(new Touche(GLFW_KEY_S, null, null, () -> cameraPhysics.addFront(-1, camera)));
@@ -189,7 +194,7 @@ public class PlayingState extends GameState {
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) inputAxes[1]--;
 
         float fr = ConfigJeu.get().targetFramerate;
-        float vr = ConfigVaisseau.get().vitesseRotation;
+        float vr = ConfigCamera.get().vitesseRotation;
         if (inputAxes[0] == 1) camera.rotate(-vr * fr * deltaTime, 0);
         else if (inputAxes[0] == -1) camera.rotate(vr * fr * deltaTime, 0);
         if (inputAxes[1] == 1) camera.rotate(0, vr * fr * deltaTime);
@@ -294,7 +299,7 @@ public class PlayingState extends GameState {
 
     private void shoot() {
         double currentTime = glfwGetTime();
-        if (currentTime - lastTime < ConfigVaisseau.get().shootCooldown) return;
+        if (currentTime - lastTime < ConfigBalles.get().shootCooldown) return;
         lastTime = currentTime;
 
         Vector3f rayDir = crosshair.getRayDir();
