@@ -1,6 +1,8 @@
-package gamegl.utils;
+package gamegl.utils.config;
 
 import java.util.List;
+
+import gamegl.utils.GetDonnee;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 

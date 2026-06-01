@@ -1,7 +1,7 @@
 package gamegl.gestion.texte;
 
 import gamegl.gestion.donnees.GameData;
-import gamegl.utils.ConfigJeu;
+import gamegl.utils.config.ConfigJeu;
 import learngl.Shader;
 import org.joml.Vector2f;
 import java.util.ArrayList;

@@ -1,5 +1,5 @@
 {
-  "type": "gamegl.utils.ConfigJeu",
+  "type": "gamegl.utils.config.ConfigJeu",
   "data": [
     {
       "name": "default",
@@ -9,9 +9,6 @@
       "renderSimulation": 150.0,
       "windowWidth": 800,
       "windowHeight": 600,
-      "ballColor": {"x": 1.0, "y": 0.0, "z": 0.0},
-      "crosshairColor": {"x": 1.0, "y": 0.0, "z": 1.0},
-      "crosshairRefHeight": 600.0,
       "hudLeftColor": {"x": 0.5, "y": 0.0, "z": 0.5},
       "hudRightColor": {"x": 1.0, "y": 0.0, "z": 0.0},
       "targetFramerate": 60.0,
