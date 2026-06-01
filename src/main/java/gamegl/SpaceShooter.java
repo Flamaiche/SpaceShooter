@@ -3,8 +3,8 @@ package gamegl;
 import  gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.Text;
 import gamegl.state.GameStateManager;
-import gamegl.utils.ConfigJeu;
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigCamera;
+import gamegl.utils.config.ConfigJeu;
 import learngl.camera.Camera;
 import learngl.commandes.Commande;
 import learngl.commandes.Touche;
@@ -123,8 +123,8 @@ public class SpaceShooter {
         gameData.setVersion(gameVersion);
 
         ConfigJeu.get();
-        ConfigVaisseau vaisseau = ConfigVaisseau.get();
-        Camera camera = new Camera(new Vector3f(vaisseau.cameraSpawn));
+        ConfigCamera cfgCam = ConfigCamera.get();
+        Camera camera = new Camera(new Vector3f(cfgCam.cameraSpawn));
         GameStateManager gsm;
         Commande commande = new Commande(camera, window, null);
         Commande commandeGlobal = new Commande(camera, window, null);

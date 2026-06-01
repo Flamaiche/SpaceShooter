@@ -1,6 +1,6 @@
 package learngl.camera;
 
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigCamera;
 import org.joml.Vector3f;
 
 /**
@@ -25,7 +25,7 @@ public final class OrbitController {
         target.set(newTarget);
         Vector3f rel = new Vector3f(position).sub(target);
         radius = rel.length();
-        if (radius < ConfigVaisseau.get().orbitLimits.x) radius = ConfigVaisseau.get().orbitLimits.x;
+        if (radius < ConfigCamera.get().orbitLimits.x) radius = ConfigCamera.get().orbitLimits.x;
         rel.div(radius);
         theta = (float) Math.atan2(rel.z, rel.x);
         phi = (float) Math.asin(rel.y);
@@ -42,7 +42,7 @@ public final class OrbitController {
     public void rotate(float offsetYawDeg, float offsetPitchDeg, Vector3f outPosition) {
         theta += (float) Math.toRadians(offsetYawDeg);
         phi += (float) Math.toRadians(offsetPitchDeg);
-        float limit = (float) Math.toRadians(ConfigVaisseau.get().orbitLimits.y);
+        float limit = (float) Math.toRadians(ConfigCamera.get().orbitLimits.y);
         phi = Math.clamp(phi, -limit, limit);
 
         float cosPhi = (float) Math.cos(phi);

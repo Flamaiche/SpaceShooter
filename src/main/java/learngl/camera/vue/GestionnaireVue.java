@@ -1,6 +1,6 @@
 package learngl.camera.vue;
 
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigVaisseau;
 import learngl.LogFile;
 import learngl.camera.Camera;
 import org.joml.Matrix4f;

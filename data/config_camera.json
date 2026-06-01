@@ -1,0 +1,15 @@
+{
+  "type": "gamegl.utils.config.ConfigCamera",
+  "data": [
+    {
+      "name": "default",
+      "cameraPhysics": {"x": 17.5, "y": 4.0, "z": 0.5},
+      "mouseSensitivity": 0.1,
+      "vitesseRotation": 1.0,
+      "rollSpeed": 1.5,
+      "cameraSpawn": {"x": 0.0, "y": 0.0, "z": 3.0},
+      "spawnAngles": {"x": -90.0, "y": 0.0},
+      "orbitLimits": {"x": 0.1, "y": 90.0}
+    }
+  ]
+}

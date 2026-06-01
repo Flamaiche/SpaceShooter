@@ -4,7 +4,7 @@ import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.AnimatedText;
 import gamegl.gestion.texte.TextHUD;
 import gamegl.gestion.texte.TextManager;
-import gamegl.utils.ConfigJeu;
+import gamegl.utils.config.ConfigJeu;
 import gamegl.utils.PosDeltaTime;
 import learngl.commandes.Commande;
 import learngl.Shader;

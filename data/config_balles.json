@@ -1,0 +1,19 @@
+{
+  "type": "gamegl.utils.config.ConfigBalles",
+  "data": [
+    {
+      "name": "default",
+      "shaderVertex": "shaders/DefaultVertex.glsl",
+      "shaderFragment": "shaders/DefaultFragment.glsl",
+      "ballColor": {"x": 1.0, "y": 0.0, "z": 0.0},
+      "shootCooldown": 0.5,
+      "ballsMax": 20,
+      "ballSpeed": 25.0,
+      "ballDistanceMax": 150.0,
+      "ballSize": 0.35,
+      "ballRotationMultiplier": 2.0,
+      "ballRotationSpeedMax": 360.0,
+      "ballCollisionStep": 0.5
+    }
+  ]
+}
