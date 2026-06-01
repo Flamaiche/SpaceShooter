@@ -121,4 +121,17 @@ Version : (A:Alpha)
         - Crosshair shaders morts supprimés
         - fix : fuites mémoire shaders dans tous les états (cleanup PlayingState, MainMenuState, PausedState)
         - fix : PlayingState leak (cleanup avant NEWPLAY et MAIN)
-        - fix : Text.cleanup() statique retiré de GameState (réservé à l'extinction)
+         - fix : Text.cleanup() statique retiré de GameState (réservé à l'extinction)
+     01/06/2026:
+         - extraction balles/crosshair/camera depuis ConfigVaisseau/ConfigJeu vers 3 fichiers dédiés
+         - ConfigBalles + config_balles.json (ballSpeed, ballSize, ballColor, shader)
+         - ConfigCrosshair + config_crosshair.json (crosshairGeom, crosshairColor, crosshairLag, shader)
+         - ConfigCamera + config_camera.json (cameraPhysics, mouseSensitivity, spawnAngles, orbitLimits)
+         - ConfigVaisseau allégé (ne garde que ship/maniability/playerShip)
+         - ConfigJeu nettoyé (ballColor, crosshairColor, crosshairRefHeight retirés, bornes [] conservées)
+         - fix type JSON (gamegl.utils → gamegl.utils.config) dans config_vaisseau/jeu/ennemis
+         - toutes les références mises à jour (Balls, Crosshair, Camera, PlayingState, etc.)
+         - stockage mémoire HashMap + lookup O(1) + cascade suppression
+[A1.2]
+     01/06/2026:
+         - README MarkerShape : éditeur de formes 3D standalone
