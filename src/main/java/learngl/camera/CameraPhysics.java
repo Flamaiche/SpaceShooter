@@ -1,6 +1,6 @@
 package learngl.camera;
 
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigCamera;
 import org.joml.Vector3f;
 
 public class CameraPhysics {
@@ -22,7 +22,7 @@ public class CameraPhysics {
     public void update(Vector3f position, Camera camera, float deltaTime) {
         if (camera.isOrbitMode()) return;
 
-        ConfigVaisseau cfg = ConfigVaisseau.get();
+        ConfigCamera cfg = ConfigCamera.get();
         float maxSpeed = cfg.cameraPhysics.x;
         float acceleration = maxSpeed / cfg.cameraPhysics.y;
         float deceleration = acceleration * cfg.cameraPhysics.z;

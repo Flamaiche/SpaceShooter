@@ -2,7 +2,7 @@ package gamegl.state;
 
 import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.TextManager;
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigCamera;
 import learngl.camera.Camera;
 import learngl.commandes.Commande;
 import org.joml.Vector3f;
@@ -30,8 +30,7 @@ public abstract class GameState {
     public GameState(Commande commande, GameData data, int width, int height) {
         this.commande = commande;
         this.data = data;
-        ConfigVaisseau cfg = ConfigVaisseau.get();
-        this.camera = new Camera(new Vector3f(cfg.cameraSpawn));
+        this.camera = new Camera(new Vector3f(ConfigCamera.get().cameraSpawn));
         commande.setCamera(camera);
         this.width = width;
         this.height = height;

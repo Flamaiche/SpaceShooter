@@ -1,8 +1,8 @@
 package gamegl.entites.ennemis;
 
 import gamegl.entites.Entity;
-import gamegl.utils.ConfigEnnemis;
-import gamegl.utils.ConfigJeu;
+import gamegl.utils.config.ConfigEnnemis;
+import gamegl.utils.config.ConfigJeu;
 import learngl.Shader;
 import learngl.shape.Shape;
 import learngl.VertexUtils;

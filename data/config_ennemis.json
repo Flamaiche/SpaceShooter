@@ -1,5 +1,5 @@
 {
-  "type": "gamegl.utils.ConfigEnnemis",
+  "type": "gamegl.utils.config.ConfigEnnemis",
   "data": [
     {
       "name": "default",

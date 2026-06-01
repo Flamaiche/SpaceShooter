@@ -4,9 +4,9 @@ import gamegl.entites.ennemis.Ennemis;
 import gamegl.entites.ennemis.EnnemisBasic;
 import gamegl.gestion.donnees.GameData;
 import gamegl.gestion.texte.TextHUD;
-import gamegl.utils.ConfigEnnemis;
-import gamegl.utils.ConfigJeu;
-import gamegl.utils.ConfigVaisseau;
+import gamegl.utils.config.ConfigEnnemis;
+import gamegl.utils.config.ConfigJeu;
+import gamegl.utils.config.ConfigCamera;
 import learngl.shape.PreVerticesTable;
 import learngl.commandes.Commande;
 import learngl.Shader;
@@ -37,7 +37,7 @@ public class PausedState extends GameState {
     private boolean firstMouseInput = true;
     private double lastMouseX;
     private double lastMouseY;
-    private final float mouseSensitivity = ConfigVaisseau.get().mouseSensitivity;
+    private final float mouseSensitivity = ConfigCamera.get().mouseSensitivity;
 
     /**
      * Constructs the paused state, loading shaders and generating fake enemies.
