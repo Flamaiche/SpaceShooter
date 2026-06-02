@@ -1,11 +1,10 @@
 package markershape;
 
-import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 
-import java.nio.*;
+import java.nio.IntBuffer;
 
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -93,10 +92,10 @@ public class MarkerShapeApp {
     }
 
     private void loop() {
-        glfwSetScrollCallback(window, (w, xo, yo) -> {
+        glfwSetScrollCallback(window, (_, _, yo) -> {
             if (camera != null) camera.zoom((float) yo * 0.5f);
         });
-        glfwSetMouseButtonCallback(window, (w, btn, action, mods) -> {
+        glfwSetMouseButtonCallback(window, (_, btn, action, _) -> {
             if (btn == GLFW_MOUSE_BUTTON_LEFT) {
                 if (action == GLFW_PRESS) {
                     double[] mx = new double[1], my = new double[1];
@@ -111,7 +110,7 @@ public class MarkerShapeApp {
                 }
             }
         });
-        glfwSetCursorPosCallback(window, (w, x, y) -> {
+        glfwSetCursorPosCallback(window, (_, x, y) -> {
             if (dragging) {
                 double dx = x - lastMX;
                 double dy = y - lastMY;
@@ -120,7 +119,7 @@ public class MarkerShapeApp {
                 lastMY = y;
             }
         });
-        glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
+        glfwSetKeyCallback(window, (_, key, _, action, mods) -> {
             if (action == GLFW_PRESS) {
                 if (key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(window, true);
                 if (key == GLFW_KEY_S && (mods & GLFW_MOD_CONTROL) != 0) saveCurrent();
@@ -129,12 +128,7 @@ public class MarkerShapeApp {
 
         loadShape("cube.json");
 
-        float lastTime = (float) glfwGetTime();
         while (!glfwWindowShouldClose(window)) {
-            float now = (float) glfwGetTime();
-            float deltaTime = now - lastTime;
-            lastTime = now;
-
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             renderer.render(camera.getViewMatrix(), camera.getProjection());
