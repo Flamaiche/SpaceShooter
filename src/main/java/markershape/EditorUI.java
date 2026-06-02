@@ -15,7 +15,7 @@ public class EditorUI {
     private Shader shader;
     private int vao, vbo;
     private final Matrix4f ortho = new Matrix4f();
-    private final FloatBuffer buf = BufferUtils.createFloatBuffer(4 * 6);
+    private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
 
     public EditorUI(int w, int h) {
         width = w;
