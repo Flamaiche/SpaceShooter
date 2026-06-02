@@ -1,6 +1,5 @@
 package markershape.ui;
 
-import gamegl.gestion.texte.Text;
 import learngl.Shader;
 import markershape.io.ShapeLoader;
 import org.joml.Matrix4f;
@@ -96,20 +95,13 @@ public class MenuUI {
 
         shader.unbind();
 
-        textShader.bind();
-        textShader.setUniformMat4f("projection", ortho);
-
-        Text.drawText(textShader, "MarkerShape", width / 2f - 70, 50, 1.5f, 1f, 1f, 1f);
+        TextRenderer.drawText(textShader, "MarkerShape", width / 2f - 70, 50, 1.5f, 1f, 1f, 1f);
         for (int i = 0; i < shapes.length; i++) {
             String name = shapes[i].replace(".json", "");
-            Text.drawText(textShader, name, width / 2f - 170, START_Y + i * ITEM_H + 10, 1f, 0.8f, 0.8f, 1f);
+            TextRenderer.drawText(textShader, name, width / 2f - 170, START_Y + i * ITEM_H + 10, 1f, 0.8f, 0.8f, 1f);
         }
-        Text.drawText(textShader, "Parametres", width / 2f - 140, START_Y + shapes.length * ITEM_H + 20, 1f, 1f, 1f, 1f);
-        Text.drawText(textShader, "Quitter", width / 2f + 40, START_Y + shapes.length * ITEM_H + 20, 1f, 1f, 1f, 1f);
-
-        textShader.unbind();
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        TextRenderer.drawText(textShader, "Parametres", width / 2f - 140, START_Y + shapes.length * ITEM_H + 20, 1f, 1f, 1f, 1f);
+        TextRenderer.drawText(textShader, "Quitter", width / 2f + 40, START_Y + shapes.length * ITEM_H + 20, 1f, 1f, 1f, 1f);
     }
 
     /**
