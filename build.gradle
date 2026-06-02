@@ -43,3 +43,9 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+task runMarker(type: JavaExec) {
+    mainClass = 'markershape.MarkerShapeApp'
+    classpath = sourceSets.main.runtimeClasspath
+    workingDir = rootDir
+}
