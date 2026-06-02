@@ -1,8 +1,8 @@
 package markershape.ui;
 
+import gamegl.gestion.texte.Text;
 import learngl.Shader;
-import learngl.text.Text;
-import markershape.io.ShapeIO;
+import markershape.io.ShapeLoader;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -55,7 +55,7 @@ public class MenuUI {
 
     /** Refreshes the list of shapes from disk. */
     public void refresh() {
-        shapes = ShapeIO.listShapes();
+        shapes = ShapeLoader.listShapes();
         if (shapes == null) shapes = new String[0];
     }
 

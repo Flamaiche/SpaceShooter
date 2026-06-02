@@ -10,7 +10,7 @@ import java.util.*;
  * Handles loading, saving, and listing shapes as JSON files.
  * Shapes are stored in {@code data/markershape/shapes/}.
  */
-public class ShapeIO {
+public class ShapeLoader {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static final String SHAPES_DIR = System.getProperty("user.dir")
         + File.separator + "data" + File.separator + "markershape" + File.separator + "shapes" + File.separator;
@@ -75,7 +75,7 @@ public class ShapeIO {
             }
             return data;
         } catch (IOException e) {
-            System.err.println("[ShapeIO] load error: " + e.getMessage());
+            System.err.println("[ShapeLoader] load error: " + e.getMessage());
             return null;
         }
     }
@@ -137,7 +137,7 @@ public class ShapeIO {
             gson.toJson(root, w);
             return true;
         } catch (IOException e) {
-            System.err.println("[ShapeIO] save error: " + e.getMessage());
+            System.err.println("[ShapeLoader] save error: " + e.getMessage());
             return false;
         }
     }
