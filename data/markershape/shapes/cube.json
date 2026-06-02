@@ -1,0 +1,36 @@
+{
+  "name": "cube",
+  "shader": "default",
+  "vertices": [
+    { "id": 0, "x": -0.5, "y": -0.5, "z":  0.5, "color": [1.0, 0.0, 0.0] },
+    { "id": 1, "x":  0.5, "y": -0.5, "z":  0.5, "color": [0.0, 1.0, 0.0] },
+    { "id": 2, "x":  0.5, "y":  0.5, "z":  0.5, "color": [0.0, 0.0, 1.0] },
+    { "id": 3, "x": -0.5, "y":  0.5, "z":  0.5, "color": [1.0, 1.0, 0.0] },
+    { "id": 4, "x": -0.5, "y": -0.5, "z": -0.5, "color": [1.0, 0.0, 1.0] },
+    { "id": 5, "x":  0.5, "y": -0.5, "z": -0.5, "color": [0.0, 1.0, 1.0] },
+    { "id": 6, "x":  0.5, "y":  0.5, "z": -0.5, "color": [0.5, 0.5, 0.5] },
+    { "id": 7, "x": -0.5, "y":  0.5, "z": -0.5, "color": [1.0, 1.0, 1.0] }
+  ],
+  "edges": [
+    { "id": 0, "a": 0, "b": 1, "mode": "stun", "thickness": 0.02 },
+    { "id": 1, "a": 1, "b": 2, "mode": "stun", "thickness": 0.02 },
+    { "id": 2, "a": 2, "b": 3, "mode": "stun", "thickness": 0.02 },
+    { "id": 3, "a": 3, "b": 0, "mode": "stun", "thickness": 0.02 },
+    { "id": 4, "a": 4, "b": 5, "mode": "stun", "thickness": 0.02 },
+    { "id": 5, "a": 5, "b": 6, "mode": "stun", "thickness": 0.02 },
+    { "id": 6, "a": 6, "b": 7, "mode": "stun", "thickness": 0.02 },
+    { "id": 7, "a": 7, "b": 4, "mode": "stun", "thickness": 0.02 },
+    { "id": 8, "a": 0, "b": 4, "mode": "stun", "thickness": 0.02 },
+    { "id": 9, "a": 1, "b": 5, "mode": "stun", "thickness": 0.02 },
+    { "id": 10, "a": 2, "b": 6, "mode": "stun", "thickness": 0.02 },
+    { "id": 11, "a": 3, "b": 7, "mode": "stun", "thickness": 0.02 }
+  ],
+  "faces": [
+    { "indices": [0, 1, 2, 2, 3, 0] },
+    { "indices": [1, 5, 6, 6, 2, 1] },
+    { "indices": [5, 4, 7, 7, 6, 5] },
+    { "indices": [4, 0, 3, 3, 7, 4] },
+    { "indices": [3, 2, 6, 6, 7, 3] },
+    { "indices": [4, 5, 1, 1, 0, 4] }
+  ]
+}
