@@ -16,7 +16,6 @@ import markershape.camera.EditorCamera;
 import markershape.render.ShapeRenderer;
 import markershape.ui.EditorUI;
 import markershape.ui.MenuUI;
-import markershape.ui.TextRenderer;
 
 /**
  * Standalone editor application for 3D marker shapes.
@@ -61,7 +60,6 @@ public class MarkerShapeApp {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         window = glfwCreateWindow(width, height, "MarkerShape", NULL, NULL);
         if (window == NULL) throw new RuntimeException("glfwCreateWindow failed");
@@ -227,7 +225,7 @@ public class MarkerShapeApp {
         renderer.cleanup();
         editorUI.cleanup();
         menuUI.cleanup();
-        TextRenderer.cleanup();
+        gamegl.gestion.texte.Text.cleanup();
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         glfwTerminate();
