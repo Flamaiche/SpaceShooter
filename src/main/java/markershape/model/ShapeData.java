@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * In-memory representation of a 3D shape.
+ * Stores vertices, edges, and faces in hash maps for O(1) lookup.
+ * Removal of a vertex cascades to all connected edges.
+ */
 public class ShapeData {
     public String name;
     public String shader;
@@ -17,16 +22,32 @@ public class ShapeData {
         faces = new ArrayList<>();
     }
 
+    /**
+     * Constructs a named shape with the given shader.
+     *
+     * @param name   the shape name
+     * @param shader the shader identifier
+     */
     public ShapeData(String name, String shader) {
         this();
         this.name = name;
         this.shader = shader;
     }
 
+    /**
+     * Adds a vertex. Replaces any existing vertex with the same ID.
+     *
+     * @param v the vertex to add
+     */
     public void addVertex(Vertex v) {
         vertices.put(v.id, v);
     }
 
+    /**
+     * Adds an edge and registers it on both endpoint vertices.
+     *
+     * @param e the edge to add
+     */
     public void addEdge(Edge e) {
         edges.put(e.id, e);
         Vertex va = vertices.get(e.a);
@@ -35,6 +56,11 @@ public class ShapeData {
         if (vb != null) vb.edgeIds.add(e.id);
     }
 
+    /**
+     * Removes a vertex and all its connected edges.
+     *
+     * @param id the vertex ID to remove
+     */
     public void removeVertex(int id) {
         Vertex v = vertices.get(id);
         if (v == null) return;
@@ -44,6 +70,11 @@ public class ShapeData {
         vertices.remove(id);
     }
 
+    /**
+     * Removes an edge and deregisters it from its endpoint vertices.
+     *
+     * @param id the edge ID to remove
+     */
     public void removeEdge(int id) {
         Edge e = edges.remove(id);
         if (e == null) return;

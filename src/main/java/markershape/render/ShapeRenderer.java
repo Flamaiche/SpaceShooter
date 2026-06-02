@@ -8,12 +8,22 @@ import markershape.model.*;
 
 import java.util.*;
 
+/**
+ * Converts ShapeData into renderable OpenGL geometry and draws it.
+ * Manages a single shape and its associated shader at a time.
+ */
 public class ShapeRenderer {
     private Shape shape;
     private Shader shader;
     private final String shaderPath = "shaders/markershape/";
     private final org.joml.Matrix4f identity = new org.joml.Matrix4f();
 
+    /**
+     * Loads a shape from a JSON file and builds the render geometry.
+     *
+     * @param filename the shape file to load
+     * @return true if the shape was loaded successfully
+     */
     public boolean loadShape(String filename) {
         ShapeData data = ShapeIO.load(filename);
         if (data == null) {
@@ -24,6 +34,12 @@ public class ShapeRenderer {
         return true;
     }
 
+    /**
+     * Builds render geometry from the given shape data.
+     * Cleans up any previously loaded shape first.
+     *
+     * @param data the shape data to render
+     */
     public void buildFromData(ShapeData data) {
         cleanup();
         if (data.vertices.isEmpty()) return;
@@ -61,6 +77,12 @@ public class ShapeRenderer {
         shape.setShader(shader);
     }
 
+    /**
+     * Renders the current shape with the given view and projection matrices.
+     *
+     * @param view       the view matrix
+     * @param projection the projection matrix
+     */
     public void render(org.joml.Matrix4f view, org.joml.Matrix4f projection) {
         if (shape == null || shader == null) return;
 
@@ -72,8 +94,10 @@ public class ShapeRenderer {
         shader.unbind();
     }
 
+    /** Returns whether a shape is currently loaded. */
     public boolean hasShape() { return shape != null; }
 
+    /** Frees the shape geometry and shader. */
     public void cleanup() {
         if (shape != null) { shape.cleanup(); shape = null; }
         if (shader != null) { shader.cleanup(); shader = null; }

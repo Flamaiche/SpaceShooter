@@ -6,11 +6,21 @@ import markershape.model.*;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Handles loading, saving, and listing shapes as JSON files.
+ * Shapes are stored in {@code data/markershape/shapes/}.
+ */
 public class ShapeIO {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static final String SHAPES_DIR = System.getProperty("user.dir")
         + File.separator + "data" + File.separator + "markershape" + File.separator + "shapes" + File.separator;
 
+    /**
+     * Loads a shape from a JSON file.
+     *
+     * @param filename the shape file name (must end with .json)
+     * @return the loaded shape data, or null on failure
+     */
     public static ShapeData load(String filename) {
         File file = new File(SHAPES_DIR + filename);
         if (!file.exists()) return null;
@@ -70,6 +80,13 @@ public class ShapeIO {
         }
     }
 
+    /**
+     * Saves shape data to a JSON file.
+     *
+     * @param data     the shape data to save
+     * @param filename the target file name
+     * @return true if the save succeeded
+     */
     public static boolean save(ShapeData data, String filename) {
         JsonObject root = new JsonObject();
         root.addProperty("name", data.name);
@@ -125,6 +142,11 @@ public class ShapeIO {
         }
     }
 
+    /**
+     * Lists all available shape files in the shapes directory.
+     *
+     * @return an array of .json file names
+     */
     public static String[] listShapes() {
         File dir = new File(SHAPES_DIR);
         if (!dir.exists()) return new String[0];

@@ -3,6 +3,10 @@ package markershape.camera;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+/**
+ * Orbital camera for the shape editor.
+ * Rotates around a fixed target point using yaw/pitch angles.
+ */
 public class EditorCamera {
     private final Vector3f target = new Vector3f(0, 0, 0);
     private final Vector3f position = new Vector3f();
@@ -13,16 +17,30 @@ public class EditorCamera {
     private float far = 100f;
     private int width = 800, height = 600;
 
+    /** Constructs an orbital camera with default position and radius. */
     public EditorCamera() {
         updatePosition();
     }
 
+    /**
+     * Applies yaw and pitch rotation offsets.
+     * Pitch is clamped to [-89, 89] degrees.
+     *
+     * @param dyaw   the yaw offset in degrees
+     * @param dpitch the pitch offset in degrees
+     */
     public void rotate(float dyaw, float dpitch) {
         yaw += dyaw;
         pitch = Math.max(-89f, Math.min(89f, pitch + dpitch));
         updatePosition();
     }
 
+    /**
+     * Zooms in or out by adjusting the orbital radius.
+     * Radius is clamped to [0.5, 50] units.
+     *
+     * @param amount the zoom delta (positive = zoom in)
+     */
     public void zoom(float amount) {
         radius = Math.max(0.5f, Math.min(50f, radius - amount));
         updatePosition();
@@ -36,24 +54,50 @@ public class EditorCamera {
         position.z = target.z + radius * (float) (Math.cos(rp) * Math.cos(rad));
     }
 
+    /**
+     * Returns the view matrix based on the current camera position.
+     *
+     * @return the view matrix
+     */
     public Matrix4f getViewMatrix() {
         return new Matrix4f().lookAt(position, target, new Vector3f(0, 1, 0));
     }
 
+    /**
+     * Returns the perspective projection matrix.
+     *
+     * @return the projection matrix
+     */
     public Matrix4f getProjection() {
         float aspect = (float) width / height;
         return new Matrix4f().perspective((float) Math.toRadians(fov), aspect, near, far);
     }
 
+    /**
+     * Updates the viewport size for the projection aspect ratio.
+     *
+     * @param w the new viewport width
+     * @param h the new viewport height
+     */
     public void setSize(int w, int h) {
         width = w;
         height = h;
     }
 
+    /**
+     * Returns a copy of the camera position.
+     *
+     * @return the camera position
+     */
     public Vector3f getPosition() {
         return new Vector3f(position);
     }
 
+    /**
+     * Returns a copy of the camera target point.
+     *
+     * @return the target point
+     */
     public Vector3f getTarget() {
         return new Vector3f(target);
     }
