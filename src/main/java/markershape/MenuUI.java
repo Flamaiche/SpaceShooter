@@ -11,17 +11,18 @@ import org.lwjgl.opengl.GL30;
 import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 
-public class EditorUI {
+public class MenuUI {
     private int width, height;
     private Shader shader, textShader;
     private int vao, vbo;
     private final Matrix4f ortho = new Matrix4f();
     private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
 
-    private static final int BAR_H = 36;
-    private static final int BTN_W = 130;
+    private String[] shapes;
+    private static final int ITEM_H = 40;
+    private static final int START_Y = 120;
 
-    public EditorUI(int w, int h) {
+    public MenuUI(int w, int h) {
         width = w;
         height = h;
         shader = new Shader("shaders/markershape/ui_Vertex.glsl",
@@ -37,7 +38,13 @@ public class EditorUI {
         GL20.glEnableVertexAttribArray(1);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
         GL30.glBindVertexArray(0);
+        refresh();
         setSize(w, h);
+    }
+
+    public void refresh() {
+        shapes = ShapeIO.listShapes();
+        if (shapes == null) shapes = new String[0];
     }
 
     public void setSize(int w, int h) {
@@ -46,7 +53,7 @@ public class EditorUI {
         ortho.setOrtho2D(0, width, height, 0);
     }
 
-    public void render(String currentFile) {
+    public void render() {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -54,31 +61,58 @@ public class EditorUI {
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
 
-        drawQuad(0, 0, width, BAR_H, 0.1f, 0.1f, 0.15f, 0.8f);
-        drawQuad(width - BTN_W * 2 - 10, 0, BTN_W, BAR_H, 0.2f, 0.2f, 0.3f, 0.8f);
-        drawQuad(width - BTN_W - 5, 0, BTN_W, BAR_H, 0.3f, 0.1f, 0.1f, 0.8f);
+        drawQuad(width / 2f - 200, START_Y - 20, 400, shapes.length * ITEM_H + 40,
+                 0.08f, 0.08f, 0.12f, 0.9f);
+
+        for (int i = 0; i < shapes.length; i++) {
+            float y = START_Y + i * ITEM_H;
+            float shade = 0.15f + (i % 2 == 0 ? 0.05f : 0f);
+            drawQuad(width / 2f - 180, y, 360, ITEM_H - 4, shade, shade, shade + 0.05f, 0.8f);
+        }
+
+        drawQuad(width / 2f - 180, START_Y + shapes.length * ITEM_H + 12, 170, 36,
+                 0.2f, 0.2f, 0.3f, 0.8f);
+        drawQuad(width / 2f + 10, START_Y + shapes.length * ITEM_H + 12, 170, 36,
+                 0.3f, 0.1f, 0.1f, 0.8f);
 
         shader.unbind();
 
         textShader.bind();
         textShader.setUniformMat4f("projection", ortho);
 
-        String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
-        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1f, 1f, 1f, 1f);
-        Text.drawText(textShader, "Sauvegarder", width - BTN_W * 2 + 5, 10, 1f, 1f, 1f, 1f);
-        Text.drawText(textShader, "Quitter", width - BTN_W + 20, 10, 1f, 1f, 1f, 1f);
+        Text.drawText(textShader, "MarkerShape", width / 2f - 70, 50, 1.5f, 1f, 1f, 1f);
+        for (int i = 0; i < shapes.length; i++) {
+            String name = shapes[i].replace(".json", "");
+            Text.drawText(textShader, name, width / 2f - 170, START_Y + i * ITEM_H + 10, 1f, 0.8f, 0.8f, 1f);
+        }
+        Text.drawText(textShader, "Parametres", width / 2f - 140, START_Y + shapes.length * ITEM_H + 20, 1f, 1f, 1f, 1f);
+        Text.drawText(textShader, "Quitter", width / 2f + 40, START_Y + shapes.length * ITEM_H + 20, 1f, 1f, 1f, 1f);
 
         textShader.unbind();
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
-    public boolean isSaveClicked(float mx, float my) {
-        return my < BAR_H && mx > width - BTN_W * 2 - 10 && mx < width - BTN_W - 10;
+    public String clickShape(float mx, float my) {
+        for (int i = 0; i < shapes.length; i++) {
+            float y = START_Y + i * ITEM_H;
+            if (mx > width / 2f - 180 && mx < width / 2f + 180
+                && my > y && my < y + ITEM_H - 4)
+                return shapes[i];
+        }
+        return null;
     }
 
-    public boolean isQuitClicked(float mx, float my) {
-        return my < BAR_H && mx > width - BTN_W - 5 && mx < width;
+    public boolean isParametresClicked(float mx, float my) {
+        float bx = width / 2f - 180;
+        float by = START_Y + shapes.length * ITEM_H + 12;
+        return mx > bx && mx < bx + 170 && my > by && my < by + 36;
+    }
+
+    public boolean isQuitterClicked(float mx, float my) {
+        float bx = width / 2f + 10;
+        float by = START_Y + shapes.length * ITEM_H + 12;
+        return mx > bx && mx < bx + 170 && my > by && my < by + 36;
     }
 
     public void cleanup() {

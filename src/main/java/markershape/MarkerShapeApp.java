@@ -19,10 +19,14 @@ public class MarkerShapeApp {
 
     private EditorCamera camera;
     private ShapeRenderer renderer;
-    private EditorUI ui;
+    private EditorUI editorUI;
+    private MenuUI menuUI;
 
     private boolean dragging = false;
     private double lastMX, lastMY;
+
+    private enum Mode { MENU, EDITOR }
+    private Mode mode = Mode.MENU;
 
     public static void main(String[] args) {
         new MarkerShapeApp().run();
@@ -45,7 +49,7 @@ public class MarkerShapeApp {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        window = glfwCreateWindow(width, height, "MarkerShape Editor", NULL, NULL);
+        window = glfwCreateWindow(width, height, "MarkerShape", NULL, NULL);
         if (window == NULL) throw new RuntimeException("glfwCreateWindow failed");
 
         glfwSetFramebufferSizeCallback(window, (_, newW, newH) -> {
@@ -53,7 +57,8 @@ public class MarkerShapeApp {
             height = newH;
             glViewport(0, 0, newW, newH);
             if (camera != null) camera.setSize(newW, newH);
-            if (ui != null) ui.setSize(newW, newH);
+            if (editorUI != null) editorUI.setSize(newW, newH);
+            if (menuUI != null) menuUI.setSize(newW, newH);
         });
 
         glfwMakeContextCurrent(window);
@@ -68,7 +73,8 @@ public class MarkerShapeApp {
 
         camera = new EditorCamera();
         camera.setSize(width, height);
-        ui = new EditorUI(width, height);
+        menuUI = new MenuUI(width, height);
+        editorUI = new EditorUI(width, height);
         renderer = new ShapeRenderer();
     }
 
@@ -93,25 +99,37 @@ public class MarkerShapeApp {
 
     private void loop() {
         glfwSetScrollCallback(window, (_, _, yo) -> {
-            if (camera != null) camera.zoom((float) yo * 0.5f);
+            if (mode == Mode.EDITOR && camera != null)
+                camera.zoom((float) yo * 0.5f);
         });
+
         glfwSetMouseButtonCallback(window, (_, btn, action, _) -> {
-            if (btn == GLFW_MOUSE_BUTTON_LEFT) {
-                if (action == GLFW_PRESS) {
-                    double[] mx = new double[1], my = new double[1];
-                    glfwGetCursorPos(window, mx, my);
-                    if (my[0] > 40) {
+            if (btn != GLFW_MOUSE_BUTTON_LEFT) return;
+            double[] mx = new double[1], my = new double[1];
+            glfwGetCursorPos(window, mx, my);
+            float fx = (float) mx[0], fy = (float) my[0];
+
+            if (action == GLFW_PRESS) {
+                if (mode == Mode.MENU) {
+                    handleMenuClick(fx, fy);
+                } else {
+                    if (editorUI.isQuitClicked(fx, fy)) {
+                        goToMenu();
+                    } else if (editorUI.isSaveClicked(fx, fy)) {
+                        saveCurrent();
+                    } else {
                         dragging = true;
                         lastMX = mx[0];
                         lastMY = my[0];
                     }
-                } else {
-                    dragging = false;
                 }
+            } else {
+                dragging = false;
             }
         });
+
         glfwSetCursorPosCallback(window, (_, x, y) -> {
-            if (dragging) {
+            if (dragging && mode == Mode.EDITOR) {
                 double dx = x - lastMX;
                 double dy = y - lastMY;
                 if (camera != null) camera.rotate((float) -dx * 0.3f, (float) dy * 0.3f);
@@ -119,36 +137,64 @@ public class MarkerShapeApp {
                 lastMY = y;
             }
         });
+
         glfwSetKeyCallback(window, (_, key, _, action, mods) -> {
             if (action == GLFW_PRESS) {
-                if (key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(window, true);
+                if (key == GLFW_KEY_ESCAPE) {
+                    if (mode == Mode.EDITOR) goToMenu();
+                    else glfwSetWindowShouldClose(window, true);
+                }
                 if (key == GLFW_KEY_S && (mods & GLFW_MOD_CONTROL) != 0) saveCurrent();
             }
         });
 
-        loadShape("cube.json");
-
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            renderer.render(camera.getViewMatrix(), camera.getProjection());
-            ui.render();
+            if (mode == Mode.MENU) {
+                menuUI.render();
+            } else {
+                renderer.render(camera.getViewMatrix(), camera.getProjection());
+                editorUI.render(currentFile);
+            }
 
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
     }
 
-    private void loadShape(String filename) {
-        currentFile = filename;
+    private void handleMenuClick(float mx, float my) {
+        if (menuUI.isQuitterClicked(mx, my)) {
+            glfwSetWindowShouldClose(window, true);
+            return;
+        }
+        if (menuUI.isParametresClicked(mx, my)) {
+            System.out.println("[MarkerShape] Parametres (not implemented yet)");
+            return;
+        }
+        String sel = menuUI.clickShape(mx, my);
+        if (sel != null) openShape(sel);
+    }
+
+    private void openShape(String filename) {
+        renderer.cleanup();
         boolean ok = renderer.loadShape(filename);
         if (ok) {
-            System.out.println("[MarkerShape] loaded: " + filename);
+            currentFile = filename;
+            mode = Mode.EDITOR;
+            System.out.println("[MarkerShape] opened: " + filename);
             glfwSetWindowTitle(window, "MarkerShape - " + filename);
         } else {
-            System.out.println("[MarkerShape] FAILED to load: " + filename);
-            glfwSetWindowTitle(window, "MarkerShape - [no shape]");
+            System.out.println("[MarkerShape] FAILED: " + filename);
         }
+    }
+
+    private void goToMenu() {
+        renderer.cleanup();
+        currentFile = null;
+        mode = Mode.MENU;
+        glfwSetWindowTitle(window, "MarkerShape");
+        menuUI.refresh();
     }
 
     private void saveCurrent() {
@@ -158,7 +204,9 @@ public class MarkerShapeApp {
 
     private void cleanup() {
         renderer.cleanup();
-        ui.cleanup();
+        editorUI.cleanup();
+        menuUI.cleanup();
+        gamegl.gestion.texte.Text.cleanup();
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         glfwTerminate();
