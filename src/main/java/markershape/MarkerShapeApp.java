@@ -58,8 +58,6 @@ public class MarkerShapeApp {
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
         window = glfwCreateWindow(width, height, "MarkerShape", NULL, NULL);
         if (window == NULL) throw new RuntimeException("glfwCreateWindow failed");
@@ -80,7 +78,7 @@ public class MarkerShapeApp {
         glClearColor(0.12f, 0.12f, 0.18f, 1.0f);
         glfwSwapInterval(1);
 
-        centerWindow();
+        if (System.getenv("WAYLAND_DISPLAY") == null) centerWindow();
         glfwShowWindow(window);
 
         camera = new EditorCamera();
