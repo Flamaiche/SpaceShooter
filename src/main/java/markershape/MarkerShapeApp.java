@@ -49,12 +49,12 @@ public class MarkerShapeApp {
         window = glfwCreateWindow(width, height, "MarkerShape Editor", NULL, NULL);
         if (window == NULL) throw new RuntimeException("glfwCreateWindow failed");
 
-        glfwSetFramebufferSizeCallback(window, (w, h) -> {
-            width = w;
-            height = h;
-            glViewport(0, 0, w, h);
-            if (camera != null) camera.setSize(w, h);
-            if (ui != null) ui.setSize(w, h);
+        glfwSetFramebufferSizeCallback(window, (win, newW, newH) -> {
+            width = newW;
+            height = newH;
+            glViewport(0, 0, newW, newH);
+            if (camera != null) camera.setSize(newW, newH);
+            if (ui != null) ui.setSize(newW, newH);
         });
 
         glfwMakeContextCurrent(window);
