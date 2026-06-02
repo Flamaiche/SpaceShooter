@@ -49,7 +49,7 @@ public class MarkerShapeApp {
         window = glfwCreateWindow(width, height, "MarkerShape Editor", NULL, NULL);
         if (window == NULL) throw new RuntimeException("glfwCreateWindow failed");
 
-        glfwSetFramebufferSizeCallback(window, (win, newW, newH) -> {
+        glfwSetFramebufferSizeCallback(window, (_, newW, newH) -> {
             width = newW;
             height = newH;
             glViewport(0, 0, newW, newH);
@@ -164,6 +164,7 @@ public class MarkerShapeApp {
 
     private void cleanup() {
         renderer.cleanup();
+        ui.cleanup();
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         glfwTerminate();
