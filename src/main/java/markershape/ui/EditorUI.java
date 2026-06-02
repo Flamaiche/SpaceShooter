@@ -1,6 +1,5 @@
 package markershape.ui;
 
-import gamegl.gestion.texte.Text;
 import learngl.Shader;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -81,17 +80,10 @@ public class EditorUI {
 
         shader.unbind();
 
-        textShader.bind();
-        textShader.setUniformMat4f("projection", ortho);
-
         String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
-        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1f, 1f, 1f, 1f);
-        Text.drawText(textShader, "Sauvegarder", width - BTN_W * 2 + 5, 10, 1f, 1f, 1f, 1f);
-        Text.drawText(textShader, "Quitter", width - BTN_W + 20, 10, 1f, 1f, 1f, 1f);
-
-        textShader.unbind();
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        TextRenderer.drawText(textShader, "MarkerShape - " + label, 10, 10, 1f, 1f, 1f, 1f);
+        TextRenderer.drawText(textShader, "Sauvegarder", width - BTN_W * 2 + 5, 10, 1f, 1f, 1f, 1f);
+        TextRenderer.drawText(textShader, "Quitter", width - BTN_W + 20, 10, 1f, 1f, 1f, 1f);
     }
 
     /**

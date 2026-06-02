@@ -16,6 +16,7 @@ import markershape.camera.EditorCamera;
 import markershape.render.ShapeRenderer;
 import markershape.ui.EditorUI;
 import markershape.ui.MenuUI;
+import markershape.ui.TextRenderer;
 
 /**
  * Standalone editor application for 3D marker shapes.
@@ -226,7 +227,7 @@ public class MarkerShapeApp {
         renderer.cleanup();
         editorUI.cleanup();
         menuUI.cleanup();
-        gamegl.gestion.texte.Text.cleanup();
+        TextRenderer.cleanup();
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         glfwTerminate();
