@@ -1,8 +1,9 @@
-package markershape;
+package markershape.render;
 
 import learngl.Shader;
 import learngl.shape.Shape;
 import learngl.VertexUtils;
+import markershape.io.ShapeIO;
 import markershape.model.*;
 
 import java.util.*;

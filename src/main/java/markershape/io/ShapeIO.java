@@ -1,4 +1,4 @@
-package markershape;
+package markershape.io;
 
 import com.google.gson.*;
 import markershape.model.*;
