@@ -114,7 +114,7 @@ public class MarkerShapeApp {
             if (dragging) {
                 double dx = x - lastMX;
                 double dy = y - lastMY;
-                if (camera != null) camera.rotate((float) dx * 0.3f, (float) dy * 0.3f);
+                if (camera != null) camera.rotate((float) -dx * 0.3f, (float) dy * 0.3f);
                 lastMX = x;
                 lastMY = y;
             }
