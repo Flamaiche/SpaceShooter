@@ -46,3 +46,6 @@ bin/
 /.idea/discord.xml
 /gradlew.txt
 /settings.gradle
+
+### Logs ###
+*.log
