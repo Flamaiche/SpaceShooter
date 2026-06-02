@@ -12,6 +12,10 @@ import org.lwjgl.opengl.GL30;
 import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 
+/**
+ * Main menu UI for the MarkerShape application.
+ * Lists available shape files and provides Parametres and Quitter buttons.
+ */
 public class MenuUI {
     private int width, height;
     private Shader shader, textShader;
@@ -23,6 +27,12 @@ public class MenuUI {
     private static final int ITEM_H = 40;
     private static final int START_Y = 120;
 
+    /**
+     * Constructs the main menu UI.
+     *
+     * @param w initial viewport width
+     * @param h initial viewport height
+     */
     public MenuUI(int w, int h) {
         width = w;
         height = h;
@@ -43,17 +53,25 @@ public class MenuUI {
         setSize(w, h);
     }
 
+    /** Refreshes the list of shapes from disk. */
     public void refresh() {
         shapes = ShapeIO.listShapes();
         if (shapes == null) shapes = new String[0];
     }
 
+    /**
+     * Updates the UI dimensions and orthographic projection.
+     *
+     * @param w the new viewport width
+     * @param h the new viewport height
+     */
     public void setSize(int w, int h) {
         width = w;
         height = h;
         ortho.setOrtho2D(0, width, height, 0);
     }
 
+    /** Renders the main menu (shape list and buttons). */
     public void render() {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_BLEND);
@@ -94,6 +112,13 @@ public class MenuUI {
         GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
+    /**
+     * Returns the name of the shape clicked at the given position, or null.
+     *
+     * @param mx mouse X coordinate
+     * @param my mouse Y coordinate
+     * @return the clicked shape file name, or null
+     */
     public String clickShape(float mx, float my) {
         for (int i = 0; i < shapes.length; i++) {
             float y = START_Y + i * ITEM_H;
@@ -104,18 +129,33 @@ public class MenuUI {
         return null;
     }
 
+    /**
+     * Checks whether the given coordinates hit the Parametres button.
+     *
+     * @param mx mouse X coordinate
+     * @param my mouse Y coordinate
+     * @return true if the Parametres button was clicked
+     */
     public boolean isParametresClicked(float mx, float my) {
         float bx = width / 2f - 180;
         float by = START_Y + shapes.length * ITEM_H + 12;
         return mx > bx && mx < bx + 170 && my > by && my < by + 36;
     }
 
+    /**
+     * Checks whether the given coordinates hit the Quitter button.
+     *
+     * @param mx mouse X coordinate
+     * @param my mouse Y coordinate
+     * @return true if the Quitter button was clicked
+     */
     public boolean isQuitterClicked(float mx, float my) {
         float bx = width / 2f + 10;
         float by = START_Y + shapes.length * ITEM_H + 12;
         return mx > bx && mx < bx + 170 && my > by && my < by + 36;
     }
 
+    /** Frees the shader programs and deletes the OpenGL buffers. */
     public void cleanup() {
         shader.cleanup();
         textShader.cleanup();

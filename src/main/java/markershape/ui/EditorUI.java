@@ -11,6 +11,10 @@ import org.lwjgl.opengl.GL30;
 import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 
+/**
+ * 2D overlay UI for the shape editor.
+ * Renders a top bar with the shape name, a save button, and a quit button.
+ */
 public class EditorUI {
     private int width, height;
     private Shader shader, textShader;
@@ -21,6 +25,12 @@ public class EditorUI {
     private static final int BAR_H = 36;
     private static final int BTN_W = 130;
 
+    /**
+     * Constructs the editor UI overlay.
+     *
+     * @param w initial viewport width
+     * @param h initial viewport height
+     */
     public EditorUI(int w, int h) {
         width = w;
         height = h;
@@ -40,12 +50,23 @@ public class EditorUI {
         setSize(w, h);
     }
 
+    /**
+     * Updates the UI dimensions and orthographic projection.
+     *
+     * @param w the new viewport width
+     * @param h the new viewport height
+     */
     public void setSize(int w, int h) {
         width = w;
         height = h;
         ortho.setOrtho2D(0, width, height, 0);
     }
 
+    /**
+     * Renders the editor UI overlay (top bar with buttons).
+     *
+     * @param currentFile the currently open shape file name
+     */
     public void render(String currentFile) {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_BLEND);
@@ -73,14 +94,29 @@ public class EditorUI {
         GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
+    /**
+     * Checks whether the given coordinates hit the save button.
+     *
+     * @param mx mouse X coordinate
+     * @param my mouse Y coordinate
+     * @return true if the save button was clicked
+     */
     public boolean isSaveClicked(float mx, float my) {
         return my < BAR_H && mx > width - BTN_W * 2 - 10 && mx < width - BTN_W - 10;
     }
 
+    /**
+     * Checks whether the given coordinates hit the quit button.
+     *
+     * @param mx mouse X coordinate
+     * @param my mouse Y coordinate
+     * @return true if the quit button was clicked
+     */
     public boolean isQuitClicked(float mx, float my) {
         return my < BAR_H && mx > width - BTN_W - 5 && mx < width;
     }
 
+    /** Frees the shader programs and deletes the OpenGL buffers. */
     public void cleanup() {
         shader.cleanup();
         textShader.cleanup();

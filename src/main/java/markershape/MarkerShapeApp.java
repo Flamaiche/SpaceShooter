@@ -17,6 +17,11 @@ import markershape.render.ShapeRenderer;
 import markershape.ui.EditorUI;
 import markershape.ui.MenuUI;
 
+/**
+ * Standalone editor application for 3D marker shapes.
+ * Provides a menu to select a shape and an editor view with an orbital camera
+ * and an overlay UI for saving and navigation.
+ */
 public class MarkerShapeApp {
     private long window;
     private int width = 1200, height = 800;
@@ -33,16 +38,19 @@ public class MarkerShapeApp {
     private enum Mode { MENU, EDITOR }
     private Mode mode = Mode.MENU;
 
+    /** Program entry point. */
     public static void main(String[] args) {
         new MarkerShapeApp().run();
     }
 
+    /** Runs the application lifecycle: init, loop, cleanup. */
     public void run() {
         init();
         loop();
         cleanup();
     }
 
+    /** Initialises GLFW, creates the window, and sets up subsystems. */
     private void init() {
         GLFWErrorCallback.createPrint(System.err).set();
         if (!glfwInit()) throw new IllegalStateException("glfwInit failed");
@@ -83,6 +91,7 @@ public class MarkerShapeApp {
         renderer = new ShapeRenderer();
     }
 
+    /** Centres the window on the primary monitor. */
     private void centerWindow() {
         try (MemoryStack stack = stackPush()) {
             IntBuffer pWidth = stack.mallocInt(1);
@@ -102,6 +111,7 @@ public class MarkerShapeApp {
         }
     }
 
+    /** Main loop: processes input and renders the current mode. */
     private void loop() {
         glfwSetScrollCallback(window, (_, _, yo) -> {
             if (mode == Mode.EDITOR && camera != null)
@@ -168,6 +178,7 @@ public class MarkerShapeApp {
         }
     }
 
+    /** Routes menu clicks to the appropriate action. */
     private void handleMenuClick(float mx, float my) {
         if (menuUI.isQuitterClicked(mx, my)) {
             glfwSetWindowShouldClose(window, true);
@@ -181,6 +192,7 @@ public class MarkerShapeApp {
         if (sel != null) openShape(sel);
     }
 
+    /** Opens the given shape file and switches to editor mode. */
     private void openShape(String filename) {
         renderer.cleanup();
         boolean ok = renderer.loadShape(filename);
@@ -194,6 +206,7 @@ public class MarkerShapeApp {
         }
     }
 
+    /** Returns to the menu, cleaning up the current shape. */
     private void goToMenu() {
         renderer.cleanup();
         currentFile = null;
@@ -202,11 +215,13 @@ public class MarkerShapeApp {
         menuUI.refresh();
     }
 
+    /** Saves the current shape (stub, not yet implemented). */
     private void saveCurrent() {
         if (currentFile == null || !renderer.hasShape()) return;
         System.out.println("[MarkerShape] Save: " + currentFile + " (stub)");
     }
 
+    /** Cleans up all resources and terminates GLFW. */
     private void cleanup() {
         renderer.cleanup();
         editorUI.cleanup();
