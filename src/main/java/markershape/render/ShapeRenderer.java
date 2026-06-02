@@ -3,7 +3,7 @@ package markershape.render;
 import learngl.Shader;
 import learngl.shape.Shape;
 import learngl.VertexUtils;
-import markershape.io.ShapeIO;
+import markershape.io.ShapeLoader;
 import markershape.model.*;
 
 import java.util.*;
@@ -25,7 +25,7 @@ public class ShapeRenderer {
      * @return true if the shape was loaded successfully
      */
     public boolean loadShape(String filename) {
-        ShapeData data = ShapeIO.load(filename);
+        ShapeData data = ShapeLoader.load(filename);
         if (data == null) {
             System.err.println("[ShapeRenderer] failed to load: " + filename);
             return false;

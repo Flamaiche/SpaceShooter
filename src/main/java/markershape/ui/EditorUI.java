@@ -1,7 +1,7 @@
 package markershape.ui;
 
+import gamegl.gestion.texte.Text;
 import learngl.Shader;
-import learngl.text.Text;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
