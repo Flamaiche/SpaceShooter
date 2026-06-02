@@ -2,37 +2,37 @@
 
 ## Projet
 - [x] `README.md` — spécification complète
-- [ ] `src/main/java/markershape/` — package dédié
+- [x] `src/main/java/markershape/` — package dédié
 - [x] `data/markershape/shapes/` — dossier des fichiers shape
 - [x] `data/markershape/shaders/` — dossier des shaders
 - [ ] `data/markershape/config.json` — config fond d'écran
 
 ## Data model
-- [ ] `Vertex` : id, x, y, z, color, edgeIds (cascade suppression)
-- [ ] `Edge` : id, a, b, mode (stun/move), thickness
-- [ ] `Face` : indices
-- [ ] `ShapeData` : name, shader, HashMap<id, Vertex>, HashMap<id, Edge>, List<Face>
-- [ ] Lookup O(1), suppression point O(k), suppression arête O(1)
+- [x] `Vertex` : id, x, y, z, color, edgeIds (cascade suppression)
+- [x] `Edge` : id, a, b, mode (stun/move), thickness
+- [x] `Face` : indices
+- [x] `ShapeData` : name, shader, HashMap<id, Vertex>, HashMap<id, Edge>, List<Face>
+- [x] Lookup O(1), suppression point O(k), suppression arête O(1)
 
-## ShapeLoader
-- [ ] `ShapeLoader` — chargement JSON → ShapeData
-- [ ] Gestion erreurs (fichier invalide, manquant)
-- [ ] `ShapeSaver` — ShapeData → JSON (bouton Save)
-- [ ] Sauvegarde uniquement les données géométriques (pas le shader)
+## ShapeIO
+- [x] `ShapeIO.load` — chargement JSON → ShapeData
+- [x] Gestion erreurs (fichier invalide, manquant)
+- [x] `ShapeIO.save` — ShapeData → JSON
+- [ ] Sauvegarde uniquement les données géométriques (pas le shader) ✓ déjà le cas
 
 ## ShapeRenderer
-- [ ] `ShapeRenderer` — conversion ShapeData → Shape existant
-- [ ] Chargement shader à l'ouverture
-- [ ] Libération shader au retour (sauf option keep shader future)
-- [ ] Rendu temps réel triangles 3D
+- [x] `ShapeRenderer` — conversion ShapeData → Shape existant
+- [x] Chargement shader à l'ouverture
+- [x] Libération shader au cleanup
+- [x] Rendu temps réel triangles 3D
 
 ## Camera
-- [ ] OrbitalCamera — yaw/pitch autour de la shape
-- [ ] Zoom avant/arrière
-- [ ] Souris libre (pas de lock)
+- [x] OrbitalCamera — yaw/pitch autour de la shape
+- [x] Zoom avant/arrière
+- [x] Souris libre (drag pour orbiter)
 
 ## UI (fenêtres flottantes)
-- [ ] Overlay 2D OpenGL maison
+- [x] Overlay 2D OpenGL maison (top bar)
 - [ ] Fenêtre survol point (glow + infos)
 - [ ] Fenêtre survol arête (glow + infos)
 - [ ] Fenêtre édition point (coordonnées, liaisons)
