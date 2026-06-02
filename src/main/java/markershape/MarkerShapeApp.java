@@ -12,6 +12,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
+import markershape.camera.EditorCamera;
+import markershape.render.ShapeRenderer;
 import markershape.ui.EditorUI;
 import markershape.ui.MenuUI;
 
