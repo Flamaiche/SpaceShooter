@@ -133,5 +133,12 @@ Version : (A:Alpha)
          - toutes les références mises à jour (Balls, Crosshair, Camera, PlayingState, etc.)
          - stockage mémoire HashMap + lookup O(1) + cascade suppression
 [A1.2]
-     01/06/2026:
+      01/06/2026:
          - README MarkerShape : éditeur de formes 3D standalone
+	03/06/2026:
+	   - MarkerShape : shader fragment fix (discard gl_PointCoord retiré), points carrés via glPointSize
+	   - MarkerShape : depth test + picking depth-aware pour les points
+	   - MarkerShape : double glow (blanc 11px + noir 7px) au survol d'un sommet
+	   - MarkerShape : EdgeOverlay + hover line 2D sur les arêtes
+	   - MarkerShape : points invisibles par défaut, apparition au survol (comme les arêtes)
+	   - MarkerShape : TODOs filtres ajoutés

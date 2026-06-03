@@ -1,5 +1,6 @@
 package markershape.camera;
 
+import learngl.LogFile;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -33,6 +34,8 @@ public class EditorCamera {
         yaw += dyaw;
         pitch = Math.max(-89f, Math.min(89f, pitch + dpitch));
         updatePosition();
+        LogFile.logf("[Camera] rotate: yaw=%.1f pitch=%.1f pos=(%.2f,%.2f,%.2f) radius=%.2f",
+            yaw, pitch, position.x, position.y, position.z, radius);
     }
 
     /**
@@ -44,6 +47,8 @@ public class EditorCamera {
     public void zoom(float amount) {
         radius = Math.max(0.5f, Math.min(50f, radius - amount));
         updatePosition();
+        LogFile.logf("[Camera] zoom: radius=%.2f pos=(%.2f,%.2f,%.2f)",
+            radius, position.x, position.y, position.z);
     }
 
     private void updatePosition() {
@@ -93,12 +98,12 @@ public class EditorCamera {
         return new Vector3f(position);
     }
 
-    /**
-     * Returns a copy of the camera target point.
-     *
-     * @return the target point
-     */
+    /** Returns a copy of the camera target point. */
     public Vector3f getTarget() {
         return new Vector3f(target);
     }
+
+    public float getYaw() { return yaw; }
+    public float getPitch() { return pitch; }
+    public float getRadius() { return radius; }
 }

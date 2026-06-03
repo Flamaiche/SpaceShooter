@@ -62,6 +62,12 @@
 - [ ] Bouton Save → ShapeData → JSON
 - [ ] Écraser le fichier existant
 
+## Filtres
+- [ ] Bouton filtre avec checkboxes :
+  - [ ] Afficher toutes les arêtes (glow)
+  - [ ] Afficher tous les points (glow)
+  - [ ] Afficher les faces
+
 ## Future
 - [ ] Symétrie axe X/Y/Z et point central
 - [ ] Option "keep shader" entre deux shapes
