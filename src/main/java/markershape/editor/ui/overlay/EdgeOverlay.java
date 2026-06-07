@@ -42,6 +42,8 @@ public class EdgeOverlay extends Overlay {
     public int clickField(float mx, float my) {
         if (!visible || edge == null) return -1;
 
+        if (isCloseClicked(mx, my)) { hide(); return -1; }
+
         if (deleteBtn.isClicked(mx, my)) { deleteBtn.click(); return 10; }
 
         float modeY = py + 90;

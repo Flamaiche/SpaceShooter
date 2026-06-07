@@ -164,4 +164,17 @@ Version : (A:Alpha)
  	   - MarkerShape : cleanupFaces() retire automatiquement les faces dont les 3 arêtes n'existent plus
  	   - MarkerShape : connectedBetween() en ID exact uniquement (pas de transitivité frères) pour la détection de faces
  	   - MarkerShape : crosshair 3D (axes X/Y/Z rouge/vert/bleu) suivant la souris en mode création de sommet
- 	   - MarkerShape : bouton "Delete" dans VertexOverlay et EdgeOverlay pour supprimer sommet/arête depuis la fenêtre
+  	   - MarkerShape : bouton "Delete" dans VertexOverlay et EdgeOverlay pour supprimer sommet/arête depuis la fenêtre
+  	07/06/2026:
+  	   - MarkerShape : refactoring complet (packages editor/, shape/, render/, callbacks GLFW purs)
+  	   - MarkerShape : input 100% callbacks (plus de glfwGetCursorPos/glfwGetMouseButton)
+  	   - MarkerShape : orbite souris (clic milieu/droit) + flèches + zoom molette
+  	   - MarkerShape : popup ConfirmSave (Oui/Non) sur Quit, Escape ferme menus/filtres/désélectionne
+  	   - MarkerShape : selection sommet/arête propagée au renderer (highlight jaune visible)
+  	   - MarkerShape : survol + sélection simultanés (arrête survolée en blanc même si une autre est sélectionnée)
+  	   - MarkerShape : glow des points synchronisé avec le filtre Points
+  	   - MarkerShape : crosshair axes X/Y/Z synchronisé avec les filtres Axe X/Y/Z
+  	   - MarkerShape : crosshair suit la souris en mode création Vertex (preview placement)
+  	   - MarkerShape : bouton X (fermeture) cliquable sur VertexOverlay et EdgeOverlay
+  	   - MarkerShape : seuil de picking d'arête passé de 8 à 14 pixels
+  	   - backup/dev supprimé, backup/session-20260607 créé

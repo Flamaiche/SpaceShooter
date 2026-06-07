@@ -4,6 +4,7 @@ import markershape.editor.Context;
 import markershape.editor.action.DragAction;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
+import org.joml.Vector3f;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -53,6 +54,11 @@ public class HoverManager {
                 ctx.selection.crosshairPos.set(data.vertices.get(vertId).x,
                     data.vertices.get(vertId).y,
                     data.vertices.get(vertId).z);
+                ctx.selection.crosshairValid = true;
+            } else if (ctx.creatingVertex) {
+                Vector3f pos = ctx.pick.getClickWorldPos(mx, my);
+                ctx.snapIfEnabled(pos);
+                ctx.selection.crosshairPos.set(pos);
                 ctx.selection.crosshairValid = true;
             } else if (!ctx.selection.crosshairValid && ctx.selection.selectedVertex >= 0) {
                 Vertex sv = data.vertices.get(ctx.selection.selectedVertex);

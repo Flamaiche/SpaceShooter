@@ -90,7 +90,6 @@
 - [x] **Snap‑to‑grid** — accrochage placement/drag (checkbox + slider pas 0.1–5 dans le panneau filtre)
 - [x] **Grille 3D** — quadrillage XZ (Y=0), 21×21 lignes de -10 à +10, axes XYZ au centre (rouge/vert/bleu)
 - [x] **Filtres** — positionné sous le bouton, boutons [-] [+] pour chaque slider, axes XYZ toggleables, grille + axes liés
-- [x] **Popup sauvegarde** — "Sauvegarder ?" avec Oui/Non au moment de quitter (bouton Quit ou Échap)
 
 ## Moyen terme
 - [ ] **Menu symétrie**

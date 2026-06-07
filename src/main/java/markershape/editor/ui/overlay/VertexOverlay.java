@@ -55,6 +55,8 @@ public class VertexOverlay extends Overlay {
     public int clickField(float mx, float my) {
         if (!visible || vertex == null) return -1;
 
+        if (isCloseClicked(mx, my)) { hide(); return -1; }
+
         if (deleteBtn.isClicked(mx, my)) { deleteBtn.click(); return 20; }
 
         if (siblingIds != null && siblingBadgeX != null && siblingIds.length > 0) {
