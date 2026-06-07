@@ -1,0 +1,198 @@
+package markershape.editor.ui;
+
+import gamegl.gestion.texte.Text;
+import learngl.Shader;
+import markershape.editor.ui.control.Button;
+import markershape.editor.ui.control.FilterPanel;
+import markershape.editor.ui.menu.BlurBackground;
+import markershape.editor.ui.menu.ConfirmSavePopup;
+import markershape.editor.ui.menu.NewMenu;
+
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.*;
+
+public class EditorUI {
+    private int width, height;
+    private Shader shader, textShader, blurShader;
+    private int vao, vbo;
+
+    public static final int BAR_H = 36;
+    public static final int BTN_W = 130;
+    private Button saveBtn, quitBtn, filterBtn, newBtn;
+    private Runnable onSave, onQuit, onNewEdge, onNewVertex;
+
+    public final FilterPanel filter;
+    public final NewMenu newMenu;
+    public final ConfirmSavePopup confirmSave;
+    public final BlurBackground blur;
+
+    public EditorUI(int w, int h, Runnable onSave, Runnable onQuit, Runnable onNewEdge, Runnable onNewVertex) {
+        this.onSave = onSave;
+        this.onQuit = onQuit;
+        this.onNewEdge = onNewEdge;
+        this.onNewVertex = onNewVertex;
+
+        shader = new Shader("shaders/markershape/ui_Vertex.glsl",
+                            "shaders/markershape/ui_Fragment.glsl");
+        textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
+        blurShader = new Shader("shaders/markershape/blur_Vertex.glsl",
+                                "shaders/markershape/blur_Fragment.glsl");
+
+        vao = glGenVertexArrays();
+        vbo = glGenBuffers();
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 6 * 4, 0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 4, GL_FLOAT, false, 6 * 4, 2 * 4);
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        blur = new BlurBackground(blurShader, vao, vbo);
+        filter = new FilterPanel(shader, textShader, vao, vbo, blur);
+        newMenu = new NewMenu(shader, textShader, vao, vbo, blur);
+        confirmSave = new ConfirmSavePopup(blur, textShader);
+
+        setSize(w, h);
+    }
+
+    public void setSize(int w, int h) {
+        width = w;
+        height = h;
+        blur.setSize(w, h);
+        filter.setSize(w, h);
+        confirmSave.setSize(w, h);
+        newMenu.setSize(w, h);
+
+        saveBtn = new Button("Sauvegarder", width - BTN_W * 2 - 10, 0, BTN_W, BAR_H, onSave);
+        saveBtn.textScale = 1.5f;
+        saveBtn.bgR = 0.2f; saveBtn.bgG = 0.2f; saveBtn.bgB = 0.3f;
+
+        quitBtn = new Button("Quitter", width - BTN_W - 5, 0, BTN_W, BAR_H, onQuit);
+        quitBtn.textScale = 1.5f;
+        quitBtn.bgR = 0.3f; quitBtn.bgG = 0.1f; quitBtn.bgB = 0.1f;
+
+        newBtn = new Button("New", width - BTN_W * 4 - 20, 0, BTN_W, BAR_H, () -> {
+            newMenu.toggle();
+            filter.setOpen(false);
+        });
+        newBtn.textScale = 1.5f;
+        newBtn.bgR = 0.25f; newBtn.bgG = 0.3f; newBtn.bgB = 0.25f;
+
+        filterBtn = new Button("Filtre", width - BTN_W * 3 - 15, 0, BTN_W, BAR_H, () -> {
+            filter.toggle();
+            newMenu.close();
+        });
+        filterBtn.textScale = 1.5f;
+        filterBtn.bgR = 0.2f; filterBtn.bgG = 0.25f; filterBtn.bgB = 0.35f;
+    }
+
+    public void render(String currentFile) {
+        blur.captureScreen();
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        saveBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
+        quitBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
+        newBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
+        filterBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
+
+        newMenu.setBtnPos(newBtn.x, newBtn.y);
+        newMenu.render();
+
+        filter.render(filterBtn.x, BAR_H);
+
+        String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
+        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1.5f, 1f, 1f, 1f);
+
+        confirmSave.render();
+    }
+
+    public boolean isOverUI(float mx, float my) {
+        if (my < BAR_H) return true;
+        if (filter.contains(mx, my)) return true;
+        if (newMenu.contains(mx, my)) return true;
+        if (confirmSave.contains(mx, my)) return true;
+        return false;
+    }
+
+    public boolean isSaveClicked(float mx, float my) {
+        return saveBtn.isClicked(mx, my);
+    }
+
+    public boolean isQuitClicked(float mx, float my) {
+        return quitBtn.isClicked(mx, my);
+    }
+
+    public int clickNew(float mx, float my) {
+        if (newBtn.isClicked(mx, my)) {
+            newBtn.click();
+            return -2;
+        }
+        return newMenu.click(mx, my);
+    }
+
+    public void setActiveMode(int mode) {
+        newMenu.setActiveMode(mode);
+        if (mode == 0) {
+            newBtn.bgR = 0.4f; newBtn.bgG = 0.25f; newBtn.bgB = 0.15f;
+        } else if (mode == 1) {
+            newBtn.bgR = 0.4f; newBtn.bgG = 0.15f; newBtn.bgB = 0.15f;
+        } else {
+            newBtn.bgR = 0.25f; newBtn.bgG = 0.3f; newBtn.bgB = 0.25f;
+        }
+    }
+
+    public void closeNewMenu() { newMenu.close(); }
+
+    public void showConfirmSave() { confirmSave.show(); }
+    public void closeConfirmSave() { confirmSave.close(); }
+    public boolean isConfirmSaveVisible() { return confirmSave.isVisible(); }
+    public void setConfirmSaveAction(Runnable r) { confirmSave.setConfirmAction(r); }
+    public Runnable getConfirmSaveAction() { return confirmSave.getConfirmAction(); }
+    public int clickConfirmSave(float mx, float my) { return confirmSave.click(mx, my); }
+
+    public int clickFilter(float mx, float my) {
+        if (filterBtn.isClicked(mx, my)) { filterBtn.click(); newMenu.close(); return -2; }
+        return filter.clickFilter(mx, my, filterBtn.x);
+    }
+
+    public boolean isDraggingSlider() { return filter.isDraggingSlider(); }
+    public void dragUpdate(float mx) { filter.dragUpdate(mx); }
+    public void dragEnd() { filter.dragEnd(); }
+
+    public boolean isFilterOpen() { return filter.isOpen(); }
+    public boolean[] getFilterValues() { return filter.filterValues; }
+    public float[] getSliderValues() { return filter.sliderValues; }
+    public boolean isSnapEnabled() { return filter.isSnapEnabled(); }
+    public float getSnapStep() { return filter.getSnapStep(); }
+
+    public void setFilterCallback(Runnable cb) { filter.setFilterCallback(cb); }
+
+    private final org.joml.Matrix4f _ortho = new org.joml.Matrix4f();
+    public org.joml.Matrix4f ortho() {
+        _ortho.setOrtho2D(0, width, height, 0);
+        return _ortho;
+    }
+
+    private final java.nio.FloatBuffer _buf = org.lwjgl.BufferUtils.createFloatBuffer(6 * 6);
+    public java.nio.FloatBuffer buf() { _buf.clear(); return _buf; }
+
+    public Shader shader() { return shader; }
+    public Shader textShader() { return textShader; }
+    public int vao() { return vao; }
+    public int vbo() { return vbo; }
+
+    public void cleanup() {
+        shader.cleanup();
+        textShader.cleanup();
+        blurShader.cleanup();
+        blur.cleanup();
+        glDeleteBuffers(vbo);
+        glDeleteVertexArrays(vao);
+    }
+}

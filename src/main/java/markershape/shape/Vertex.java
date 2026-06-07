@@ -1,4 +1,4 @@
-package markershape.model;
+package markershape.shape;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,11 +28,13 @@ public class Vertex {
      */
     public Vertex(int id, float x, float y, float z, float r, float g, float b) {
         this.id = id;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.r = r;
-        this.g = g;
-        this.b = b;
+        this.x = x;  this.y = y;  this.z = z;
+        this.r = r;  this.g = g;  this.b = b;
+    }
+
+    public Vertex copy() {
+        Vertex c = new Vertex(id, x, y, z, r, g, b);
+        c.edgeIds.addAll(edgeIds);
+        return c;
     }
 }

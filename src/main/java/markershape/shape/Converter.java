@@ -1,6 +1,4 @@
-package markershape.io;
-
-import markershape.model.*;
+package markershape.shape;
 
 import java.util.*;
 
@@ -36,7 +34,6 @@ public class Converter {
         final int FLOATS_PER_TRI = VERTICES_PER_TRI * FLOATS_PER_VERTEX; // 18
 
         int vertexId = 0;
-        Map<Integer, Vertex> vertexMap = new LinkedHashMap<>();
         List<int[]> triangleList = new ArrayList<>();
         List<int[]> edgeListRaw = new ArrayList<>();
 
@@ -60,8 +57,7 @@ public class Converter {
                 vert.r = r;
                 vert.g = g;
                 vert.b = b;
-
-                vertexMap.put(vertexId, vert);
+                data.addVertex(vert);
                 triIndices[v] = vertexId;
                 vertexId++;
             }
@@ -75,10 +71,6 @@ public class Converter {
             edgeListRaw.add(new int[]{a, b});
             edgeListRaw.add(new int[]{b, c});
             edgeListRaw.add(new int[]{c, a});
-        }
-
-        for (Vertex v : vertexMap.values()) {
-            data.addVertex(v);
         }
 
         for (int[] tri : triangleList) {
@@ -106,7 +98,6 @@ public class Converter {
             edge.b = bEdge;
             edge.mode = DEFAULT_EDGE_MODE;
             edge.thickness = DEFAULT_EDGE_THICKNESS;
-
             data.addEdge(edge);
         }
 

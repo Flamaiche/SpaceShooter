@@ -126,7 +126,10 @@ public class Shape {
      * Releases all OpenGL resources associated with this shape (VAO, VBO).
      */
     public void cleanup() {
+        glBindVertexArray(vaoId);
         glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDeleteBuffers(vboId);
         glBindVertexArray(0);

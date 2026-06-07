@@ -1,4 +1,4 @@
-package markershape.model;
+package markershape.shape;
 
 /**
  * An edge between two vertices identified by their IDs.
@@ -23,9 +23,12 @@ public class Edge {
      */
     public Edge(int id, int a, int b, String mode, float thickness) {
         this.id = id;
-        this.a = a;
-        this.b = b;
+        this.a = a;  this.b = b;
         this.mode = mode;
         this.thickness = thickness;
+    }
+
+    public Edge copy() {
+        return new Edge(id, a, b, mode, thickness);
     }
 }

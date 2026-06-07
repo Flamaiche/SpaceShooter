@@ -1,0 +1,228 @@
+package markershape.editor.ui.control;
+
+import gamegl.gestion.texte.Text;
+import learngl.Shader;
+import markershape.editor.ui.menu.BlurBackground;
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
+
+import java.nio.FloatBuffer;
+
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.*;
+
+public class FilterPanel {
+    private int width, height;
+    private boolean filterOpen;
+    private float filterX, filterY;
+
+    public String[] filterLabels = {"Faces", "Arêtes", "Points", "Axe X", "Axe Y", "Axe Z", "Snap"};
+    public boolean[] filterValues = {true, true, true, true, true, true, false};
+
+    public String[] sliderLabels = {"Taille pts", "Lignes", "Opacité", "Snap pas"};
+    public float[] sliderValues = {5f, 3f, 1f, 1f};
+    private float[] sliderMin = {1f, 1f, 0f, 0.1f};
+    private float[] sliderMax = {20f, 10f, 1f, 5f};
+    private float[] sliderStep = {1f, 0.5f, 0.05f, 0.1f};
+
+    private int dragSlider = -1;
+    private float dragStartMX, dragStartVal;
+
+    public static final int CHECKBOX_H = 24;
+    public static final int SLIDER_H = 30;
+    public static final int PANEL_GAP = 4;
+    public static final float PANEL_W = 210;
+    public static final float TRACK_W = 70;
+    public static final float TRACK_X = 58;
+    public static final float VAL_X = 80;
+    public static final float MINUS_X = 155;
+    public static final float PLUS_X = 173;
+    public static final float BTN_SM_W = 16;
+    public static final int SLIDER_DECIMALS = 1;
+
+    private Runnable filterCallback;
+    private BlurBackground blur;
+    private Shader shader;
+    private Shader textShader;
+    private int vao, vbo;
+    private final Matrix4f ortho = new Matrix4f();
+    private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
+
+    public FilterPanel(Shader shader, Shader textShader, int vao, int vbo, BlurBackground blur) {
+        this.shader = shader;
+        this.textShader = textShader;
+        this.vao = vao;
+        this.vbo = vbo;
+        this.blur = blur;
+    }
+
+    public void setSize(int w, int h) { width = w; height = h; ortho.setOrtho2D(0, w, h, 0); }
+
+    public boolean isOpen() { return filterOpen; }
+    public void setOpen(boolean v) { filterOpen = v; }
+    public void toggle() { filterOpen = !filterOpen; }
+
+    public void setFilterCallback(Runnable cb) { filterCallback = cb; }
+
+    public float panelHeight() {
+        return filterLabels.length * CHECKBOX_H + PANEL_GAP + sliderLabels.length * SLIDER_H;
+    }
+
+    public float sliderItemY(int i) {
+        return filterY + filterLabels.length * CHECKBOX_H + PANEL_GAP + i * SLIDER_H;
+    }
+
+    public boolean contains(float mx, float my) {
+        return filterOpen && my >= filterY && my <= filterY + panelHeight()
+            && mx >= filterX && mx <= filterX + PANEL_W;
+    }
+
+    public void render(float btnX, float btnY) {
+        if (!filterOpen) return;
+
+        filterX = btnX + (130 - PANEL_W) / 2;
+        filterY = btnY;
+
+        float ph = panelHeight();
+
+        blur.drawBlurredBg(filterX, filterY, PANEL_W, ph, 0.85f, 0.35f, 0.35f, 0.4f);
+
+        shader.bind();
+        shader.setUniformMat4f("projection", ortho);
+
+        for (int i = 0; i < filterLabels.length; i++) {
+            float iy = filterY + i * CHECKBOX_H;
+            String prefix = filterValues[i] ? "[x] " : "[ ] ";
+            Text.drawText(textShader, prefix + filterLabels[i],
+                filterX + 8, iy + 4, 1.3f, 0.85f, 0.85f, 1f);
+        }
+
+        for (int i = 0; i < sliderLabels.length; i++) {
+            float iy = sliderItemY(i);
+            float trackY = iy + (SLIDER_H - 8) * 0.5f + 4;
+            float trackX = filterX + TRACK_X;
+            float val = sliderValues[i];
+            float frac = (val - sliderMin[i]) / (sliderMax[i] - sliderMin[i]);
+
+            String valStr = String.format("%." + SLIDER_DECIMALS + "f", sliderValues[i]);
+            Text.drawText(textShader, sliderLabels[i] + ":",
+                filterX + 8, iy + 2, 1.2f, 0.7f, 0.7f, 0.9f);
+            Text.drawText(textShader, valStr,
+                filterX + VAL_X, iy + 2, 1.2f, 0.7f, 0.7f, 0.9f);
+            Text.drawText(textShader, "[-]",
+                filterX + MINUS_X, iy + 2, 1.2f, 0.8f, 0.8f, 1f);
+            Text.drawText(textShader, "[+]",
+                filterX + PLUS_X, iy + 2, 1.2f, 0.8f, 0.8f, 1f);
+
+            buf.clear();
+            float tx = trackX, ty = trackY, tw = TRACK_W, th = 6;
+            buf.put(new float[]{
+                tx, ty, 0.3f, 0.3f, 0.4f, 1f,
+                tx+tw, ty, 0.3f, 0.3f, 0.4f, 1f,
+                tx+tw, ty+th, 0.3f, 0.3f, 0.4f, 1f,
+                tx, ty, 0.3f, 0.3f, 0.4f, 1f,
+                tx+tw, ty+th, 0.3f, 0.3f, 0.4f, 1f,
+                tx, ty+th, 0.3f, 0.3f, 0.4f, 1f,
+            }).flip();
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            float fw = Math.max(2, frac * tw);
+            buf.clear();
+            buf.put(new float[]{
+                tx, ty, 0.5f, 0.7f, 1f, 1f,
+                tx+fw, ty, 0.5f, 0.7f, 1f, 1f,
+                tx+fw, ty+th, 0.5f, 0.7f, 1f, 1f,
+                tx, ty, 0.5f, 0.7f, 1f, 1f,
+                tx+fw, ty+th, 0.5f, 0.7f, 1f, 1f,
+                tx, ty+th, 0.5f, 0.7f, 1f, 1f,
+            }).flip();
+            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            float thumbX = tx + frac * tw - 3;
+            float thumbY = ty - 1;
+            buf.clear();
+            buf.put(new float[]{
+                thumbX, thumbY, 1f, 1f, 1f, 1f,
+                thumbX+6, thumbY, 1f, 1f, 1f, 1f,
+                thumbX+6, thumbY+8, 1f, 1f, 1f, 1f,
+                thumbX, thumbY, 1f, 1f, 1f, 1f,
+                thumbX+6, thumbY+8, 1f, 1f, 1f, 1f,
+                thumbX, thumbY+8, 1f, 1f, 1f, 1f,
+            }).flip();
+            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
+
+        shader.unbind();
+    }
+
+    public int clickFilter(float mx, float my, float btnX) {
+        filterX = btnX + (130 - PANEL_W) / 2;
+        filterY = 36;
+
+        for (int i = 0; i < sliderLabels.length; i++) {
+            float iy = sliderItemY(i);
+            if (my >= iy && my <= iy + SLIDER_H) {
+                if (mx >= filterX + MINUS_X && mx <= filterX + MINUS_X + BTN_SM_W) {
+                    sliderValues[i] = Math.max(sliderMin[i], sliderValues[i] - sliderStep[i]);
+                    fireCallback();
+                    return 3 + i;
+                }
+                if (mx >= filterX + PLUS_X && mx <= filterX + PLUS_X + BTN_SM_W) {
+                    sliderValues[i] = Math.min(sliderMax[i], sliderValues[i] + sliderStep[i]);
+                    fireCallback();
+                    return 3 + i;
+                }
+                dragSlider = i;
+                dragStartMX = mx;
+                dragStartVal = sliderValues[i];
+                updateSliderFromMouse(i, mx);
+                fireCallback();
+                return 3 + i;
+            }
+        }
+
+        for (int i = 0; i < filterLabels.length; i++) {
+            float iy = filterY + i * CHECKBOX_H;
+            if (mx >= filterX && mx <= filterX + PANEL_W
+                && my >= iy && my <= iy + CHECKBOX_H) {
+                filterValues[i] = !filterValues[i];
+                fireCallback();
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public boolean isDraggingSlider() { return dragSlider >= 0; }
+
+    public void dragUpdate(float mx) {
+        if (dragSlider >= 0) {
+            updateSliderFromMouse(dragSlider, mx);
+            fireCallback();
+        }
+    }
+
+    public void dragEnd() { dragSlider = -1; }
+
+    private void updateSliderFromMouse(int i, float mx) {
+        float trackX = filterX + TRACK_X;
+        float frac = (mx - trackX) / TRACK_W;
+        frac = Math.max(0f, Math.min(1f, frac));
+        float val = sliderMin[i] + frac * (sliderMax[i] - sliderMin[i]);
+        val = Math.round(val / sliderStep[i]) * sliderStep[i];
+        val = Math.max(sliderMin[i], Math.min(sliderMax[i], val));
+        sliderValues[i] = val;
+    }
+
+    public boolean isSnapEnabled() { return filterValues[6]; }
+    public float getSnapStep() { return sliderValues[3]; }
+
+    private void fireCallback() { if (filterCallback != null) filterCallback.run(); }
+}
