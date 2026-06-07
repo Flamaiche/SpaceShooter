@@ -1,4 +1,4 @@
-package markershape.ui;
+package markershape.editor.ui.control;
 
 import gamegl.gestion.texte.Text;
 import learngl.Shader;

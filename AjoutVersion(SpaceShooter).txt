@@ -142,3 +142,26 @@ Version : (A:Alpha)
 	   - MarkerShape : EdgeOverlay + hover line 2D sur les arêtes
 	   - MarkerShape : points invisibles par défaut, apparition au survol (comme les arêtes)
 	   - MarkerShape : TODOs filtres ajoutés
+	   - MarkerShape : filtre popup (Faces/Arêtes/Points + sliders taille pts/largeur lignes/alpha faces) avec click-and-drag
+	   - MarkerShape : VertexOverlay éditable (X/Y/Z/R/G/B) avec boutons [-]/[+]
+	   - MarkerShape : EdgeOverlay éditable (mode toggle, épaisseur [+]/[-])
+	   - MarkerShape : Edge VBO reconstruit chaque frame pour refléter les couleurs des sommets
+	   - MarkerShape : ShapeRenderer.rebuild() préserve le shader (évite delete+recreate)
+	   - MarkerShape : bouton Sauvegarder implémenté
+	   - MarkerShape : GL error 0x502 fixé (Shape.cleanup() bind VAO avant disable attrib arrays)
+	   - MarkerShape : déduplication des sommets au chargement (shipTEST.json 153→35 sommets)
+	   - MarkerShape : Converter.convert() restauré (1 sommet par position de triangle, pas de partage)
+	   - MarkerShape : ShapeLoader.load() sans déduplication (les sommets multiples sont conservés)
+	   - MarkerShape : VertexOverlay affiche les badges "Also: [#n]" pour tous les sommets à la même position, clic pour basculer
+	   - MarkerShape : SiblingPicker popup (liste des sommets à une position avec leurs couleurs, clic pour choisir)
+	   - MarkerShape : mode création d'arêtes (bouton "New Edge" → sélectionner 2 sommets → arête créée)
+ 	   - MarkerShape : résolution des frères intégrée dans la sélection normale et la création d'arêtes
+ 	04/06/2026:
+ 	   - MarkerShape : bouton "New Vertex" → clic dans la vue 3D pour créer un sommet blanc (depth buffer si géométrie sous la souris, sinon projection sur plan caméra)
+ 	   - MarkerShape : drag d'un sommet sélectionné (screen-space, suit la souris à profondeur fixe)
+ 	   - MarkerShape : points VBO dynamique (mise à jour chaque frame) pour refléter les positions en temps réel
+ 	   - MarkerShape : touche Suppr/Backspace supprime le sommet/arête sélectionné(e) avec cascade (edges → faces)
+ 	   - MarkerShape : cleanupFaces() retire automatiquement les faces dont les 3 arêtes n'existent plus
+ 	   - MarkerShape : connectedBetween() en ID exact uniquement (pas de transitivité frères) pour la détection de faces
+ 	   - MarkerShape : crosshair 3D (axes X/Y/Z rouge/vert/bleu) suivant la souris en mode création de sommet
+ 	   - MarkerShape : bouton "Delete" dans VertexOverlay et EdgeOverlay pour supprimer sommet/arête depuis la fenêtre

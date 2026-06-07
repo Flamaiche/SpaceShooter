@@ -6,6 +6,7 @@
 - [x] `data/markershape/shapes/` — dossier des fichiers shape
 - [x] `data/markershape/shaders/` — dossier des shaders
 - [ ] `data/markershape/config.json` — config fond d'écran
+- [x] `AjoutVersion(SpaceShooter).txt` — changelog à jour
 
 ## Data model
 - [x] `Vertex` : id, x, y, z, color, edgeIds (cascade suppression)
@@ -18,7 +19,7 @@
 - [x] `ShapeIO.load` — chargement JSON → ShapeData
 - [x] Gestion erreurs (fichier invalide, manquant)
 - [x] `ShapeIO.save` — ShapeData → JSON
-- [ ] Sauvegarde uniquement les données géométriques (pas le shader) ✓ déjà le cas
+- [x] Sauvegarde uniquement les données géométriques (pas le shader)
 
 ## ShapeRenderer
 - [x] `ShapeRenderer` — conversion ShapeData → Shape existant
@@ -33,43 +34,79 @@
 
 ## UI (fenêtres flottantes)
 - [x] Overlay 2D OpenGL maison (top bar)
-- [ ] Fenêtre survol point (glow + infos)
-- [ ] Fenêtre survol arête (glow + infos)
-- [ ] Fenêtre édition point (coordonnées, liaisons)
-- [ ] Fenêtre édition arête (mode, thickness)
-- [ ] Bouton + (ajout point)
-- [ ] Bouton Save
-- [ ] Fenêtres adaptatives (taille selon contenu)
-- [ ] Croix de fermeture
+- [x] Fenêtre survol point (glow + infos)
+- [x] Fenêtre survol arête (glow)
+- [x] Fenêtre édition point (coordonnées, couleurs, liaisons)
+- [x] Fenêtre édition arête (mode, thickness)
+- [x] Bouton New unifié (dropdown Vertex/Edge)
+- [x] Bouton Save
+- [x] Croix de fermeture
+- [x] Bouton Delete dans les overlays
+- [x] SiblingPicker (popup pour résoudre les sommets partageant la même position)
 
 ## Interaction points
-- [ ] Survol → illumination (glow)
-- [ ] Clic → fenêtre édition
-- [ ] Ajout point (bouton +)
-- [ ] Modification coordonnées
-- [ ] Suppression point (cascade arêtes)
-- [ ] Couleur par point
+- [x] Survol → illumination (glow double)
+- [x] Clic → fenêtre édition (ou sélection)
+- [x] Ajout point (clic 3D en mode Vertex)
+- [x] Modification coordonnées ([-]/[+])
+- [x] Suppression point (cascade arêtes + faces)
+- [x] Couleur par point ([-]/[+])
+- [x] Drag de sommet (écran → profondeur verrouillée)
 
 ## Interaction arêtes
-- [ ] Survol → illumination (glow)
-- [ ] Clic → fenêtre détails
-- [ ] Ajout liaison entre deux points
-- [ ] Suppression arête (seule)
-- [ ] Mode stun/move
-- [ ] Épaisseur configurable
+- [x] Survol → illumination (ligne blanche)
+- [x] Clic → fenêtre détails
+- [x] Ajout liaison entre deux sommets (mode Edge)
+- [x] Suppression arête (seule, cascade faces)
+- [x] Mode stun/move
+- [x] Épaisseur configurable ([-]/[+])
+- [x] Connected-edge highlighting (triple couleur : hover/selected/common)
+
+## Face
+- [x] Création automatique après ajout d'arête
+- [x] Suppression automatique (cleanupFaces)
+
+## Crosshair
+- [x] Axes X/Y/Z (rouge/vert/bleu) en 3D
+- [x] Suit la souris en mode Vertex
+- [x] Suit le sommet sélectionné
+- [x] Suit le sommet en cours de drag
+- [x] Rendu par-dessus (glDepthMask false)
 
 ## Save
-- [ ] Bouton Save → ShapeData → JSON
-- [ ] Écraser le fichier existant
+- [x] Bouton Save → ShapeData → JSON (Ctrl+S)
+- [x] Écraser le fichier existant
 
 ## Filtres
-- [ ] Bouton filtre avec checkboxes :
-  - [ ] Afficher toutes les arêtes (glow)
-  - [ ] Afficher tous les points (glow)
-  - [ ] Afficher les faces
+- [x] Bouton filtre avec checkboxes :
+- [x] Afficher toutes les arêtes
+- [x] Afficher tous les points
+- [x] Afficher les faces
+- [x] Sliders (taille points, épaisseur lignes, alpha faces)
+- [x] Click-and-drag sur les sliders
 
-## Future
-- [ ] Symétrie axe X/Y/Z et point central
+## Court terme
+- [x] **Undo/Redo** — pile d'états ShapeData (Ctrl+Z, Ctrl+Shift+Z), snapshot avant mutation, max 50, clear au changement de shape
+- [x] **Snap‑to‑grid** — accrochage placement/drag (checkbox + slider pas 0.1–5 dans le panneau filtre)
+- [x] **Grille 3D** — quadrillage XZ (Y=0), 21×21 lignes de -10 à +10, axes XYZ au centre (rouge/vert/bleu)
+- [x] **Filtres** — positionné sous le bouton, boutons [-] [+] pour chaque slider, axes XYZ toggleables, grille + axes liés
+- [x] **Popup sauvegarde** — "Sauvegarder ?" avec Oui/Non au moment de quitter (bouton Quit ou Échap)
+
+## Moyen terme
+- [ ] **Menu symétrie**
+  - Afficher/masquer le centre de symétrie
+  - Afficher/masquer l'axe central
+  - Sélectionner un axe (X/Y/Z ou axe central) → symétrie miroir des éléments sélectionnés
+  - Sélectionner le centre → symétrie centrale (point)
+- [ ] **BluePrint (clone)**
+  - Changement de curseur en main
+  - Clic sur sommet/arête + touche `C` → entre en mode blueprint
+  - Le clone suit la souris (les sommets et arêtes sélectionnés)
+  - Le clone peut lui-même subir les symétries
+  - Si une arête est sélectionnée, ses deux sommets sont inclus dans le clone
+  - La source reste en place (copie, pas déplacement)
+
+## Plus tard
 - [ ] Option "keep shader" entre deux shapes
 - [ ] Panneau debug listant tous les éléments
 - [ ] Fond écran configurable (markershape.json)

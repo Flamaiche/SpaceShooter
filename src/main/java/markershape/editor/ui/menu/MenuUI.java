@@ -1,8 +1,9 @@
-package markershape.ui;
+package markershape.editor.ui.menu;
 
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
-import markershape.io.ShapeLoader;
+import markershape.editor.ui.control.Button;
+import markershape.shape.ShapeLoader;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;

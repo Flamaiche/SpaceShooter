@@ -24,6 +24,8 @@ import learngl.Shader;
 
 import learngl.commandes.Commande;
 import learngl.commandes.Touche;
+import markershape.shape.Converter;
+import markershape.shape.ShapeLoader;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -78,7 +80,10 @@ public class PlayingState extends GameState {
         crosshairShader = new Shader(cfgCrosshair.shaderVertex, cfgCrosshair.shaderFragment);
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
-        Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(ConfigVaisseau.get().playerShipScale)));
+        //Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(PreVerticesTable.generatePlayerShip(ConfigVaisseau.get().playerShipScale)));
+        //PlayerShipConverter.convertAndSave(PreVerticesTable.generatePlayerShip(ConfigVaisseau.get().playerShipScale), "ship", "ship.json");
+        Shape joueurShape = new Shape(VertexUtils.autoAddSlotTexture(Converter.convertToFloatArray(ShapeLoader.load("cube.json"))));
+        joueurShape.setScale(0.5f);
         joueurShape.setShader(ballShader);
         joueur = new Joueur(joueurShape);
         joueur.setPosition(camera.getPosition());

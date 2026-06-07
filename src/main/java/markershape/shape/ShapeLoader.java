@@ -1,7 +1,7 @@
-package markershape.io;
+package markershape.shape;
 
 import com.google.gson.*;
-import markershape.model.*;
+import markershape.shape.*;
 
 import java.io.*;
 import java.util.*;

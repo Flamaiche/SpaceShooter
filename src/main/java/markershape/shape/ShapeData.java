@@ -1,4 +1,4 @@
-package markershape.model;
+package markershape.shape;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -82,5 +82,14 @@ public class ShapeData {
         Vertex vb = vertices.get(e.b);
         if (va != null) va.edgeIds.remove(id);
         if (vb != null) vb.edgeIds.remove(id);
+    }
+
+    /** Deep copy of this shape data. */
+    public ShapeData copy() {
+        ShapeData c = new ShapeData(name, shader);
+        for (Vertex v : vertices.values()) c.vertices.put(v.id, v.copy());
+        for (Edge e : edges.values()) c.edges.put(e.id, e.copy());
+        for (int[] f : faces) c.faces.add(new int[]{f[0], f[1], f[2]});
+        return c;
     }
 }
