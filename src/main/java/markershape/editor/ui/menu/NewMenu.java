@@ -68,17 +68,19 @@ public class NewMenu {
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        buf.clear();
-        buf.put(new float[]{
-            dx - border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
-            dx + NEW_DROP_W + border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
-            dx + NEW_DROP_W + border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
-            dx - border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
-            dx + NEW_DROP_W + border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
-            dx - border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
-        }).flip();
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            buf.clear();
+            buf.put(new float[]{
+                dx - border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
+                dx + NEW_DROP_W + border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
+                dx + NEW_DROP_W + border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
+                dx - border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
+                dx + NEW_DROP_W + border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
+                dx - border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
+            }).flip();
+            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
         for (int i = 0; i < 2; i++) {
             float iy = dy + i * NEW_ITEM_H;

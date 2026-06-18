@@ -14,6 +14,8 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
 public class BlurBackground {
+    public static boolean transparentUI = true;
+
     private int width, height;
     private Shader blurShader;
     private int screenTex = -1;
@@ -45,6 +47,7 @@ public class BlurBackground {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
+        glReadBuffer(GL_BACK);
         glBindTexture(GL_TEXTURE_2D, screenTex);
         glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, width, height);
         glBindTexture(GL_TEXTURE_2D, 0);
