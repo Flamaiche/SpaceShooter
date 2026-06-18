@@ -84,7 +84,7 @@ public class FilterPanel {
 
         float ph = panelHeight();
 
-        blur.drawBlurredBg(filterX, filterY, PANEL_W, ph, 0.85f, 0.35f, 0.35f, 0.4f);
+        blur.drawBlurredBg(filterX, filterY, PANEL_W, ph, 0.85f, 0.9f, 0.9f, 0.95f);
 
         shader.bind();
         shader.setUniformMat4f("projection", ortho);

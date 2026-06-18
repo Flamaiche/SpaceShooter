@@ -24,6 +24,8 @@ public class EditorUI {
     private Button saveBtn, quitBtn, filterBtn, newBtn;
     private Runnable onSave, onQuit, onNewEdge, onNewVertex;
 
+    public boolean transparentBar = true;
+
     public final FilterPanel filter;
     public final NewMenu newMenu;
     public final ConfirmSavePopup confirmSave;
@@ -73,25 +75,25 @@ public class EditorUI {
 
         saveBtn = new Button("Sauvegarder", width - BTN_W * 2 - 10, 0, BTN_W, BAR_H, onSave);
         saveBtn.textScale = 1.5f;
-        saveBtn.bgR = 0.2f; saveBtn.bgG = 0.2f; saveBtn.bgB = 0.3f;
+        saveBtn.showBackground = !transparentBar;
 
         quitBtn = new Button("Quitter", width - BTN_W - 5, 0, BTN_W, BAR_H, onQuit);
         quitBtn.textScale = 1.5f;
-        quitBtn.bgR = 0.3f; quitBtn.bgG = 0.1f; quitBtn.bgB = 0.1f;
+        quitBtn.showBackground = !transparentBar;
 
         newBtn = new Button("New", width - BTN_W * 4 - 25, 0, BTN_W, BAR_H, () -> {
             newMenu.toggle();
             filter.setOpen(false);
         });
         newBtn.textScale = 1.5f;
-        newBtn.bgR = 0.25f; newBtn.bgG = 0.3f; newBtn.bgB = 0.25f;
+        newBtn.showBackground = !transparentBar;
 
         filterBtn = new Button("Filtre", width - BTN_W * 3 - 20, 0, BTN_W, BAR_H, () -> {
             filter.toggle();
             newMenu.close();
         });
         filterBtn.textScale = 1.5f;
-        filterBtn.bgR = 0.2f; filterBtn.bgG = 0.25f; filterBtn.bgB = 0.35f;
+        filterBtn.showBackground = !transparentBar;
     }
 
     public void render(String currentFile) {
@@ -100,6 +102,9 @@ public class EditorUI {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        if (transparentBar) {
+            blur.drawBlurredBg(0, 0, width, BAR_H, 0.75f, 0.85f, 0.85f, 0.9f);
+        }
         saveBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
         quitBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
         newBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
@@ -151,12 +156,18 @@ public class EditorUI {
 
     public void setActiveMode(int mode) {
         newMenu.setActiveMode(mode);
-        if (mode == 0) {
-            newBtn.bgR = 0.4f; newBtn.bgG = 0.25f; newBtn.bgB = 0.15f;
-        } else if (mode == 1) {
-            newBtn.bgR = 0.4f; newBtn.bgG = 0.15f; newBtn.bgB = 0.15f;
+        if (transparentBar) {
+            newBtn.textR = 1f; newBtn.textG = 1f; newBtn.textB = 1f;
+            if (mode == 0) { newBtn.textR = 1f; newBtn.textG = 0.7f; newBtn.textB = 0.3f; }
+            else if (mode == 1) { newBtn.textR = 1f; newBtn.textG = 0.3f; newBtn.textB = 0.3f; }
         } else {
-            newBtn.bgR = 0.25f; newBtn.bgG = 0.3f; newBtn.bgB = 0.25f;
+            if (mode == 0) {
+                newBtn.bgR = 0.4f; newBtn.bgG = 0.25f; newBtn.bgB = 0.15f;
+            } else if (mode == 1) {
+                newBtn.bgR = 0.4f; newBtn.bgG = 0.15f; newBtn.bgB = 0.15f;
+            } else {
+                newBtn.bgR = 0.25f; newBtn.bgG = 0.3f; newBtn.bgB = 0.25f;
+            }
         }
     }
 
