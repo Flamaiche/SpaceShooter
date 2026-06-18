@@ -120,7 +120,7 @@ public class EntityListPanel {
         this.y = paneY;
         this.h = paneH;
 
-        blur.drawBlurredBg(px, paneY, pw, paneH, 0.85f, 0.1f, 0.1f, 0.15f);
+        blur.drawBlurredBg(px, paneY, pw, paneH, 0.85f, 0.85f, 0.85f, 0.9f);
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -129,16 +129,18 @@ public class EntityListPanel {
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
 
-        buf.clear();
-        buf.put(new float[]{
-            px, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-            px + pw, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-            px + pw, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
-            px, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-            px + pw, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
-            px, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
-        }).flip();
-        drawQuad();
+        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            buf.clear();
+            buf.put(new float[]{
+                px, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                px + pw, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                px + pw, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
+                px, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                px + pw, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
+                px, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
+            }).flip();
+            drawQuad();
+        }
 
         shader.unbind();
 
@@ -148,16 +150,18 @@ public class EntityListPanel {
             float tx = t == 0 ? px : midX;
             float tw = t == 0 ? midX - px : px + pw - NAV_W - midX;
             boolean act = (t == 0 && activeMode == MODE_VERTEX) || (t == 1 && activeMode == MODE_EDGE);
-            buf.clear();
-            buf.put(new float[]{
-                tx, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                tx+tw-1, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                tx+tw-1, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-                tx, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                tx+tw-1, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-                tx, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-            }).flip();
-            drawQuad();
+            if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+                buf.clear();
+                buf.put(new float[]{
+                    tx, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                    tx+tw-1, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                    tx+tw-1, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
+                    tx, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                    tx+tw-1, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
+                    tx, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
+                }).flip();
+                drawQuad();
+            }
             if (act) {
                 buf.clear();
                 buf.put(new float[]{
@@ -178,16 +182,18 @@ public class EntityListPanel {
         }
 
         float navX = px + pw - NAV_W;
-        buf.clear();
-        buf.put(new float[]{
-            navX, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-            px+pw, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-            px+pw, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-            navX, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-            px+pw, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-            navX, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-        }).flip();
-        drawQuad();
+        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            buf.clear();
+            buf.put(new float[]{
+                navX, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                px+pw, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                px+pw, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
+                navX, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
+                px+pw, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
+                navX, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
+            }).flip();
+            drawQuad();
+        }
 
         {
             int vis = visibleItems();

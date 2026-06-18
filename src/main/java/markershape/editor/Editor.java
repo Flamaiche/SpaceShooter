@@ -141,19 +141,23 @@ public class Editor {
 
         if (ctx.selection.vertexOverlay.isVisible()) {
             var vo = ctx.selection.vertexOverlay;
-            if (ctx.blur != null) ctx.blur.drawBlurredBg(vo.getPx(), vo.getPy(), vo.getPw(), vo.getPh(), 0.85f, 0.25f, 0.25f, 0.3f);
+            if (ctx.blur != null) ctx.blur.drawBlurredBg(vo.getPx(), vo.getPy(), vo.getPw(), vo.getPh(), 0.85f, 0.85f, 0.85f, 0.9f);
+
             ctx.selection.vertexOverlay.render(editorUI.shader(), editorUI.textShader(),
                 editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
-        }
-        if (ctx.selection.edgeOverlay.isVisible()) {
-            var eo = ctx.selection.edgeOverlay;
-            if (ctx.blur != null) ctx.blur.drawBlurredBg(eo.getPx(), eo.getPy(), eo.getPw(), eo.getPh(), 0.85f, 0.25f, 0.25f, 0.3f);
-            ctx.selection.edgeOverlay.render(editorUI.shader(), editorUI.textShader(),
-                editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
-        }
-        if (ctx.selection.siblingPicker.isVisible()) {
-            ctx.selection.siblingPicker.render(editorUI.shader(), editorUI.textShader(),
-                editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+
+            if (ctx.selection.edgeOverlay.isVisible()) {
+                var eo = ctx.selection.edgeOverlay;
+                if (ctx.blur != null) ctx.blur.drawBlurredBg(eo.getPx(), eo.getPy(), eo.getPw(), eo.getPh(), 0.85f, 0.85f, 0.85f, 0.9f);
+                ctx.selection.edgeOverlay.render(editorUI.shader(), editorUI.textShader(),
+                    editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+            }
+            if (ctx.selection.siblingPicker.isVisible()) {
+                var sp = ctx.selection.siblingPicker;
+                if (ctx.blur != null) ctx.blur.drawBlurredBg(sp.getX(), sp.getY(), sp.getW(), sp.getH(), 0.88f, 0.8f, 0.8f, 0.85f);
+                ctx.selection.siblingPicker.render(editorUI.shader(), editorUI.textShader(),
+                    editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+            }
         }
 
         editorUI.renderEntityList(width, height);

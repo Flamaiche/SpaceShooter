@@ -17,7 +17,7 @@ public class SiblingPicker {
     private boolean visible;
     private int[] ids;
     private Vertex[] vertices;
-    private float px, py;
+    private float px, py, ph;
     private static final float PW = 220;
     private static final float ROW_H = 26;
     private Consumer<Integer> callback;
@@ -30,7 +30,7 @@ public class SiblingPicker {
         vertices = new Vertex[ids.length];
         for (int i = 0; i < ids.length; i++) vertices[i] = data.vertices.get(ids[i]);
         callback = cb;
-        float ph = ids.length * ROW_H + 30;
+        ph = ids.length * ROW_H + 30;
         px = Math.min(mx, screenW - PW - 10);
         py = Math.min(my, screenH - ph - 10);
         if (px < 10) px = 10;
@@ -40,9 +40,14 @@ public class SiblingPicker {
 
     public void hide() { visible = false; callback = null; }
 
+    public float getX() { return px; }
+    public float getY() { return py; }
+    public float getW() { return PW; }
+    public float getH() { return ph; }
+
     public int click(float mx, float my) {
         if (!visible) return -1;
-        float h = ids.length * ROW_H + 30;
+        float h = ph;
         if (mx < px || mx > px + PW || my < py || my > py + h) {
             hide();
             return -1;
@@ -63,8 +68,6 @@ public class SiblingPicker {
                        FloatBuffer buf, int vao, int vbo) {
         if (!visible || vertices == null) return;
 
-        float h = ids.length * ROW_H + 30;
-
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -72,35 +75,39 @@ public class SiblingPicker {
         uiShader.bind();
         uiShader.setUniformMat4f("projection", ortho);
 
-        buf.clear();
-        buf.put(new float[]{
-            px, py, 0.1f, 0.1f, 0.15f, 0.95f,
-            px+PW, py, 0.1f, 0.1f, 0.15f, 0.95f,
-            px+PW, py+h, 0.1f, 0.1f, 0.15f, 0.95f,
-            px, py, 0.1f, 0.1f, 0.15f, 0.95f,
-            px+PW, py+h, 0.1f, 0.1f, 0.15f, 0.95f,
-            px, py+h, 0.1f, 0.1f, 0.15f, 0.95f,
-        }).flip();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        // row backgrounds
-        for (int i = 0; i < ids.length; i++) {
-            float ry = py + 30 + i * ROW_H;
-            float accent = (i % 2 == 0) ? 0.18f : 0.14f;
+        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
             buf.clear();
             buf.put(new float[]{
-                px+2, ry, accent, accent, accent+0.03f, 1f,
-                px+PW-2, ry, accent, accent, accent+0.03f, 1f,
-                px+PW-2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
-                px+2, ry, accent, accent, accent+0.03f, 1f,
-                px+PW-2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
-                px+2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
+                px, py, 0.1f, 0.1f, 0.15f, 0.95f,
+                px+PW, py, 0.1f, 0.1f, 0.15f, 0.95f,
+                px+PW, py+ph, 0.1f, 0.1f, 0.15f, 0.95f,
+                px, py, 0.1f, 0.1f, 0.15f, 0.95f,
+                px+PW, py+ph, 0.1f, 0.1f, 0.15f, 0.95f,
+                px, py+ph, 0.1f, 0.1f, 0.15f, 0.95f,
             }).flip();
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
             glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
+
+        // row backgrounds
+        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            for (int i = 0; i < ids.length; i++) {
+                float ry = py + 30 + i * ROW_H;
+                float accent = (i % 2 == 0) ? 0.18f : 0.14f;
+                buf.clear();
+                buf.put(new float[]{
+                    px+2, ry, accent, accent, accent+0.03f, 1f,
+                    px+PW-2, ry, accent, accent, accent+0.03f, 1f,
+                    px+PW-2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
+                    px+2, ry, accent, accent, accent+0.03f, 1f,
+                    px+PW-2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
+                    px+2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
+                }).flip();
+                glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+            }
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
