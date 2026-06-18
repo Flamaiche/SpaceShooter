@@ -62,7 +62,7 @@ public class ConfirmSavePopup {
         blur.drawBlurredBg(cx, cy, CONFIRM_W, CONFIRM_H, 0.88f, 0.45f, 0.45f, 0.5f);
 
         Text.drawText(textShader, "Sauvegarder ?",
-            cx + CONFIRM_W / 2 - 50, cy + 18, 1.6f, 1f, 1f, 1f);
+            cx + CONFIRM_W / 2 - 50, cy + 18, 1.5f, 1f, 1f, 1f);
         Text.drawText(textShader, "[Oui]",
             cx + 30, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, 0.4f, 0.9f, 0.4f);
         Text.drawText(textShader, "[Non]",

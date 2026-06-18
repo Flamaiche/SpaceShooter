@@ -107,7 +107,7 @@ public class SiblingPicker {
         glBindVertexArray(0);
         uiShader.unbind();
 
-        Text.drawText(textShader, "Select vertex:", px + 8, py + 8, 1.3f, 0.8f, 0.8f, 1f);
+        Text.drawText(textShader, "Select vertex:", px + 8, py + 8, 1.5f, 0.8f, 0.8f, 1f);
 
         for (int i = 0; i < vertices.length; i++) {
             Vertex v = vertices[i];
@@ -134,7 +134,7 @@ public class SiblingPicker {
             uiShader.unbind();
 
             Text.drawText(textShader, "#" + v.id + " (" + String.format("%.2f,%.2f,%.2f", v.r, v.g, v.b) + ")",
-                px + 30, ry, 1.3f, 0.8f, 0.8f, 0.8f);
+                px + 30, ry, 1.5f, 0.8f, 0.8f, 0.8f);
         }
     }
 }

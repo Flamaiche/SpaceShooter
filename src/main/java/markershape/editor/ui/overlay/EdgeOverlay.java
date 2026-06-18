@@ -97,17 +97,17 @@ public class EdgeOverlay extends Overlay {
     @Override
     protected void renderText(Shader textShader) {
         Text.drawText(textShader, "Edge #" + edge.id, px + 12, py + 10, 1.5f, 1f, 1f, 1f);
-        Text.drawText(textShader, "Vertex A: " + vertexA, px + 12, py + 42, 1.3f, 0.8f, 0.8f, 1f);
-        Text.drawText(textShader, "Vertex B: " + vertexB, px + 12, py + 66, 1.3f, 0.8f, 0.8f, 1f);
+        Text.drawText(textShader, "Vertex A: " + vertexA, px + 12, py + 42, 1.5f, 0.8f, 0.8f, 1f);
+        Text.drawText(textShader, "Vertex B: " + vertexB, px + 12, py + 66, 1.5f, 0.8f, 0.8f, 1f);
 
         String modeStr = edge.mode.equals("stun") ? "stun" : "move";
-        Text.drawText(textShader, "Mode: " + modeStr, px + 12, py + 90, 1.3f, 0.8f, 0.8f, 0.8f);
+        Text.drawText(textShader, "Mode: " + modeStr, px + 12, py + 90, 1.5f, 0.8f, 0.8f, 0.8f);
 
         float tc = (selectedField == 1) ? 1f : 0.8f;
-        Text.drawText(textShader, "Thick:", px + 12, py + 120, 1.3f, 0.8f, 0.8f, 1f);
+        Text.drawText(textShader, "Thick:", px + 12, py + 120, 1.5f, 0.8f, 0.8f, 1f);
         Text.drawText(textShader, String.format("%.3f", edge.thickness),
-            px + VAL_X, py + 120, 1.3f, tc, tc, tc);
-        Text.drawText(textShader, "[-]", px + MINUS_X, py + 121, 1.2f, 0.8f, 0.8f, 1f);
-        Text.drawText(textShader, "[+]", px + PLUS_X, py + 121, 1.2f, 0.8f, 0.8f, 1f);
+            px + VAL_X, py + 120, 1.5f, tc, tc, tc);
+        Text.drawText(textShader, "[-]", px + MINUS_X, py + 121, 1.5f, 0.8f, 0.8f, 1f);
+        Text.drawText(textShader, "[+]", px + PLUS_X, py + 121, 1.5f, 0.8f, 0.8f, 1f);
     }
 }

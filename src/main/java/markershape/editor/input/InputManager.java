@@ -32,11 +32,6 @@ public class InputManager {
             if (!mouseLeftDown) drag.end();
         }
 
-        if (ctx.ui.isDraggingSlider()) {
-            ctx.ui.dragUpdate(mx);
-            if (!mouseLeftDown) ctx.ui.dragEnd();
-        }
-
         boolean escDownNow = GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS;
         if (escDownNow && !escDown) clicks.handleEscape();
         escDown = escDownNow;

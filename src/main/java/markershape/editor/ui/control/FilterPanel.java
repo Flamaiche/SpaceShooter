@@ -27,9 +27,6 @@ public class FilterPanel {
     private float[] sliderMax = {20f, 10f, 1f, 5f};
     private float[] sliderStep = {1f, 0.5f, 0.05f, 0.1f};
 
-    private int dragSlider = -1;
-    private float dragStartMX, dragStartVal;
-
     public static final int CHECKBOX_H = 24;
     public static final int SLIDER_H = 30;
     public static final int PANEL_GAP = 4;
@@ -96,7 +93,7 @@ public class FilterPanel {
             float iy = filterY + i * CHECKBOX_H;
             String prefix = filterValues[i] ? "[x] " : "[ ] ";
             Text.drawText(textShader, prefix + filterLabels[i],
-                filterX + 8, iy + 4, 1.3f, 0.85f, 0.85f, 1f);
+                filterX + 8, iy + 4, 1.5f, 0.85f, 0.85f, 1f);
         }
 
         for (int i = 0; i < sliderLabels.length; i++) {
@@ -108,13 +105,13 @@ public class FilterPanel {
 
             String valStr = String.format("%." + SLIDER_DECIMALS + "f", sliderValues[i]);
             Text.drawText(textShader, sliderLabels[i] + ":",
-                filterX + 8, iy + 2, 1.2f, 0.7f, 0.7f, 0.9f);
+                filterX + 8, iy + 2, 1.5f, 0.7f, 0.7f, 0.9f);
             Text.drawText(textShader, valStr,
-                filterX + VAL_X, iy + 2, 1.2f, 0.7f, 0.7f, 0.9f);
+                filterX + VAL_X, iy + 2, 1.5f, 0.7f, 0.7f, 0.9f);
             Text.drawText(textShader, "[-]",
-                filterX + MINUS_X, iy + 2, 1.2f, 0.8f, 0.8f, 1f);
+                filterX + MINUS_X, iy + 2, 1.5f, 0.8f, 0.8f, 1f);
             Text.drawText(textShader, "[+]",
-                filterX + PLUS_X, iy + 2, 1.2f, 0.8f, 0.8f, 1f);
+                filterX + PLUS_X, iy + 2, 1.5f, 0.8f, 0.8f, 1f);
 
             buf.clear();
             float tx = trackX, ty = trackY, tw = TRACK_W, th = 6;
@@ -163,6 +160,7 @@ public class FilterPanel {
     }
 
     public int clickFilter(float mx, float my, float btnX) {
+        if (!filterOpen) return -1;
         filterX = btnX + (130 - PANEL_W) / 2;
         filterY = 36;
 
@@ -179,11 +177,6 @@ public class FilterPanel {
                     fireCallback();
                     return 3 + i;
                 }
-                dragSlider = i;
-                dragStartMX = mx;
-                dragStartVal = sliderValues[i];
-                updateSliderFromMouse(i, mx);
-                fireCallback();
                 return 3 + i;
             }
         }
@@ -198,27 +191,6 @@ public class FilterPanel {
             }
         }
         return -1;
-    }
-
-    public boolean isDraggingSlider() { return dragSlider >= 0; }
-
-    public void dragUpdate(float mx) {
-        if (dragSlider >= 0) {
-            updateSliderFromMouse(dragSlider, mx);
-            fireCallback();
-        }
-    }
-
-    public void dragEnd() { dragSlider = -1; }
-
-    private void updateSliderFromMouse(int i, float mx) {
-        float trackX = filterX + TRACK_X;
-        float frac = (mx - trackX) / TRACK_W;
-        frac = Math.max(0f, Math.min(1f, frac));
-        float val = sliderMin[i] + frac * (sliderMax[i] - sliderMin[i]);
-        val = Math.round(val / sliderStep[i]) * sliderStep[i];
-        val = Math.max(sliderMin[i], Math.min(sliderMax[i], val));
-        sliderValues[i] = val;
     }
 
     public boolean isSnapEnabled() { return filterValues[6]; }

@@ -101,6 +101,11 @@ public abstract class Overlay {
         deleteBtn.y = py + ph - 38;
     }
 
+    public float getPx() { return px; }
+    public float getPy() { return py; }
+    public float getPw() { return pw; }
+    public float getPh() { return ph; }
+
     protected void drawHighlightRect(FloatBuffer buf, float x, float y, float w, float h) {
         buf.clear();
         buf.put(new float[]{

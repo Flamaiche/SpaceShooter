@@ -3,6 +3,7 @@ package markershape.editor.ui;
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
 import markershape.editor.ui.control.Button;
+import markershape.editor.ui.control.EntityListPanel;
 import markershape.editor.ui.control.FilterPanel;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.ConfirmSavePopup;
@@ -27,6 +28,7 @@ public class EditorUI {
     public final NewMenu newMenu;
     public final ConfirmSavePopup confirmSave;
     public final BlurBackground blur;
+    public final EntityListPanel entityList;
 
     public EditorUI(int w, int h, Runnable onSave, Runnable onQuit, Runnable onNewEdge, Runnable onNewVertex) {
         this.onSave = onSave;
@@ -55,6 +57,7 @@ public class EditorUI {
         filter = new FilterPanel(shader, textShader, vao, vbo, blur);
         newMenu = new NewMenu(shader, textShader, vao, vbo, blur);
         confirmSave = new ConfirmSavePopup(blur, textShader);
+        entityList = new EntityListPanel(shader, textShader, vao, vbo, blur);
 
         setSize(w, h);
     }
@@ -66,6 +69,7 @@ public class EditorUI {
         filter.setSize(w, h);
         confirmSave.setSize(w, h);
         newMenu.setSize(w, h);
+        entityList.setSize(w, h);
 
         saveBtn = new Button("Sauvegarder", width - BTN_W * 2 - 10, 0, BTN_W, BAR_H, onSave);
         saveBtn.textScale = 1.5f;
@@ -75,14 +79,14 @@ public class EditorUI {
         quitBtn.textScale = 1.5f;
         quitBtn.bgR = 0.3f; quitBtn.bgG = 0.1f; quitBtn.bgB = 0.1f;
 
-        newBtn = new Button("New", width - BTN_W * 4 - 20, 0, BTN_W, BAR_H, () -> {
+        newBtn = new Button("New", width - BTN_W * 4 - 25, 0, BTN_W, BAR_H, () -> {
             newMenu.toggle();
             filter.setOpen(false);
         });
         newBtn.textScale = 1.5f;
         newBtn.bgR = 0.25f; newBtn.bgG = 0.3f; newBtn.bgB = 0.25f;
 
-        filterBtn = new Button("Filtre", width - BTN_W * 3 - 15, 0, BTN_W, BAR_H, () -> {
+        filterBtn = new Button("Filtre", width - BTN_W * 3 - 20, 0, BTN_W, BAR_H, () -> {
             filter.toggle();
             newMenu.close();
         });
@@ -112,11 +116,16 @@ public class EditorUI {
         confirmSave.render();
     }
 
+    public void renderEntityList(int w, int h) {
+        entityList.render(w, h);
+    }
+
     public boolean isOverUI(float mx, float my) {
         if (my < BAR_H) return true;
         if (filter.contains(mx, my)) return true;
         if (newMenu.contains(mx, my)) return true;
         if (confirmSave.contains(mx, my)) return true;
+        if (entityList.contains(mx, my)) return true;
         return false;
     }
 
@@ -134,6 +143,10 @@ public class EditorUI {
             return -2;
         }
         return newMenu.click(mx, my);
+    }
+
+    public int clickEntityList(float mx, float my) {
+        return entityList.click(mx, my);
     }
 
     public void setActiveMode(int mode) {
@@ -160,10 +173,6 @@ public class EditorUI {
         if (filterBtn.isClicked(mx, my)) { filterBtn.click(); newMenu.close(); return -2; }
         return filter.clickFilter(mx, my, filterBtn.x);
     }
-
-    public boolean isDraggingSlider() { return filter.isDraggingSlider(); }
-    public void dragUpdate(float mx) { filter.dragUpdate(mx); }
-    public void dragEnd() { filter.dragEnd(); }
 
     public boolean isFilterOpen() { return filter.isOpen(); }
     public boolean[] getFilterValues() { return filter.filterValues; }
