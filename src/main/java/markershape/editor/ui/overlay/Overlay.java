@@ -60,20 +60,21 @@ public abstract class Overlay {
         uiShader.bind();
         uiShader.setUniformMat4f("projection", ortho);
 
-        buf.clear();
-        buf.put(new float[]{
-            px,    py,    0.15f, 0.15f, 0.22f, 0.95f,
-            px+pw, py,    0.15f, 0.15f, 0.22f, 0.95f,
-            px+pw, py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
-            px,    py,    0.15f, 0.15f, 0.22f, 0.95f,
-            px+pw, py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
-            px,    py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
-        }).flip();
-
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            buf.clear();
+            buf.put(new float[]{
+                px,    py,    0.15f, 0.15f, 0.22f, 0.95f,
+                px+pw, py,    0.15f, 0.15f, 0.22f, 0.95f,
+                px+pw, py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
+                px,    py,    0.15f, 0.15f, 0.22f, 0.95f,
+                px+pw, py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
+                px,    py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
+            }).flip();
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
         renderContent(uiShader, textShader, ortho, buf, vao, vbo);
 
