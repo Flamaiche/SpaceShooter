@@ -2,6 +2,7 @@ package markershape.editor.input;
 
 import markershape.editor.Context;
 import markershape.editor.action.*;
+import markershape.editor.ui.control.EntityListPanel;
 
 public class ClickHandler {
     private final Context ctx;
@@ -66,6 +67,18 @@ public class ClickHandler {
             }
             if (filterResult == 3) ctx.renderer.setGridStep(ctx.ui.getSliderValues()[3]);
         }
+
+        int elResult = ctx.ui.clickEntityList(mx, my);
+        if (elResult == -2) return;
+        if (elResult >= 0) {
+            if (ctx.ui.entityList.getActiveMode() == EntityListPanel.MODE_VERTEX) {
+                ctx.selection.selectVertex(elResult);
+            } else {
+                ctx.selection.selectEdge(elResult);
+            }
+            return;
+        }
+
         if (ctx.ui.isConfirmSaveVisible()) {
             int cs = ctx.ui.clickConfirmSave(mx, my);
             if (cs == 1) {

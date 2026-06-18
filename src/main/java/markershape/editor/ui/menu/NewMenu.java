@@ -106,7 +106,7 @@ public class NewMenu {
             float iy = dy + i * NEW_ITEM_H;
             String prefix = (i == activeMode) ? "> " : "  ";
             Text.drawText(textShader, prefix + items[i],
-                dx + 8, iy + 4, 1.3f,
+                dx + 8, iy + 4, 1.5f,
                 i == activeMode ? 1f : 0.8f,
                 i == activeMode ? 1f : 0.8f,
                 i == activeMode ? 0.4f : 0.8f);

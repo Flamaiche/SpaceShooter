@@ -10,6 +10,7 @@ public class Context {
     public final UndoRedo undoredo;
     public final SelectionManager selection;
     public final PickUtils pick;
+    public markershape.editor.ui.menu.BlurBackground blur;
 
     public long window;
     public int windowWidth, windowHeight;

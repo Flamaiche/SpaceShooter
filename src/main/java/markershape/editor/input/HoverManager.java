@@ -2,6 +2,7 @@ package markershape.editor.input;
 
 import markershape.editor.Context;
 import markershape.editor.action.DragAction;
+import markershape.editor.ui.control.EntityListPanel;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 import org.joml.Vector3f;
@@ -23,9 +24,22 @@ public class HoverManager {
         if (data == null) return;
         int edgeId = -1, vertId = -1;
 
+        ctx.ui.entityList.updateHover(mx, my);
+        int listHoveredId = ctx.ui.entityList.getHoveredId();
+
         if (!ctx.ui.isOverUI(mx, my) && !ctx.selection.isOverOverlay(mx, my)) {
             vertId = ctx.pick.findVertexAt(mx, my);
             if (vertId < 0) edgeId = ctx.pick.pickEdge(mx, my);
+        }
+
+        if (listHoveredId >= 0) {
+            if (ctx.ui.entityList.getActiveMode() == EntityListPanel.MODE_VERTEX) {
+                vertId = listHoveredId;
+                edgeId = -1;
+            } else {
+                edgeId = listHoveredId;
+                vertId = -1;
+            }
         }
 
         ctx.selection.hoveredVertex = vertId;

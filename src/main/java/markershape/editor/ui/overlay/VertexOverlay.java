@@ -17,7 +17,7 @@ public class VertexOverlay extends Overlay {
     private Vertex vertex;
     private int edgeCount;
     private int[] siblingIds;
-    private float[] siblingBadgeX;
+    private float[][] siblingBadgePos;
 
     private static final int FIELD_X = 0, FIELD_Y = 1, FIELD_Z = 2;
     private static final int FIELD_R = 3, FIELD_G = 4, FIELD_B = 5;
@@ -33,7 +33,7 @@ public class VertexOverlay extends Overlay {
     private Consumer<Integer> switchCallback;
 
     public VertexOverlay() {
-        super(280, 290);
+        super(280, 320);
     }
 
     public void setSwitchCallback(Consumer<Integer> cb) { switchCallback = cb; }
@@ -48,7 +48,7 @@ public class VertexOverlay extends Overlay {
         selectedField = -1;
     }
 
-    @Override public void hide() { super.hide(); vertex = null; siblingIds = null; siblingBadgeX = null; }
+    @Override public void hide() { super.hide(); vertex = null; siblingIds = null; siblingBadgePos = null; }
     public Vertex getVertex() { return vertex; }
     @Override protected boolean hasEntity() { return vertex != null; }
 
@@ -59,16 +59,14 @@ public class VertexOverlay extends Overlay {
 
         if (deleteBtn.isClicked(mx, my)) { deleteBtn.click(); return 20; }
 
-        if (siblingIds != null && siblingBadgeX != null && siblingIds.length > 0) {
-            float sy = py + 210;
-            if (my >= sy && my <= sy + 22) {
-                for (int i = 0; i < siblingIds.length; i++) {
-                    String label = "[#" + siblingIds[i] + "]";
-                    float[] ext = Text.getTextExtent(label, 1.3f);
-                    if (mx >= siblingBadgeX[i] && mx <= siblingBadgeX[i] + ext[0]) {
-                        if (switchCallback != null) switchCallback.accept(siblingIds[i]);
-                        return 10;
-                    }
+        if (siblingIds != null && siblingBadgePos != null && siblingIds.length > 0) {
+            for (int i = 0; i < siblingIds.length; i++) {
+                float sx = siblingBadgePos[i][0], sy = siblingBadgePos[i][1];
+                String label = "[#" + siblingIds[i] + "]";
+                float[] ext = Text.getTextExtent(label, 1.5f);
+                if (mx >= sx && mx <= sx + ext[0] && my >= sy && my <= sy + 22) {
+                    if (switchCallback != null) switchCallback.accept(siblingIds[i]);
+                    return 10;
                 }
             }
         }
@@ -153,24 +151,33 @@ public class VertexOverlay extends Overlay {
             float tc = sel ? 1f : 0.8f;
             float ta = sel ? 1f : 0.8f;
 
-            Text.drawText(textShader, fieldLabels[i], px + 12, fy, 1.3f, 0.8f, 0.8f, 1f);
-            Text.drawText(textShader, String.format(fmt, val), px + VAL_X, fy, 1.3f, tc, tc, ta);
-            Text.drawText(textShader, "[-]", px + MINUS_X, fy + 1, 1.2f, 0.8f, 0.8f, 1f);
-            Text.drawText(textShader, "[+]", px + PLUS_X, fy + 1, 1.2f, 0.8f, 0.8f, 1f);
+            Text.drawText(textShader, fieldLabels[i], px + 12, fy, 1.5f, 0.8f, 0.8f, 1f);
+            Text.drawText(textShader, String.format(fmt, val), px + VAL_X, fy, 1.5f, tc, tc, ta);
+            Text.drawText(textShader, "[-]", px + MINUS_X, fy + 1, 1.5f, 0.8f, 0.8f, 1f);
+            Text.drawText(textShader, "[+]", px + PLUS_X, fy + 1, 1.5f, 0.8f, 0.8f, 1f);
         }
 
-        Text.drawText(textShader, "Edges: " + edgeCount, px + 12, py + 186, 1.3f, 0.8f, 0.8f, 0.8f);
+        Text.drawText(textShader, "Edges: " + edgeCount, px + 12, py + 186, 1.5f, 0.8f, 0.8f, 0.8f);
 
         if (siblingIds != null && siblingIds.length > 0) {
-            float[] labelExt = Text.getTextExtent("Also:", 1.3f);
-            Text.drawText(textShader, "Also:", px + 12, py + 210, 1.3f, 0.8f, 0.8f, 0.8f);
+            float[] labelExt = Text.getTextExtent("Also:", 1.5f);
+            float baseY = py + 210;
+            Text.drawText(textShader, "Also:", px + 12, baseY, 1.5f, 0.8f, 0.8f, 0.8f);
             float bx = px + 12 + labelExt[0] + 4;
-            siblingBadgeX = new float[siblingIds.length];
+            float by = baseY;
+            float maxX = px + pw - 12;
+            int row = 0;
+            siblingBadgePos = new float[siblingIds.length][2];
             for (int i = 0; i < siblingIds.length; i++) {
                 String label = "[#" + siblingIds[i] + "]";
-                siblingBadgeX[i] = bx;
-                Text.drawText(textShader, label, bx, py + 210, 1.3f, 0.7f, 0.7f, 0.7f);
-                float[] ext = Text.getTextExtent(label, 1.3f);
+                float[] ext = Text.getTextExtent(label, 1.5f);
+                if (bx + ext[0] > maxX) {
+                    bx = px + 12;
+                    by = baseY + (++row) * 22;
+                }
+                siblingBadgePos[i][0] = bx;
+                siblingBadgePos[i][1] = by;
+                Text.drawText(textShader, label, bx, by, 1.5f, 0.7f, 0.7f, 0.7f);
                 bx += ext[0] + 4;
             }
         }

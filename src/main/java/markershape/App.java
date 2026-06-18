@@ -20,10 +20,7 @@ public class App {
     private int width, height;
     private MenuUI menuUI;
     private boolean inMenu;
-    private boolean camDragging;
-    private double camLastX, camLastY;
     private float mouseX, mouseY;
-    private boolean camButtonDown;
     private final Set<Integer> pressedKeys = new HashSet<>();
 
     public static void main(String[] args) {
@@ -77,34 +74,25 @@ public class App {
         });
 
         glfwSetScrollCallback(window, (w, xo, yo) -> {
-            if (!inMenu && editor != null) editor.camera.zoom((float) yo * 0.5f);
+            if (!inMenu && editor != null) {
+                if (editor.editorUI.entityList.contains(mouseX, mouseY)) {
+                    if (yo < 0) editor.editorUI.entityList.pageNext();
+                    else editor.editorUI.entityList.pagePrev();
+                } else {
+                    editor.camera.zoom((float) yo * 0.5f);
+                }
+            }
         });
 
         glfwSetCursorPosCallback(window, (w, x, y) -> {
             mouseX = (float) x;
             mouseY = (float) y;
-            if (inMenu || editor == null) return;
-            if (camButtonDown) {
-                if (camDragging) {
-                    float dx = (float) (x - camLastX);
-                    float dy = (float) (y - camLastY);
-                    editor.camera.rotate(-dx * 0.3f, dy * 0.3f);
-                }
-                camLastX = x;
-                camLastY = y;
-                camDragging = true;
-            } else {
-                camDragging = false;
-            }
         });
 
         glfwSetMouseButtonCallback(window, (w, btn, action, mods) -> {
-            if (btn == GLFW_MOUSE_BUTTON_MIDDLE || btn == GLFW_MOUSE_BUTTON_RIGHT) {
-                camButtonDown = action == GLFW_PRESS;
-                return;
-            }
-            if (btn != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
+            if (btn != GLFW_MOUSE_BUTTON_LEFT) return;
             if (inMenu) {
+                if (action != GLFW_PRESS) return;
                 String clicked = menuUI.clickShape(mouseX, mouseY);
                 if (clicked != null) {
                     editor.currentFile = clicked;

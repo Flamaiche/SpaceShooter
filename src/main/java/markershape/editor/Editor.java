@@ -67,6 +67,7 @@ public class Editor {
             () -> { ctx.creatingVertex = true; ctx.creatingEdge = false; ctx.edgeFirstVertex = -1; editorUI.setActiveMode(0); editorUI.closeNewMenu(); selection.hideOverlays(); selection.selectedVertex = -1; selection.selectedEdge = -1; });
         editorUI.setFilterCallback(this::applyFilterSettings);
         ctx.ui = editorUI;
+        ctx.blur = editorUI.blur;
 
         faceUtils = new FaceUtils();
         drag = new DragAction(ctx);
@@ -134,12 +135,19 @@ public class Editor {
 
     public void render(Matrix4f view, Matrix4f projection) {
         renderer.render(view, projection);
+
+        editorUI.entityList.setData(ctx.renderer.getShapeData());
         editorUI.render(currentFile);
+
         if (ctx.selection.vertexOverlay.isVisible()) {
+            var vo = ctx.selection.vertexOverlay;
+            if (ctx.blur != null) ctx.blur.drawBlurredBg(vo.getPx(), vo.getPy(), vo.getPw(), vo.getPh(), 0.85f, 0.25f, 0.25f, 0.3f);
             ctx.selection.vertexOverlay.render(editorUI.shader(), editorUI.textShader(),
                 editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
         }
         if (ctx.selection.edgeOverlay.isVisible()) {
+            var eo = ctx.selection.edgeOverlay;
+            if (ctx.blur != null) ctx.blur.drawBlurredBg(eo.getPx(), eo.getPy(), eo.getPw(), eo.getPh(), 0.85f, 0.25f, 0.25f, 0.3f);
             ctx.selection.edgeOverlay.render(editorUI.shader(), editorUI.textShader(),
                 editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
         }
@@ -147,6 +155,8 @@ public class Editor {
             ctx.selection.siblingPicker.render(editorUI.shader(), editorUI.textShader(),
                 editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
         }
+
+        editorUI.renderEntityList(width, height);
     }
 
     public void goToMenu() {
