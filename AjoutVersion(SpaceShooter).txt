@@ -188,4 +188,8 @@ Version : (A:Alpha)
  	   - MarkerShape : EntityListPanel abaissé à 58%, max 10 éléments visibles
  	   - MarkerShape : EntityListPanel pagination par flèches < > dans l'entête
  	   - MarkerShape : VertexOverlay : badges "Also:" multi-lignes (wrap si dépasse)
- 	   - MarkerShape : VertexOverlay agrandi à 320px de haut
+  	   - MarkerShape : VertexOverlay agrandi à 320px de haut
+  	   - MarkerShape : toutes les fenêtres transparentes (BlurBackground.transparentUI, EditorUI.transparentBar)
+  	   - MarkerShape : barre de menu transparente + boutons sans fond, mode actif coloré
+  	   - MarkerShape : blur derrière le SiblingPicker (manquant)
+  	   - MarkerShape : correction tint blur 0.85-0.95 (gris visible au lieu de noir)
