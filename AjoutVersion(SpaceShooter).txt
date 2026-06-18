@@ -178,3 +178,14 @@ Version : (A:Alpha)
   	   - MarkerShape : bouton X (fermeture) cliquable sur VertexOverlay et EdgeOverlay
   	   - MarkerShape : seuil de picking d'arête passé de 8 à 14 pixels
   	   - backup/dev supprimé, backup/session-20260607 créé
+	18/06/2026:
+ 	   - MarkerShape : EntityListPanel (panneau latéral listant sommets/arêtes avec onglets, survol→glow 3D, clic→sélection)
+ 	   - MarkerShape : fond flou (BlurBackground) derrière les overlays, les menus et l'EntityListPanel
+ 	   - MarkerShape : croix X cliquable sur VertexOverlay et EdgeOverlay
+ 	   - MarkerShape : crosshair 3D suit la souris en mode création Vertex
+ 	   - MarkerShape : filtres Points/Axes X/Y/Z synchronisés avec glow et crosshair
+ 	   - MarkerShape : slider drag supprimé, boutons [-] [+] uniquement
+ 	   - MarkerShape : EntityListPanel abaissé à 58%, max 10 éléments visibles
+ 	   - MarkerShape : EntityListPanel pagination par flèches < > dans l'entête
+ 	   - MarkerShape : VertexOverlay : badges "Also:" multi-lignes (wrap si dépasse)
+ 	   - MarkerShape : VertexOverlay agrandi à 320px de haut
