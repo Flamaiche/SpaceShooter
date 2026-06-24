@@ -5,6 +5,9 @@ import markershape.shape.Edge;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 import markershape.shape.render.Renderer;
+import markershape.shape.render.ShadowRenderer;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
@@ -12,13 +15,9 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public class EdgeHighlightRenderer implements Renderer {
-    private int connVao = -1, connVbo = -1;
-    private int lineVao = -1, lineVbo = -1;
+    private final ShadowRenderer shadow = new ShadowRenderer();
     private int hoveredEdgeId = -1;
     private int selectedEdgeId = -1;
     private int hoveredVertexId = -1;
@@ -31,12 +30,22 @@ public class EdgeHighlightRenderer implements Renderer {
     public void setSelectedVertex(int id) { selectedVertexId = id; }
     public void setHoveredPositionIds(Set<Integer> ids) { hoveredPositionIds = ids; }
 
+    public void setScreenSize(int w, int h) { shadow.setScreenSize(w, h); }
+
     @Override
     public void render(Shader shader, ShapeData data) {
+        // 3D shader path — used as stub; actual work done by render2D
+    }
+
+    public void render2D(ShapeData data, Matrix4f view, Matrix4f projection, int w, int h) {
+        shadow.setScreenSize(w, h);
         if (data == null) return;
+
+        Matrix4f mvp = new Matrix4f(projection);
+        mvp.mul(view);
+
         boolean showConnected = (hoveredVertexId >= 0 || selectedVertexId >= 0) && !data.edges.isEmpty();
         if (showConnected) {
-            if (connVao < 0) buildConn();
             ArrayList<Edge> hoveredOnly = new ArrayList<>();
             ArrayList<Edge> selectedOnly = new ArrayList<>();
             ArrayList<Edge> common = new ArrayList<>();
@@ -49,108 +58,76 @@ public class EdgeHighlightRenderer implements Renderer {
                 else if (onSelected) selectedOnly.add(e);
                 else if (onHovered) hoveredOnly.add(e);
             }
-            drawConnectedBatch(data, hoveredOnly, 0.85f, 0.9f, 1f);
-            drawConnectedBatch(data, selectedOnly, 1f, 0.95f, 0.6f);
-            drawConnectedBatch(data, common, 1f, 0.2f, 0.2f);
+            drawBatch2D(data, hoveredOnly, mvp, w, h, 0.85f, 0.9f, 1f, 1f);
+            drawBatch2D(data, selectedOnly, mvp, w, h, 1f, 0.95f, 0.6f, 1f);
+            drawBatch2D(data, common, mvp, w, h, 1f, 0.2f, 0.2f, 1f);
         }
-
-        if (lineVao < 0) buildLine();
 
         if (selectedEdgeId >= 0 && data.edges.containsKey(selectedEdgeId)) {
             if (selectedEdgeId == hoveredEdgeId) {
-                drawSingleEdge(data, selectedEdgeId, 1f, 0.2f, 0.2f);
+                drawSingle2D(data, selectedEdgeId, mvp, w, h, 1f, 0.2f, 0.2f, 1f);
             } else {
-                drawSingleEdge(data, selectedEdgeId, 1f, 0.95f, 0.6f);
+                drawSingle2D(data, selectedEdgeId, mvp, w, h, 1f, 0.95f, 0.6f, 1f);
                 if (hoveredEdgeId >= 0 && data.edges.containsKey(hoveredEdgeId)) {
-                    drawSingleEdge(data, hoveredEdgeId, 1f, 1f, 1f);
+                    drawSingle2D(data, hoveredEdgeId, mvp, w, h, 1f, 1f, 1f, 1f);
                 }
             }
         } else if (hoveredEdgeId >= 0 && data.edges.containsKey(hoveredEdgeId)) {
-            drawSingleEdge(data, hoveredEdgeId, 1f, 1f, 1f);
+            drawSingle2D(data, hoveredEdgeId, mvp, w, h, 1f, 1f, 1f, 1f);
         }
     }
 
-    private void drawSingleEdge(ShapeData data, int edgeId, float r, float g, float b) {
+    private void drawSingle2D(ShapeData data, int edgeId, Matrix4f mvp, int w, int h,
+                               float r, float g, float b, float a) {
         Edge e = data.edges.get(edgeId);
+        if (e == null) return;
         Vertex va = data.vertices.get(e.a);
         Vertex vb = data.vertices.get(e.b);
         if (va == null || vb == null) return;
-        FloatBuffer buf = BufferUtils.createFloatBuffer(12);
-        buf.put(va.x); buf.put(va.y); buf.put(va.z);
-        buf.put(r); buf.put(g); buf.put(b);
-        buf.put(vb.x); buf.put(vb.y); buf.put(vb.z);
-        buf.put(r); buf.put(g); buf.put(b);
-        buf.flip();
-        glDepthMask(false);
-        glLineWidth(3f);
-        glBindVertexArray(lineVao);
-        glBindBuffer(GL_ARRAY_BUFFER, lineVbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, buf);
-        glDrawArrays(GL_LINES, 0, 2);
-        glLineWidth(1f);
-        glDepthMask(true);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+
+        Vector4f p = new Vector4f();
+        p.set(va.x, va.y, va.z, 1f).mul(mvp);
+        if (p.w <= 0) return;
+        float ax = (p.x / p.w * 0.5f + 0.5f) * w;
+        float ay = (1f - (p.y / p.w * 0.5f + 0.5f)) * h;
+
+        p.set(vb.x, vb.y, vb.z, 1f).mul(mvp);
+        if (p.w <= 0) return;
+        float bx = (p.x / p.w * 0.5f + 0.5f) * w;
+        float by = (1f - (p.y / p.w * 0.5f + 0.5f)) * h;
+
+        shadow.drawEdge(ax, ay, bx, by, r, g, b, a, 3f);
     }
 
-    private void drawConnectedBatch(ShapeData data, ArrayList<Edge> edges, float r, float g, float b) {
+    private void drawBatch2D(ShapeData data, ArrayList<Edge> edges, Matrix4f mvp, int w, int h,
+                              float r, float g, float b, float a) {
         if (edges.isEmpty()) return;
-        FloatBuffer cb = BufferUtils.createFloatBuffer(edges.size() * 2 * 6);
+        FloatBuffer buf = BufferUtils.createFloatBuffer(edges.size() * 2 * 6);
+        Vector4f p = new Vector4f();
         for (Edge e : edges) {
             Vertex eva = data.vertices.get(e.a);
             Vertex evb = data.vertices.get(e.b);
             if (eva == null || evb == null) continue;
-            cb.put(eva.x); cb.put(eva.y); cb.put(eva.z);
-            cb.put(r); cb.put(g); cb.put(b);
-            cb.put(evb.x); cb.put(evb.y); cb.put(evb.z);
-            cb.put(r); cb.put(g); cb.put(b);
+
+            p.set(eva.x, eva.y, eva.z, 1f).mul(mvp);
+            if (p.w <= 0) continue;
+            buf.put((p.x / p.w * 0.5f + 0.5f) * w);
+            buf.put((1f - (p.y / p.w * 0.5f + 0.5f)) * h);
+            buf.put(r).put(g).put(b).put(a);
+
+            p.set(evb.x, evb.y, evb.z, 1f).mul(mvp);
+            if (p.w <= 0) continue;
+            buf.put((p.x / p.w * 0.5f + 0.5f) * w);
+            buf.put((1f - (p.y / p.w * 0.5f + 0.5f)) * h);
+            buf.put(r).put(g).put(b).put(a);
         }
-        cb.flip();
-        glDepthMask(false);
-        glLineWidth(1.5f);
-        glBindVertexArray(connVao);
-        glBindBuffer(GL_ARRAY_BUFFER, connVbo);
-        glBufferData(GL_ARRAY_BUFFER, cb, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_LINES, 0, edges.size() * 2);
-        glLineWidth(1f);
-        glDepthMask(true);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-
-    private void buildConn() {
-        connVao = glGenVertexArrays();
-        connVbo = glGenBuffers();
-        glBindVertexArray(connVao);
-        glBindBuffer(GL_ARRAY_BUFFER, connVbo);
-        glBufferData(GL_ARRAY_BUFFER, 256 * 6 * 4, GL_DYNAMIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * 4, 0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * 4, 3 * 4);
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-
-    private void buildLine() {
-        lineVao = glGenVertexArrays();
-        lineVbo = glGenBuffers();
-        glBindVertexArray(lineVao);
-        glBindBuffer(GL_ARRAY_BUFFER, lineVbo);
-        glBufferData(GL_ARRAY_BUFFER, 12 * 4, GL_DYNAMIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * 4, 0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * 4, 3 * 4);
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        buf.flip();
+        int vertCount = buf.limit() / 6;
+        if (vertCount > 0) shadow.drawEdgeBatch(buf, vertCount, r, g, b, a, 1.5f);
     }
 
     @Override
     public void cleanup() {
-        if (connVao >= 0) { glDeleteVertexArrays(connVao); connVao = -1; }
-        if (connVbo >= 0) { glDeleteBuffers(connVbo); connVbo = -1; }
-        if (lineVao >= 0) { glDeleteVertexArrays(lineVao); lineVao = -1; }
-        if (lineVbo >= 0) { glDeleteBuffers(lineVbo); lineVbo = -1; }
+        shadow.cleanup();
     }
 }

@@ -11,10 +11,12 @@ import markershape.shape.render.edge.EdgeBatchRenderer;
 import markershape.shape.render.edge.EdgeHighlightRenderer;
 import markershape.shape.render.face.FaceRenderer;
 import markershape.shape.render.point.CrosshairRenderer;
-import markershape.shape.render.point.GlowRenderer;
 import markershape.shape.render.point.PointRenderer;
 
 import java.util.*;
+
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -23,18 +25,27 @@ public class ShapeRenderer {
     private Shader shader;
     private ShapeData shapeData;
     private final String shaderPath = "shaders/markershape/";
-    private final org.joml.Matrix4f identity = new org.joml.Matrix4f();
+    private final Matrix4f identity = new Matrix4f();
 
     private final FaceRenderer faceRenderer = new FaceRenderer();
     private final PointRenderer pointRenderer = new PointRenderer();
     private final EdgeBatchRenderer edgeBatchRenderer = new EdgeBatchRenderer();
     private final EdgeHighlightRenderer edgeHighlightRenderer = new EdgeHighlightRenderer();
-    private final GlowRenderer glowRenderer = new GlowRenderer();
     private final CrosshairRenderer crosshairRenderer = new CrosshairRenderer();
+    public final ShadowRenderer shadow = new ShadowRenderer();
     private final GridRenderer grid = new GridRenderer();
 
+    private int hoveredVertexId = -1;
     private boolean showFaces = true, showEdges = true, showPoints = true;
     private float pointSize = 5f, lineWidth = 3f, faceAlpha = 1f;
+    private int screenW = 1280, screenH = 720;
+
+    public void setScreenSize(int w, int h) {
+        screenW = w;
+        screenH = h;
+        shadow.setScreenSize(w, h);
+        edgeHighlightRenderer.setScreenSize(w, h);
+    }
 
     public boolean loadShape(String filename) {
         ShapeData data = ShapeLoader.load(filename);
@@ -117,12 +128,12 @@ public class ShapeRenderer {
         pointRenderer.cleanup();
         edgeBatchRenderer.cleanup();
         edgeHighlightRenderer.cleanup();
-        glowRenderer.cleanup();
+        shadow.cleanup();
         crosshairRenderer.cleanup();
     }
 
     public void setHoveredVertex(int id) {
-        glowRenderer.setHoveredVertex(id);
+        hoveredVertexId = id;
         edgeHighlightRenderer.setHoveredVertex(id);
     }
     public void setHoveredEdge(int id) { edgeHighlightRenderer.setHoveredEdge(id); }
@@ -134,7 +145,7 @@ public class ShapeRenderer {
         crosshairRenderer.setPosition(pos);
     }
 
-    public void render(org.joml.Matrix4f view, org.joml.Matrix4f projection) {
+    public void render(Matrix4f view, Matrix4f projection) {
         if (shape == null || shader == null) {
             LogFile.log("[ShapeRenderer] render skipped: shape=" + (shape == null) + " shader=" + (shader == null));
             return;
@@ -164,19 +175,32 @@ public class ShapeRenderer {
             pointRenderer.render(shader, shapeData);
         }
 
+        // Edge highlights in 2D overlay
         if (showEdges && shapeData != null) {
-            edgeHighlightRenderer.render(shader, shapeData);
+            edgeHighlightRenderer.render2D(shapeData, view, projection, screenW, screenH);
         }
 
-        if (showPoints && shapeData != null) {
-            glowRenderer.render(shader, shapeData);
+        // Hovered vertex glow in 2D overlay
+        if (showPoints && hoveredVertexId >= 0 && shapeData != null
+            && shapeData.vertices.containsKey(hoveredVertexId)) {
+            Vertex v = shapeData.vertices.get(hoveredVertexId);
+            Matrix4f mvp = new Matrix4f(projection);
+            mvp.mul(view);
+            Vector4f p = new Vector4f(v.x, v.y, v.z, 1f).mul(mvp);
+            if (p.w > 0) {
+                float sx = (p.x / p.w * 0.5f + 0.5f) * screenW;
+                float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * screenH;
+                shadow.drawPoint(sx, sy, 1f, 1f, 0.6f, 1f, pointSize);
+            }
         }
+
         crosshairRenderer.render(shader, shapeData);
 
         shader.unbind();
     }
 
     public void setGridStep(float step) { grid.setGridStep(step); }
+    public void setGridVisible(boolean v) { grid.setGridVisible(v); }
     public void setShowAxisX(boolean v) { grid.setShowAxisX(v); crosshairRenderer.setShowAxisX(v); }
     public void setShowAxisY(boolean v) { grid.setShowAxisY(v); crosshairRenderer.setShowAxisY(v); }
     public void setShowAxisZ(boolean v) { grid.setShowAxisZ(v); crosshairRenderer.setShowAxisZ(v); }
