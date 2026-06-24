@@ -84,7 +84,29 @@ public class FilterPanel {
 
         float ph = panelHeight();
 
-        blur.drawBlurredBg(filterX, filterY, PANEL_W, ph, 0.85f, 0.9f, 0.9f, 0.95f);
+        blur.drawBlurredBg(filterX, filterY, PANEL_W, ph, 0.85f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
+
+        if (!BlurBackground.transparentUI) {
+            shader.bind();
+            shader.setUniformMat4f("projection", ortho);
+            buf.clear();
+            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+            buf.put(new float[]{
+                filterX, filterY, mr, mg, mb, 0.92f,
+                filterX+PANEL_W, filterY, mr, mg, mb, 0.92f,
+                filterX+PANEL_W, filterY+ph, mr, mg, mb, 0.92f,
+                filterX, filterY, mr, mg, mb, 0.92f,
+                filterX+PANEL_W, filterY+ph, mr, mg, mb, 0.92f,
+                filterX, filterY+ph, mr, mg, mb, 0.92f,
+            }).flip();
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            shader.unbind();
+        }
 
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
@@ -195,6 +217,8 @@ public class FilterPanel {
 
     public boolean isSnapEnabled() { return filterValues[6]; }
     public float getSnapStep() { return sliderValues[3]; }
+    public void setSnapEnabled(boolean v) { filterValues[6] = v; }
+    public void setSnapStep(float v) { sliderValues[3] = v; }
 
     private void fireCallback() { if (filterCallback != null) filterCallback.run(); }
 }

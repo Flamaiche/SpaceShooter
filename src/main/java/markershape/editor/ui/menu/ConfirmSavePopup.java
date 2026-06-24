@@ -58,8 +58,8 @@ public class ConfirmSavePopup {
         float cx = (width - CONFIRM_W) / 2;
         float cy = (36 + (height - 36) / 2) - CONFIRM_H / 2;
 
-        blur.drawBlurredBg(0, 0, width, height, 0.55f, 0.8f, 0.8f, 0.85f);
-        blur.drawBlurredBg(cx, cy, CONFIRM_W, CONFIRM_H, 0.88f, 0.9f, 0.9f, 0.95f);
+        blur.drawBlurredBg(0, 0, width, height, 0.55f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
+        blur.drawBlurredBg(cx, cy, CONFIRM_W, CONFIRM_H, 0.88f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
 
         Text.drawText(textShader, "Sauvegarder ?",
             cx + CONFIRM_W / 2 - 50, cy + 18, 1.5f, 1f, 1f, 1f);

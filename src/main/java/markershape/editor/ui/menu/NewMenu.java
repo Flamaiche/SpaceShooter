@@ -59,8 +59,10 @@ public class NewMenu {
         float dh = 2 * NEW_ITEM_H;
         float border = 1f;
 
-        blur.drawBlurredBg(dx - border, dy - border, NEW_DROP_W + 2 * border, dh + 2 * border,
-            0.82f, 0.5f, 0.5f, 0.55f);
+        if (markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            blur.drawBlurredBg(dx - border, dy - border, NEW_DROP_W + 2 * border, dh + 2 * border,
+                0.82f, 0.5f, 0.5f, 0.55f);
+        }
 
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
@@ -69,14 +71,17 @@ public class NewMenu {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
         if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            float mr = markershape.editor.ui.menu.BlurBackground.menuR;
+            float mg = markershape.editor.ui.menu.BlurBackground.menuG;
+            float mb = markershape.editor.ui.menu.BlurBackground.menuB;
             buf.clear();
             buf.put(new float[]{
-                dx - border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
-                dx + NEW_DROP_W + border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
-                dx + NEW_DROP_W + border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
-                dx - border, dy - border, 0.5f, 0.5f, 0.7f, 0.9f,
-                dx + NEW_DROP_W + border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
-                dx - border, dy + dh + border, 0.5f, 0.5f, 0.7f, 0.9f,
+                dx - border, dy - border, mr, mg, mb, 0.9f,
+                dx + NEW_DROP_W + border, dy - border, mr, mg, mb, 0.9f,
+                dx + NEW_DROP_W + border, dy + dh + border, mr, mg, mb, 0.9f,
+                dx - border, dy - border, mr, mg, mb, 0.9f,
+                dx + NEW_DROP_W + border, dy + dh + border, mr, mg, mb, 0.9f,
+                dx - border, dy + dh + border, mr, mg, mb, 0.9f,
             }).flip();
             glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
             glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -85,14 +90,17 @@ public class NewMenu {
         for (int i = 0; i < 2; i++) {
             float iy = dy + i * NEW_ITEM_H;
             if (i == activeMode) {
+                float mr = markershape.editor.ui.menu.BlurBackground.menuR;
+                float mg = markershape.editor.ui.menu.BlurBackground.menuG;
+                float mb = markershape.editor.ui.menu.BlurBackground.menuB;
                 buf.clear();
                 buf.put(new float[]{
-                    dx, iy, 0.3f, 0.25f, 0.15f, 0.85f,
-                    dx + NEW_DROP_W, iy, 0.3f, 0.25f, 0.15f, 0.85f,
-                    dx + NEW_DROP_W, iy + NEW_ITEM_H, 0.3f, 0.25f, 0.15f, 0.85f,
-                    dx, iy, 0.3f, 0.25f, 0.15f, 0.85f,
-                    dx + NEW_DROP_W, iy + NEW_ITEM_H, 0.3f, 0.25f, 0.15f, 0.85f,
-                    dx, iy + NEW_ITEM_H, 0.3f, 0.25f, 0.15f, 0.85f,
+                    dx, iy, mr+0.15f, mg+0.1f, mb, 0.85f,
+                    dx + NEW_DROP_W, iy, mr+0.15f, mg+0.1f, mb, 0.85f,
+                    dx + NEW_DROP_W, iy + NEW_ITEM_H, mr+0.15f, mg+0.1f, mb, 0.85f,
+                    dx, iy, mr+0.15f, mg+0.1f, mb, 0.85f,
+                    dx + NEW_DROP_W, iy + NEW_ITEM_H, mr+0.15f, mg+0.1f, mb, 0.85f,
+                    dx, iy + NEW_ITEM_H, mr+0.15f, mg+0.1f, mb, 0.85f,
                 }).flip();
                 glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -107,11 +115,12 @@ public class NewMenu {
         for (int i = 0; i < 2; i++) {
             float iy = dy + i * NEW_ITEM_H;
             String prefix = (i == activeMode) ? "> " : "  ";
+            float tc = markershape.editor.ui.menu.BlurBackground.textColor();
             Text.drawText(textShader, prefix + items[i],
                 dx + 8, iy + 4, 1.5f,
-                i == activeMode ? 1f : 0.8f,
-                i == activeMode ? 1f : 0.8f,
-                i == activeMode ? 0.4f : 0.8f);
+                i == activeMode ? 1f : tc,
+                i == activeMode ? 1f : tc,
+                i == activeMode ? 0.4f : tc);
         }
     }
 

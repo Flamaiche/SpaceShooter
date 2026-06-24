@@ -9,6 +9,8 @@ import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.ConfirmSavePopup;
 import markershape.editor.ui.menu.NewMenu;
 
+import java.nio.FloatBuffer;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -94,6 +96,23 @@ public class EditorUI {
         });
         filterBtn.textScale = 1.5f;
         filterBtn.showBackground = !transparentBar;
+        syncFromConfig();
+    }
+
+    public void syncFromConfig() {
+        transparentBar = BlurBackground.transparentUI;
+        boolean opaque = !BlurBackground.transparentUI;
+        saveBtn.showBackground = opaque;
+        quitBtn.showBackground = opaque;
+        newBtn.showBackground = opaque;
+        filterBtn.showBackground = opaque;
+
+        if (opaque) {
+            saveBtn.bgR = BlurBackground.menuR; saveBtn.bgG = BlurBackground.menuG; saveBtn.bgB = BlurBackground.menuB;
+            quitBtn.bgR = BlurBackground.menuR; quitBtn.bgG = BlurBackground.menuG; quitBtn.bgB = BlurBackground.menuB;
+            newBtn.bgR = BlurBackground.menuR; newBtn.bgG = BlurBackground.menuG; newBtn.bgB = BlurBackground.menuB;
+            filterBtn.bgR = BlurBackground.menuR; filterBtn.bgG = BlurBackground.menuG; filterBtn.bgB = BlurBackground.menuB;
+        }
     }
 
     public void render(String currentFile) {
@@ -102,8 +121,28 @@ public class EditorUI {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        if (transparentBar) {
-            blur.drawBlurredBg(0, 0, width, BAR_H, 0.75f, 0.85f, 0.85f, 0.9f);
+        if (BlurBackground.transparentUI) {
+            blur.drawBlurredBg(0, 0, width, BAR_H, 0.75f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
+        } else {
+            FloatBuffer b = buf();
+            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+            b.put(new float[]{
+                0f, 0f, mr, mg, mb, 1f,
+                (float)width, 0f, mr, mg, mb, 1f,
+                (float)width, (float)BAR_H, mr, mg, mb, 1f,
+                0f, 0f, mr, mg, mb, 1f,
+                (float)width, (float)BAR_H, mr, mg, mb, 1f,
+                0f, (float)BAR_H, mr, mg, mb, 1f,
+            }).flip();
+            shader.bind();
+            shader.setUniformMat4f("projection", ortho());
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            shader.unbind();
         }
         saveBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
         quitBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
@@ -116,7 +155,32 @@ public class EditorUI {
         filter.render(filterBtn.x, BAR_H);
 
         String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
-        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1.5f, 1f, 1f, 1f);
+        float tc = BlurBackground.textColor();
+        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1.5f, tc, tc, tc);
+
+        if (!BlurBackground.transparentUI && confirmSave.isVisible()) {
+            float cx = (width - ConfirmSavePopup.CONFIRM_W) / 2;
+            float cy = (36 + (height - 36) / 2) - ConfirmSavePopup.CONFIRM_H / 2;
+            FloatBuffer b = buf();
+            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+            b.put(new float[]{
+                cx, cy, mr, mg, mb, 0.92f,
+                cx+ConfirmSavePopup.CONFIRM_W, cy, mr, mg, mb, 0.92f,
+                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, 0.92f,
+                cx, cy, mr, mg, mb, 0.92f,
+                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, 0.92f,
+                cx, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, 0.92f,
+            }).flip();
+            shader.bind();
+            shader.setUniformMat4f("projection", ortho());
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            shader.unbind();
+        }
 
         confirmSave.render();
     }
@@ -156,7 +220,7 @@ public class EditorUI {
 
     public void setActiveMode(int mode) {
         newMenu.setActiveMode(mode);
-        if (transparentBar) {
+        if (BlurBackground.transparentUI) {
             newBtn.textR = 1f; newBtn.textG = 1f; newBtn.textB = 1f;
             if (mode == 0) { newBtn.textR = 1f; newBtn.textG = 0.7f; newBtn.textB = 0.3f; }
             else if (mode == 1) { newBtn.textR = 1f; newBtn.textG = 0.3f; newBtn.textB = 0.3f; }
@@ -190,6 +254,8 @@ public class EditorUI {
     public float[] getSliderValues() { return filter.sliderValues; }
     public boolean isSnapEnabled() { return filter.isSnapEnabled(); }
     public float getSnapStep() { return filter.getSnapStep(); }
+    public void setSnapEnabled(boolean v) { filter.setSnapEnabled(v); }
+    public void setSnapStep(float v) { filter.setSnapStep(v); }
 
     public void setFilterCallback(Runnable cb) { filter.setFilterCallback(cb); }
 

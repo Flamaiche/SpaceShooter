@@ -25,10 +25,11 @@ public class MenuUI {
     private static final int ITEM_H = 40;
     private static final int START_Y = 120;
     private Button paramBtn, quitBtn;
-    private Runnable onQuit;
+    private Runnable onQuit, onParams;
 
-    public MenuUI(int w, int h, Runnable onQuit) {
+    public MenuUI(int w, int h, Runnable onQuit, Runnable onParams) {
         this.onQuit = onQuit;
+        this.onParams = onParams;
         shader = new Shader("shaders/markershape/ui_Vertex.glsl",
                             "shaders/markershape/ui_Fragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
@@ -79,8 +80,7 @@ public class MenuUI {
         float bx = width / 2f - 180;
         float by = START_Y + shapes.length * ITEM_H + 12;
         if (paramBtn == null || paramBtn.x != bx || paramBtn.y != by) {
-            paramBtn = new Button("Parametres", bx, by, 170, 36, () ->
-                System.out.println("[MarkerShape] Parametres (not implemented yet)"));
+            paramBtn = new Button("Parametres", bx, by, 170, 36, onParams);
             paramBtn.textScale = 2.5f;
             paramBtn.bgR = 0.2f; paramBtn.bgG = 0.2f; paramBtn.bgB = 0.3f;
             quitBtn = new Button("Quitter", width / 2f + 10, by, 170, 36, onQuit);

@@ -61,14 +61,17 @@ public abstract class Overlay {
         uiShader.setUniformMat4f("projection", ortho);
 
         if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            float mr = markershape.editor.ui.menu.BlurBackground.menuR;
+            float mg = markershape.editor.ui.menu.BlurBackground.menuG;
+            float mb = markershape.editor.ui.menu.BlurBackground.menuB;
             buf.clear();
             buf.put(new float[]{
-                px,    py,    0.15f, 0.15f, 0.22f, 0.95f,
-                px+pw, py,    0.15f, 0.15f, 0.22f, 0.95f,
-                px+pw, py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
-                px,    py,    0.15f, 0.15f, 0.22f, 0.95f,
-                px+pw, py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
-                px,    py+ph, 0.15f, 0.15f, 0.22f, 0.95f,
+                px,    py,    mr, mg, mb, 0.95f,
+                px+pw, py,    mr, mg, mb, 0.95f,
+                px+pw, py+ph, mr, mg, mb, 0.95f,
+                px,    py,    mr, mg, mb, 0.95f,
+                px+pw, py+ph, mr, mg, mb, 0.95f,
+                px,    py+ph, mr, mg, mb, 0.95f,
             }).flip();
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -84,6 +87,8 @@ public abstract class Overlay {
 
         renderText(textShader);
 
+        float tc = markershape.editor.ui.menu.BlurBackground.textColor();
+        deleteBtn.textR = tc; deleteBtn.textG = tc; deleteBtn.textB = tc;
         deleteBtn.render(uiShader, textShader, ortho, buf, vao, vbo);
         closeBtn.render(uiShader, textShader, ortho, buf, vao, vbo);
     }

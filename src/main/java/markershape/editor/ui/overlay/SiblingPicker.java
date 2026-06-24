@@ -76,14 +76,17 @@ public class SiblingPicker {
         uiShader.setUniformMat4f("projection", ortho);
 
         if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            float mr = markershape.editor.ui.menu.BlurBackground.menuR;
+            float mg = markershape.editor.ui.menu.BlurBackground.menuG;
+            float mb = markershape.editor.ui.menu.BlurBackground.menuB;
             buf.clear();
             buf.put(new float[]{
-                px, py, 0.1f, 0.1f, 0.15f, 0.95f,
-                px+PW, py, 0.1f, 0.1f, 0.15f, 0.95f,
-                px+PW, py+ph, 0.1f, 0.1f, 0.15f, 0.95f,
-                px, py, 0.1f, 0.1f, 0.15f, 0.95f,
-                px+PW, py+ph, 0.1f, 0.1f, 0.15f, 0.95f,
-                px, py+ph, 0.1f, 0.1f, 0.15f, 0.95f,
+                px, py, mr, mg, mb, 0.95f,
+                px+PW, py, mr, mg, mb, 0.95f,
+                px+PW, py+ph, mr, mg, mb, 0.95f,
+                px, py, mr, mg, mb, 0.95f,
+                px+PW, py+ph, mr, mg, mb, 0.95f,
+                px, py+ph, mr, mg, mb, 0.95f,
             }).flip();
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -93,17 +96,20 @@ public class SiblingPicker {
 
         // row backgrounds
         if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            float mr = markershape.editor.ui.menu.BlurBackground.menuR;
+            float mg = markershape.editor.ui.menu.BlurBackground.menuG;
+            float mb = markershape.editor.ui.menu.BlurBackground.menuB;
             for (int i = 0; i < ids.length; i++) {
                 float ry = py + 30 + i * ROW_H;
-                float accent = (i % 2 == 0) ? 0.18f : 0.14f;
+                float mult = (i % 2 == 0) ? 1.15f : 0.95f;
                 buf.clear();
                 buf.put(new float[]{
-                    px+2, ry, accent, accent, accent+0.03f, 1f,
-                    px+PW-2, ry, accent, accent, accent+0.03f, 1f,
-                    px+PW-2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
-                    px+2, ry, accent, accent, accent+0.03f, 1f,
-                    px+PW-2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
-                    px+2, ry+ROW_H, accent, accent, accent+0.03f, 1f,
+                    px+2, ry, mr*mult, mg*mult, mb*mult, 1f,
+                    px+PW-2, ry, mr*mult, mg*mult, mb*mult, 1f,
+                    px+PW-2, ry+ROW_H, mr*mult, mg*mult, mb*mult, 1f,
+                    px+2, ry, mr*mult, mg*mult, mb*mult, 1f,
+                    px+PW-2, ry+ROW_H, mr*mult, mg*mult, mb*mult, 1f,
+                    px+2, ry+ROW_H, mr*mult, mg*mult, mb*mult, 1f,
                 }).flip();
                 glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -114,7 +120,9 @@ public class SiblingPicker {
         glBindVertexArray(0);
         uiShader.unbind();
 
-        Text.drawText(textShader, "Select vertex:", px + 8, py + 8, 1.5f, 0.8f, 0.8f, 1f);
+        float tc = markershape.editor.ui.menu.BlurBackground.textColor();
+
+        Text.drawText(textShader, "Select vertex:", px + 8, py + 8, 1.5f, tc, tc, 1f);
 
         for (int i = 0; i < vertices.length; i++) {
             Vertex v = vertices[i];
@@ -141,7 +149,7 @@ public class SiblingPicker {
             uiShader.unbind();
 
             Text.drawText(textShader, "#" + v.id + " (" + String.format("%.2f,%.2f,%.2f", v.r, v.g, v.b) + ")",
-                px + 30, ry, 1.5f, 0.8f, 0.8f, 0.8f);
+                px + 30, ry, 1.5f, tc, tc, tc);
         }
     }
 }

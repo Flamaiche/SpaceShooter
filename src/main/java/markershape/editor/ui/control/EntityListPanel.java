@@ -120,7 +120,9 @@ public class EntityListPanel {
         this.y = paneY;
         this.h = paneH;
 
-        blur.drawBlurredBg(px, paneY, pw, paneH, 0.85f, 0.85f, 0.85f, 0.9f);
+        blur.drawBlurredBg(px, paneY, pw, paneH, 0.85f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
+        float tc = markershape.editor.ui.menu.BlurBackground.textColor();
+        float tcDim = tc > 0.5f ? 0.4f : 0.3f;
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -129,15 +131,16 @@ public class EntityListPanel {
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
 
-        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+        if (!BlurBackground.transparentUI) {
+            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
             buf.clear();
             buf.put(new float[]{
-                px, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                px + pw, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                px + pw, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
-                px, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                px + pw, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
-                px, paneY + paneH, 0.12f, 0.12f, 0.18f, 0.92f,
+                px, paneY, mr, mg, mb, 0.92f,
+                px + pw, paneY, mr, mg, mb, 0.92f,
+                px + pw, paneY + paneH, mr, mg, mb, 0.92f,
+                px, paneY, mr, mg, mb, 0.92f,
+                px + pw, paneY + paneH, mr, mg, mb, 0.92f,
+                px, paneY + paneH, mr, mg, mb, 0.92f,
             }).flip();
             drawQuad();
         }
@@ -150,47 +153,50 @@ public class EntityListPanel {
             float tx = t == 0 ? px : midX;
             float tw = t == 0 ? midX - px : px + pw - NAV_W - midX;
             boolean act = (t == 0 && activeMode == MODE_VERTEX) || (t == 1 && activeMode == MODE_EDGE);
-            if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+            if (!BlurBackground.transparentUI) {
+                float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
                 buf.clear();
                 buf.put(new float[]{
-                    tx, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                    tx+tw-1, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                    tx+tw-1, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-                    tx, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                    tx+tw-1, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-                    tx, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
+                    tx, paneY, mr, mg, mb, 0.92f,
+                    tx+tw-1, paneY, mr, mg, mb, 0.92f,
+                    tx+tw-1, paneY+HEADER_H, mr, mg, mb, 0.92f,
+                    tx, paneY, mr, mg, mb, 0.92f,
+                    tx+tw-1, paneY+HEADER_H, mr, mg, mb, 0.92f,
+                    tx, paneY+HEADER_H, mr, mg, mb, 0.92f,
                 }).flip();
                 drawQuad();
             }
             if (act) {
+                float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
                 buf.clear();
                 buf.put(new float[]{
-                    tx, paneY+HEADER_H-3, 0.4f, 0.6f, 1f, 0.8f,
-                    tx+tw-1, paneY+HEADER_H-3, 0.4f, 0.6f, 1f, 0.8f,
-                    tx+tw-1, paneY+HEADER_H, 0.4f, 0.6f, 1f, 0.8f,
-                    tx, paneY+HEADER_H-3, 0.4f, 0.6f, 1f, 0.8f,
-                    tx+tw-1, paneY+HEADER_H, 0.4f, 0.6f, 1f, 0.8f,
-                    tx, paneY+HEADER_H, 0.4f, 0.6f, 1f, 0.8f,
+                    tx, paneY+HEADER_H-3, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
+                    tx+tw-1, paneY+HEADER_H-3, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
+                    tx+tw-1, paneY+HEADER_H, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
+                    tx, paneY+HEADER_H-3, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
+                    tx+tw-1, paneY+HEADER_H, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
+                    tx, paneY+HEADER_H, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
                 }).flip();
                 drawQuad();
             }
             shader.unbind();
             String label = t == 0 ? "Sommets" : "Ar\u00EAtes";
-            Text.drawText(textShader, label, tx + 10, paneY + 5, 1.5f, 1f, 1f, act ? 1f : 0.6f);
+            Text.drawText(textShader, label, tx + 10, paneY + 5, 1.5f, tc, tc, act ? tc : tc * 0.6f);
             shader.bind();
             shader.setUniformMat4f("projection", ortho);
         }
 
         float navX = px + pw - NAV_W;
-        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
+        if (!BlurBackground.transparentUI) {
+            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
             buf.clear();
             buf.put(new float[]{
-                navX, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                px+pw, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                px+pw, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-                navX, paneY, 0.12f, 0.12f, 0.18f, 0.92f,
-                px+pw, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
-                navX, paneY+HEADER_H, 0.12f, 0.12f, 0.18f, 0.92f,
+                navX, paneY, mr, mg, mb, 0.92f,
+                px+pw, paneY, mr, mg, mb, 0.92f,
+                px+pw, paneY+HEADER_H, mr, mg, mb, 0.92f,
+                navX, paneY, mr, mg, mb, 0.92f,
+                px+pw, paneY+HEADER_H, mr, mg, mb, 0.92f,
+                navX, paneY+HEADER_H, mr, mg, mb, 0.92f,
             }).flip();
             drawQuad();
         }
@@ -201,17 +207,18 @@ public class EntityListPanel {
             boolean canPrev = scrollOffset > 0;
             boolean canNext = scrollOffset + vis < tot;
             shader.unbind();
-            Text.drawText(textShader, "<", navX + 10, paneY + 5, 1.5f, canPrev ? 1f : 0.4f, canPrev ? 1f : 0.4f, canPrev ? 1f : 0.4f);
-            Text.drawText(textShader, ">", navX + 28, paneY + 5, 1.5f, canNext ? 1f : 0.4f, canNext ? 1f : 0.4f, canNext ? 1f : 0.4f);
+            Text.drawText(textShader, "<", navX + 10, paneY + 5, 1.5f, canPrev ? tc : tcDim, canPrev ? tc : tcDim, canPrev ? tc : tcDim);
+            Text.drawText(textShader, ">", navX + 28, paneY + 5, 1.5f, canNext ? tc : tcDim, canNext ? tc : tcDim, canNext ? tc : tcDim);
             shader.bind();
             shader.setUniformMat4f("projection", ortho);
         }
 
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
         float lineY = paneY + HEADER_H;
         buf.clear();
         buf.put(new float[]{
-            px + 8, lineY, 0.3f, 0.3f, 0.4f, 1f,
-            px + pw - 8, lineY, 0.3f, 0.3f, 0.4f, 1f,
+            px + 8, lineY, mr+0.1f, mg+0.1f, mb+0.1f, 1f,
+            px + pw - 8, lineY, mr+0.1f, mg+0.1f, mb+0.1f, 1f,
         }).flip();
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -233,7 +240,7 @@ public class EntityListPanel {
                 Vertex v = vs[i];
                 shader.unbind();
                 String label = "#" + v.id + "  (" + fmt(v.x) + ", " + fmt(v.y) + ", " + fmt(v.z) + ")";
-                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f, 0.8f, 0.8f, hover ? 1f : 0.7f);
+                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f, tc, tc, hover ? 1f : tc * 0.7f);
                 shader.bind();
                 shader.setUniformMat4f("projection", ortho);
             }
@@ -247,7 +254,7 @@ public class EntityListPanel {
                 Edge e = es[i];
                 shader.unbind();
                 String label = "#" + e.id + "  " + e.a + "\u2192" + e.b + "  [" + e.mode + "]";
-                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f, 0.8f, 0.8f, hover ? 1f : 0.7f);
+                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f, tc, tc, hover ? 1f : tc * 0.7f);
                 shader.bind();
                 shader.setUniformMat4f("projection", ortho);
             }
@@ -262,14 +269,15 @@ public class EntityListPanel {
     }
 
     private void drawItemHighlight(float iy) {
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
         buf.clear();
         buf.put(new float[]{
-            px + 4, iy, 0.3f, 0.5f, 0.9f, 0.25f,
-            px + pw - 4, iy, 0.3f, 0.5f, 0.9f, 0.25f,
-            px + pw - 4, iy + ITEM_H, 0.3f, 0.5f, 0.9f, 0.25f,
-            px + 4, iy, 0.3f, 0.5f, 0.9f, 0.25f,
-            px + pw - 4, iy + ITEM_H, 0.3f, 0.5f, 0.9f, 0.25f,
-            px + 4, iy + ITEM_H, 0.3f, 0.5f, 0.9f, 0.25f,
+            px + 4, iy, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
+            px + pw - 4, iy, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
+            px + pw - 4, iy + ITEM_H, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
+            px + 4, iy, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
+            px + pw - 4, iy + ITEM_H, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
+            px + 4, iy + ITEM_H, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
         }).flip();
         drawQuad();
     }

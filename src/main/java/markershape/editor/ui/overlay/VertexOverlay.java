@@ -141,28 +141,30 @@ public class VertexOverlay extends Overlay {
 
     @Override
     protected void renderText(Shader textShader) {
-        Text.drawText(textShader, "Vertex #" + vertex.id, px + 12, py + 10, 1.5f, 1f, 1f, 1f);
+        float bc = markershape.editor.ui.menu.BlurBackground.textColor();
+        float dim = bc * 0.6f + 0.2f;
+        float dim2 = bc * 0.4f + 0.3f;
+
+        Text.drawText(textShader, "Vertex #" + vertex.id, px + 12, py + 10, 1.5f, bc, bc, bc);
 
         for (int i = 0; i < fieldYOff.length; i++) {
             float fy = py + fieldYOff[i];
             float val = getFieldValue(i);
             String fmt = i <= 2 ? "%.3f" : "%.2f";
             boolean sel = (i == selectedField);
-            float tc = sel ? 1f : 0.8f;
-            float ta = sel ? 1f : 0.8f;
 
-            Text.drawText(textShader, fieldLabels[i], px + 12, fy, 1.5f, 0.8f, 0.8f, 1f);
-            Text.drawText(textShader, String.format(fmt, val), px + VAL_X, fy, 1.5f, tc, tc, ta);
-            Text.drawText(textShader, "[-]", px + MINUS_X, fy + 1, 1.5f, 0.8f, 0.8f, 1f);
-            Text.drawText(textShader, "[+]", px + PLUS_X, fy + 1, 1.5f, 0.8f, 0.8f, 1f);
+            Text.drawText(textShader, fieldLabels[i], px + 12, fy, 1.5f, bc, bc, 1f);
+            Text.drawText(textShader, String.format(fmt, val), px + VAL_X, fy, 1.5f, sel ? bc : dim, sel ? bc : dim, sel ? bc : dim);
+            Text.drawText(textShader, "[-]", px + MINUS_X, fy + 1, 1.5f, bc, bc, 1f);
+            Text.drawText(textShader, "[+]", px + PLUS_X, fy + 1, 1.5f, bc, bc, 1f);
         }
 
-        Text.drawText(textShader, "Edges: " + edgeCount, px + 12, py + 186, 1.5f, 0.8f, 0.8f, 0.8f);
+        Text.drawText(textShader, "Edges: " + edgeCount, px + 12, py + 186, 1.5f, dim, dim, dim);
 
         if (siblingIds != null && siblingIds.length > 0) {
             float[] labelExt = Text.getTextExtent("Also:", 1.5f);
             float baseY = py + 210;
-            Text.drawText(textShader, "Also:", px + 12, baseY, 1.5f, 0.8f, 0.8f, 0.8f);
+            Text.drawText(textShader, "Also:", px + 12, baseY, 1.5f, dim, dim, dim);
             float bx = px + 12 + labelExt[0] + 4;
             float by = baseY;
             float maxX = px + pw - 12;
@@ -177,7 +179,7 @@ public class VertexOverlay extends Overlay {
                 }
                 siblingBadgePos[i][0] = bx;
                 siblingBadgePos[i][1] = by;
-                Text.drawText(textShader, label, bx, by, 1.5f, 0.7f, 0.7f, 0.7f);
+                Text.drawText(textShader, label, bx, by, 1.5f, dim2, dim2, dim2);
                 bx += ext[0] + 4;
             }
         }
