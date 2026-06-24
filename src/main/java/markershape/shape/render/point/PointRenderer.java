@@ -38,10 +38,12 @@ public class PointRenderer implements Renderer {
         glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(false);
         shader.setUniform1f("uAlpha", 1f);
         glPointSize(pointSize);
         glDrawArrays(GL_POINTS, 0, count);
         glPointSize(1f);
+        glDepthMask(true);
         glDisable(GL_BLEND);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
