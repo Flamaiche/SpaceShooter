@@ -1,0 +1,204 @@
+{
+  "type": "markershape.config.ConfigParametres",
+  "data": [
+    {
+      "name": "default",
+      "valeurs": {
+        "pointSize": 5,
+        "lineWidth": 3,
+        "faceAlpha": 1.0,
+        "transparentUI": false,
+        "menuR": -0.030000009,
+        "menuG": 0.019999992,
+        "menuB": 1.0300001,
+        "bgR": 0.9500001,
+        "bgG": 1.0000001,
+        "bgB": 0.37000003,
+        "gridVisible": true,
+        "snapEnabled": false,
+        "snapStep": 1.0,
+        "axisX": true,
+        "axisY": true,
+        "axisZ": true,
+        "zoomSpeed": 0.1,
+        "orbitSpeed": 2.0
+      },
+      "categories": [
+        {
+          "id": "affichage",
+          "label": "Affichage",
+          "params": [
+            {
+              "key": "pointSize",
+              "label": "Taille points",
+              "type": "float",
+              "min": 1.0,
+              "max": 20.0,
+              "step": 1.0
+            },
+            {
+              "key": "lineWidth",
+              "label": "Epaisseur lignes",
+              "type": "float",
+              "min": 1.0,
+              "max": 10.0,
+              "step": 1.0
+            },
+            {
+              "key": "faceAlpha",
+              "label": "Alpha faces",
+              "type": "float",
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "id": "menu",
+          "label": "Menu",
+          "params": [
+            {
+              "key": "transparentUI",
+              "label": "Fond menu transparent",
+              "type": "bool",
+              "min": 0.0,
+              "max": 0.0,
+              "step": 0.0
+            },
+            {
+              "key": "menuR",
+              "label": "Couleur menu R",
+              "type": "float",
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.05
+            },
+            {
+              "key": "menuG",
+              "label": "Couleur menu V",
+              "type": "float",
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.05
+            },
+            {
+              "key": "menuB",
+              "label": "Couleur menu B",
+              "type": "float",
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "id": "arriereplan",
+          "label": "Arriere-plan",
+          "params": [
+            {
+              "key": "bgR",
+              "label": "Fond R",
+              "type": "float",
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.05
+            },
+            {
+              "key": "bgG",
+              "label": "Fond V",
+              "type": "float",
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.05
+            },
+            {
+              "key": "bgB",
+              "label": "Fond B",
+              "type": "float",
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "id": "grille",
+          "label": "Grille",
+          "params": [
+            {
+              "key": "gridVisible",
+              "label": "Visible",
+              "type": "bool",
+              "min": 0.0,
+              "max": 0.0,
+              "step": 0.0
+            },
+            {
+              "key": "snapEnabled",
+              "label": "Snap actif",
+              "type": "bool",
+              "min": 0.0,
+              "max": 0.0,
+              "step": 0.0
+            },
+            {
+              "key": "snapStep",
+              "label": "Pas snap",
+              "type": "float",
+              "min": 0.1,
+              "max": 5.0,
+              "step": 0.1
+            },
+            {
+              "key": "axisX",
+              "label": "Axe X",
+              "type": "bool",
+              "min": 0.0,
+              "max": 0.0,
+              "step": 0.0
+            },
+            {
+              "key": "axisY",
+              "label": "Axe Y",
+              "type": "bool",
+              "min": 0.0,
+              "max": 0.0,
+              "step": 0.0
+            },
+            {
+              "key": "axisZ",
+              "label": "Axe Z",
+              "type": "bool",
+              "min": 0.0,
+              "max": 0.0,
+              "step": 0.0
+            }
+          ]
+        },
+        {
+          "id": "camera",
+          "label": "Camera",
+          "params": [
+            {
+              "key": "zoomSpeed",
+              "label": "Zoom speed",
+              "type": "float",
+              "min": 0.1,
+              "max": 5.0,
+              "step": 0.1
+            },
+            {
+              "key": "orbitSpeed",
+              "label": "Rotation speed",
+              "type": "float",
+              "min": 0.1,
+              "max": 5.0,
+              "step": 0.1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

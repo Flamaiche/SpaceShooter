@@ -17,6 +17,13 @@ public class EditorCamera {
     private float near = 0.1f;
     private float far = 100f;
     private int width = 800, height = 600;
+    private float zoomSpeed = 0.5f;
+    private float orbitSpeed = 2.0f;
+
+    public void setZoomSpeed(float v) { zoomSpeed = v; }
+    public void setOrbitSpeed(float v) { orbitSpeed = v; }
+    public float getZoomSpeed() { return zoomSpeed; }
+    public float getOrbitSpeed() { return orbitSpeed; }
 
     /** Constructs an orbital camera with default position and radius. */
     public EditorCamera() {
@@ -31,8 +38,8 @@ public class EditorCamera {
      * @param dpitch the pitch offset in degrees
      */
     public void rotate(float dyaw, float dpitch) {
-        yaw += dyaw;
-        pitch = Math.max(-89f, Math.min(89f, pitch + dpitch));
+        yaw += dyaw * orbitSpeed;
+        pitch = Math.max(-89f, Math.min(89f, pitch + dpitch * orbitSpeed));
         updatePosition();
         LogFile.logf("[Camera] rotate: yaw=%.1f pitch=%.1f pos=(%.2f,%.2f,%.2f) radius=%.2f",
             yaw, pitch, position.x, position.y, position.z, radius);
@@ -45,7 +52,7 @@ public class EditorCamera {
      * @param amount the zoom delta (positive = zoom in)
      */
     public void zoom(float amount) {
-        radius = Math.max(0.5f, Math.min(50f, radius - amount));
+        radius = Math.max(0.5f, Math.min(50f, radius - amount * zoomSpeed));
         updatePosition();
         LogFile.logf("[Camera] zoom: radius=%.2f pos=(%.2f,%.2f,%.2f)",
             radius, position.x, position.y, position.z);
