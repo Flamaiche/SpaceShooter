@@ -7,16 +7,14 @@ import org.lwjgl.glfw.GLFW;
 public class InputManager {
     private final Context ctx;
     private final HoverManager hover;
-    private final DragAction drag;
     private final ClickHandler clicks;
     private boolean escDown, prevMouseLeft, mouseLeftDown;
 
     public InputManager(Context ctx, HoverManager hover, VertexAction vertex,
-                        EdgeAction edge, DragAction drag, DeleteAction del, ShapeIO io) {
+                        EdgeAction edge, DeleteAction del, ShapeIO io) {
         this.ctx = ctx;
         this.hover = hover;
-        this.drag = drag;
-        this.clicks = new ClickHandler(ctx, hover, vertex, edge, drag, del, io);
+        this.clicks = new ClickHandler(ctx, hover, vertex, edge, del, io);
     }
 
     public void process(float mx, float my) {
@@ -26,11 +24,6 @@ public class InputManager {
         }
 
         hover.update(mx, my);
-
-        if (drag.isDragging()) {
-            drag.update(mx, my);
-            if (!mouseLeftDown) drag.end();
-        }
 
         boolean escDownNow = GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS;
         if (escDownNow && !escDown) clicks.handleEscape();

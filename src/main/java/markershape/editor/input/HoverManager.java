@@ -1,7 +1,6 @@
 package markershape.editor.input;
 
 import markershape.editor.Context;
-import markershape.editor.action.DragAction;
 import markershape.editor.ui.control.EntityListPanel;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
@@ -12,11 +11,9 @@ import java.util.Set;
 
 public class HoverManager {
     private final Context ctx;
-    private final DragAction drag;
 
-    public HoverManager(Context ctx, DragAction drag) {
+    public HoverManager(Context ctx) {
         this.ctx = ctx;
-        this.drag = drag;
     }
 
     public void update(float mx, float my) {
@@ -63,21 +60,19 @@ public class HoverManager {
         ctx.renderer.setHoveredEdge(edgeId);
         ctx.renderer.setHoveredPositionIds(ctx.hoveredPositionIds);
 
-        if (!drag.isDragging() || vertId < 0) {
-            if (vertId >= 0) {
-                ctx.selection.crosshairPos.set(data.vertices.get(vertId).x,
-                    data.vertices.get(vertId).y,
-                    data.vertices.get(vertId).z);
-                ctx.selection.crosshairValid = true;
-            } else if (ctx.creatingVertex) {
-                Vector3f pos = ctx.pick.getClickWorldPos(mx, my);
-                ctx.snapIfEnabled(pos);
-                ctx.selection.crosshairPos.set(pos);
-                ctx.selection.crosshairValid = true;
-            } else if (!ctx.selection.crosshairValid && ctx.selection.selectedVertex >= 0) {
-                Vertex sv = data.vertices.get(ctx.selection.selectedVertex);
-                if (sv != null) ctx.selection.crosshairPos.set(sv.x, sv.y, sv.z);
-            }
+        if (vertId >= 0) {
+            ctx.selection.crosshairPos.set(data.vertices.get(vertId).x,
+                data.vertices.get(vertId).y,
+                data.vertices.get(vertId).z);
+            ctx.selection.crosshairValid = true;
+        } else if (ctx.creatingVertex) {
+            Vector3f pos = ctx.pick.getClickWorldPos(mx, my);
+            ctx.snapIfEnabled(pos);
+            ctx.selection.crosshairPos.set(pos);
+            ctx.selection.crosshairValid = true;
+        } else if (!ctx.selection.crosshairValid && ctx.selection.selectedVertex >= 0) {
+            Vertex sv = data.vertices.get(ctx.selection.selectedVertex);
+            if (sv != null) ctx.selection.crosshairPos.set(sv.x, sv.y, sv.z);
         }
         ctx.renderer.setCrosshair(ctx.selection.crosshairValid, ctx.selection.crosshairPos);
     }
