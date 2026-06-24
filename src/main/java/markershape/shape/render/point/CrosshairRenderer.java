@@ -29,6 +29,7 @@ public class CrosshairRenderer implements Renderer {
     public void render(Shader shader, ShapeData data) {
         if (!visible || pos == null || (!showAxisX && !showAxisY && !showAxisZ)) return;
         if (vao < 0) build();
+        shader.bind();
 
         float x = pos.x, y = pos.y, z = pos.z;
         float len = 100f;
