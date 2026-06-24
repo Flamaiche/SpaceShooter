@@ -15,6 +15,24 @@ import static org.lwjgl.opengl.GL30.*;
 
 public class BlurBackground {
     public static boolean transparentUI = true;
+    public static float menuR = 0.12f, menuG = 0.12f, menuB = 0.18f;
+
+    /** Returns 0f (black text) or 1f (white text) based on background luminance. */
+    public static float textColor() {
+        float r, g, b;
+        if (transparentUI) {
+            float a = 0.75f;
+            r = menuR * a + 0.5f * (1f - a);
+            g = menuG * a + 0.5f * (1f - a);
+            b = menuB * a + 0.5f * (1f - a);
+        } else {
+            r = menuR;
+            g = menuG;
+            b = menuB;
+        }
+        float lum = 0.299f * r + 0.587f * g + 0.114f * b;
+        return lum > 0.5f ? 0f : 1f;
+    }
 
     private int width, height;
     private Shader blurShader;

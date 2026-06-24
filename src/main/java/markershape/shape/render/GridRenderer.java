@@ -13,7 +13,11 @@ public class GridRenderer {
     private int gridVao = -1, gridVbo = -1;
     private int gridPlaneVerts;
     private boolean showAxisX = true, showAxisY = true, showAxisZ = true;
+    private boolean gridVisible = true;
     private float gridStep = 1.0f;
+
+    public void setGridVisible(boolean v) { gridVisible = v; }
+    public boolean isGridVisible() { return gridVisible; }
 
     public void setShowAxisX(boolean v) { showAxisX = v; }
     public void setShowAxisY(boolean v) { showAxisY = v; }
@@ -128,7 +132,7 @@ public class GridRenderer {
     public void render() {
         if (gridVao < 0) buildGridVao();
         if (gridVao < 0) return;
-        if (!showAxisX && !showAxisY && !showAxisZ) return;
+        if (!gridVisible || (!showAxisX && !showAxisY && !showAxisZ)) return;
 
         int pv = gridPlaneVerts;
         glDepthMask(false);

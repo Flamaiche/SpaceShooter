@@ -96,18 +96,21 @@ public class EdgeOverlay extends Overlay {
 
     @Override
     protected void renderText(Shader textShader) {
-        Text.drawText(textShader, "Edge #" + edge.id, px + 12, py + 10, 1.5f, 1f, 1f, 1f);
-        Text.drawText(textShader, "Vertex A: " + vertexA, px + 12, py + 42, 1.5f, 0.8f, 0.8f, 1f);
-        Text.drawText(textShader, "Vertex B: " + vertexB, px + 12, py + 66, 1.5f, 0.8f, 0.8f, 1f);
+        float bc = markershape.editor.ui.menu.BlurBackground.textColor();
+        float dim = bc * 0.6f + 0.2f;
+
+        Text.drawText(textShader, "Edge #" + edge.id, px + 12, py + 10, 1.5f, bc, bc, bc);
+        Text.drawText(textShader, "Vertex A: " + vertexA, px + 12, py + 42, 1.5f, bc, bc, 1f);
+        Text.drawText(textShader, "Vertex B: " + vertexB, px + 12, py + 66, 1.5f, bc, bc, 1f);
 
         String modeStr = edge.mode.equals("stun") ? "stun" : "move";
-        Text.drawText(textShader, "Mode: " + modeStr, px + 12, py + 90, 1.5f, 0.8f, 0.8f, 0.8f);
+        Text.drawText(textShader, "Mode: " + modeStr, px + 12, py + 90, 1.5f, dim, dim, dim);
 
-        float tc = (selectedField == 1) ? 1f : 0.8f;
-        Text.drawText(textShader, "Thick:", px + 12, py + 120, 1.5f, 0.8f, 0.8f, 1f);
+        float tc = (selectedField == 1) ? bc : dim;
+        Text.drawText(textShader, "Thick:", px + 12, py + 120, 1.5f, bc, bc, 1f);
         Text.drawText(textShader, String.format("%.3f", edge.thickness),
             px + VAL_X, py + 120, 1.5f, tc, tc, tc);
-        Text.drawText(textShader, "[-]", px + MINUS_X, py + 121, 1.5f, 0.8f, 0.8f, 1f);
-        Text.drawText(textShader, "[+]", px + PLUS_X, py + 121, 1.5f, 0.8f, 0.8f, 1f);
+        Text.drawText(textShader, "[-]", px + MINUS_X, py + 121, 1.5f, bc, bc, 1f);
+        Text.drawText(textShader, "[+]", px + PLUS_X, py + 121, 1.5f, bc, bc, 1f);
     }
 }
