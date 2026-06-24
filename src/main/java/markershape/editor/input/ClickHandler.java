@@ -3,23 +3,23 @@ package markershape.editor.input;
 import markershape.editor.Context;
 import markershape.editor.action.*;
 import markershape.editor.ui.control.EntityListPanel;
+import markershape.shape.ShapeData;
+import markershape.shape.Vertex;
 
 public class ClickHandler {
     private final Context ctx;
     private final HoverManager hover;
     private final VertexAction vertex;
     private final EdgeAction edge;
-    private final DragAction drag;
     private final DeleteAction del;
     private final ShapeIO io;
 
     public ClickHandler(Context ctx, HoverManager hover, VertexAction vertex,
-                        EdgeAction edge, DragAction drag, DeleteAction del, ShapeIO io) {
+                        EdgeAction edge, DeleteAction del, ShapeIO io) {
         this.ctx = ctx;
         this.hover = hover;
         this.vertex = vertex;
         this.edge = edge;
-        this.drag = drag;
         this.del = del;
         this.io = io;
     }
@@ -41,6 +41,7 @@ public class ClickHandler {
                 else ctx.selection.selectVertex(picked);
                 return;
             }
+            return;
         }
         handleViewClick(mx, my);
     }
@@ -97,19 +98,55 @@ public class ClickHandler {
         if (ctx.renderer.getShapeData() == null) return;
         if (ctx.creatingVertex) { vertex.create(mx, my); return; }
 
-        int vertId = ctx.pick.findVertexAt(mx, my);
+        // 1. Pick visible vertex (depth-checked)
+        int vertId = ctx.pick.findVisibleVertexAt(mx, my);
         if (vertId >= 0) {
             vertex.handleClick(mx, my, vertId, picked -> {
                 if (ctx.creatingEdge) edge.onVertexPicked(picked);
                 else ctx.selection.selectVertex(picked);
             });
-        } else if (ctx.selection.selectedVertex >= 0 && !drag.isDragging()) {
-            int clickedEdge = ctx.pick.pickEdge(mx, my);
-            if (clickedEdge >= 0) ctx.selection.selectEdge(clickedEdge);
-            else drag.start(ctx.selection.selectedVertex, mx, my);
-        } else if (ctx.selection.selectedEdge < 0) {
-            int edgeId = ctx.pick.pickEdge(mx, my);
-            if (edgeId >= 0) ctx.selection.selectEdge(edgeId);
+            return;
+        }
+
+        // 2. Pick visible edge (depth-checked)
+        int edgeId = ctx.pick.pickVisibleEdge(mx, my);
+        if (edgeId >= 0) {
+            ctx.selection.selectEdge(edgeId);
+            return;
+        }
+
+        // 3. Fallback: occluded vertex (no depth check)
+        vertId = ctx.pick.findVertexAt(mx, my);
+        if (vertId >= 0) {
+            vertex.handleClick(mx, my, vertId, picked -> {
+                if (ctx.creatingEdge) edge.onVertexPicked(picked);
+                else ctx.selection.selectVertex(picked);
+            });
+            return;
+        }
+
+        // 4. Fallback: occluded edge (no depth check)
+        edgeId = ctx.pick.pickEdge(mx, my);
+        if (edgeId >= 0) {
+            ctx.selection.selectEdge(edgeId);
+            return;
+        }
+
+        // 5. Click near crosshair → select vertex at that position
+        if (ctx.selection.crosshairValid) {
+            ShapeData data = ctx.renderer.getShapeData();
+            if (data != null) {
+                for (Vertex v : data.vertices.values()) {
+                    if (v.x == ctx.selection.crosshairPos.x
+                        && v.y == ctx.selection.crosshairPos.y
+                        && v.z == ctx.selection.crosshairPos.z) {
+                        if (ctx.pick.isNearCrosshair(mx, my, ctx.selection.crosshairPos, 40f)) {
+                            ctx.selection.selectVertex(v.id);
+                        }
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -148,14 +185,13 @@ public class ClickHandler {
         ctx.creatingVertex = true; ctx.ui.setActiveMode(0);
         ctx.creatingEdge = false; ctx.edgeFirstVertex = -1;
         ctx.ui.closeNewMenu(); ctx.selection.hideOverlays();
-        ctx.selection.selectedVertex = -1; ctx.selection.selectedEdge = -1;
-        ctx.selection.crosshairValid = false;
+        ctx.selection.reset();
     }
 
     private void onNewEdge() {
         ctx.creatingEdge = true; ctx.ui.setActiveMode(1);
         ctx.edgeFirstVertex = -1; ctx.creatingVertex = false;
         ctx.ui.closeNewMenu(); ctx.selection.hideOverlays();
-        ctx.selection.selectedVertex = -1; ctx.selection.selectedEdge = -1;
+        ctx.selection.reset();
     }
 }
