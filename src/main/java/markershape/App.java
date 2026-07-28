@@ -146,6 +146,7 @@ public class App {
             parametresUI.visible = true;
         });
         editor.menuUI = menuUI;
+        applyConfig();
         inMenu = true;
     }
 
