@@ -203,6 +203,8 @@ public class ParametresUI {
             if (mx >= width / 2f - 210 && mx <= width / 2f - 10) {
                 ConfigParametres.sauvegarder();
                 if (onApply != null) onApply.run();
+                this.visible = false;
+                if (onBack != null) onBack.run();
                 return;
             }
             if (mx >= width / 2f + 10 && mx <= width / 2f + 210) {
