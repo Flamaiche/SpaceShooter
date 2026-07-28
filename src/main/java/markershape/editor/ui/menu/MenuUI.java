@@ -22,8 +22,10 @@ public class MenuUI {
     private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
 
     private String[] shapes;
+    private static final int PANEL_W = 480;
     private static final int ITEM_H = 40;
-    private static final int START_Y = 120;
+    private static final int ITEM_GAP = 4;
+    private static final int PANEL_Y = 140;
     private Button paramBtn, quitBtn;
     private Runnable onQuit, onParams;
 
@@ -31,7 +33,7 @@ public class MenuUI {
         this.onQuit = onQuit;
         this.onParams = onParams;
         shader = new Shader("shaders/markershape/ui_Vertex.glsl",
-                            "shaders/markershape/ui_Fragment.glsl");
+                             "shaders/markershape/ui_Fragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
         vao = glGenVertexArrays();
         vbo = glGenBuffers();
@@ -63,47 +65,62 @@ public class MenuUI {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        shader.bind();
-        shader.setUniformMat4f("projection", ortho);
+        float cx = width / 2f;
+        float px = cx - PANEL_W / 2f;
 
-        drawQuad(width / 2f - 200, START_Y - 20, 400, shapes.length * ITEM_H + 40,
-                 0.08f, 0.08f, 0.12f, 0.9f);
+        float listH = shapes.length * (ITEM_H + ITEM_GAP);
+        float panelH = listH + 40;
+
+        drawQuad(px, PANEL_Y, PANEL_W, panelH, 0.08f, 0.08f, 0.1f, 0.7f);
 
         for (int i = 0; i < shapes.length; i++) {
-            float y = START_Y + i * ITEM_H;
-            float shade = 0.15f + (i % 2 == 0 ? 0.05f : 0f);
-            drawQuad(width / 2f - 180, y, 360, ITEM_H - 4, shade, shade, shade + 0.05f, 0.8f);
+            float y = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
+            float shade = 0.12f + (i % 2 == 0 ? 0.05f : 0f);
+            drawQuad(px + 10, y, PANEL_W - 20, ITEM_H, shade, shade, shade + 0.03f, 0.7f);
         }
 
-        shader.unbind();
+        Text.drawText(textShader, "MarkerShape",
+            cx - Text.getTextExtent("MarkerShape", 4f)[0] / 2f, 40, 4f, 1f, 1f, 1f);
+        Text.drawText(textShader, "Editeur de modeles 3D",
+            cx - Text.getTextExtent("Editeur de modeles 3D", 1.8f)[0] / 2f, 85, 1.8f, 0.6f, 0.6f, 0.8f);
 
-        float bx = width / 2f - 180;
-        float by = START_Y + shapes.length * ITEM_H + 12;
+        for (int i = 0; i < shapes.length; i++) {
+            String name = shapes[i].replace(".json", "");
+            float y = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
+            Text.drawText(textShader, name,
+                cx - Text.getTextExtent(name, 2.2f)[0] / 2f, y + 8, 2.2f, 0.85f, 0.85f, 1f);
+        }
+
+        float by = PANEL_Y + panelH + 16;
+        float btnW = 180;
+        float btnH = 38;
+        float gap = 20;
+        float totalW = btnW * 2 + gap;
+        float bx = cx - totalW / 2f;
+
         if (paramBtn == null || paramBtn.x != bx || paramBtn.y != by) {
-            paramBtn = new Button("Parametres", bx, by, 170, 36, onParams);
-            paramBtn.textScale = 2.5f;
+            paramBtn = new Button("Parametres", bx, by, btnW, btnH, onParams);
+            paramBtn.textScale = 2.2f;
             paramBtn.bgR = 0.2f; paramBtn.bgG = 0.2f; paramBtn.bgB = 0.3f;
-            quitBtn = new Button("Quitter", width / 2f + 10, by, 170, 36, onQuit);
-            quitBtn.textScale = 2.5f;
-            quitBtn.bgR = 0.3f; quitBtn.bgG = 0.1f; quitBtn.bgB = 0.1f;
+            quitBtn = new Button("Quitter", bx + btnW + gap, by, btnW, btnH, onQuit);
+            quitBtn.textScale = 2.2f;
+            quitBtn.bgR = 0.3f; quitBtn.bgG = 0.12f; quitBtn.bgB = 0.12f;
         }
 
         paramBtn.render(shader, textShader, ortho, buf, vao, vbo);
         quitBtn.render(shader, textShader, ortho, buf, vao, vbo);
-
-        Text.drawText(textShader, "MarkerShape", width / 2f - 70, 50, 3.5f, 1f, 1f, 1f);
-        for (int i = 0; i < shapes.length; i++) {
-            String name = shapes[i].replace(".json", "");
-            Text.drawText(textShader, name, width / 2f - 170, START_Y + i * ITEM_H + 10, 2.5f, 0.8f, 0.8f, 1f);
-        }
     }
 
     public String clickShape(float mx, float my) {
+        float cx = width / 2f;
+        float px = cx - PANEL_W / 2f;
+        float listH = shapes.length * (ITEM_H + ITEM_GAP);
+        float panelH = listH + 40;
+        if (mx < px + 10 || mx > px + PANEL_W - 10) return null;
+        if (my < PANEL_Y + 20 || my > PANEL_Y + panelH - 20) return null;
         for (int i = 0; i < shapes.length; i++) {
-            float y = START_Y + i * ITEM_H;
-            if (mx > width / 2f - 180 && mx < width / 2f + 180
-                && my > y && my < y + ITEM_H - 4)
-                return shapes[i];
+            float y = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
+            if (my >= y && my <= y + ITEM_H) return shapes[i];
         }
         return null;
     }
