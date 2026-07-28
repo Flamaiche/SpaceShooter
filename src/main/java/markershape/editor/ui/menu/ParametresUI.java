@@ -38,6 +38,14 @@ public class ParametresUI {
     private final EditableTextField floatField;
     private String editingFloatKey;
 
+    private boolean confirmVisible;
+    private Runnable confirmOuiAction;
+    private Runnable confirmNonAction;
+    private static final float CONFIRM_W = 220;
+    private static final float CONFIRM_H = 100;
+    private static final float CONFIRM_BTN_W = 70;
+    private static final float CONFIRM_BTN_H = 28;
+
     public ParametresUI(Runnable onBack) {
         this.onBack = onBack;
         this.hexField = new EditableTextField("#000000", EditableTextField.ValueType.HEX_COLOR, 0, 0);
@@ -66,6 +74,11 @@ public class ParametresUI {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+        if (confirmVisible) {
+            renderConfirmPopup();
+            return;
+        }
 
         if (currentMenu < 0) renderCategories();
         else renderSubMenu();
@@ -99,7 +112,9 @@ public class ParametresUI {
         }
 
         float by = sy + visible.size() * (CAT_H + CAT_GAP) + 20;
-        drawButton(width / 2f - 210, by, 200, 38, "Sauvegarder", 0.2f, 0.3f, 0.2f);
+        if (cfg.hasChanges()) {
+            drawButton(width / 2f - 210, by, 200, 38, "Sauvegarder", 0.2f, 0.3f, 0.2f);
+        }
         drawButton(width / 2f + 10, by, 200, 38, "Retour", 0.25f, 0.25f, 0.3f);
     }
 
@@ -181,6 +196,10 @@ public class ParametresUI {
 
     public void click(float mx, float my) {
         if (!visible) return;
+        if (confirmVisible) {
+            handleConfirmClick(mx, my);
+            return;
+        }
         if (currentMenu < 0) clickCategories(mx, my);
         else clickSubMenu(mx, my);
     }
@@ -205,16 +224,30 @@ public class ParametresUI {
         float by = sy + visibleIdxs.size() * (CAT_H + CAT_GAP) + 20;
         if (my >= by && my <= by + 38) {
             if (mx >= width / 2f - 210 && mx <= width / 2f - 10) {
-                ConfigParametres.sauvegarder();
-                if (onApply != null) onApply.run();
-                this.visible = false;
-                if (onBack != null) onBack.run();
+                if (cfg.hasChanges()) {
+                    showConfirmPopup(
+                        () -> { ConfigParametres.sauvegarder(); if (onApply != null) onApply.run(); this.visible = false; if (onBack != null) onBack.run(); },
+                        () -> {}
+                    );
+                } else {
+                    ConfigParametres.sauvegarder();
+                    if (onApply != null) onApply.run();
+                    this.visible = false;
+                    if (onBack != null) onBack.run();
+                }
                 return;
             }
             if (mx >= width / 2f + 10 && mx <= width / 2f + 210) {
-                if (onApply != null) onApply.run();
-                this.visible = false;
-                if (onBack != null) onBack.run();
+                if (cfg.hasChanges()) {
+                    showConfirmPopup(
+                        () -> { ConfigParametres.sauvegarder(); if (onApply != null) onApply.run(); this.visible = false; if (onBack != null) onBack.run(); },
+                        () -> { this.visible = false; if (onBack != null) onBack.run(); }
+                    );
+                } else {
+                    if (onApply != null) onApply.run();
+                    this.visible = false;
+                    if (onBack != null) onBack.run();
+                }
             }
         }
     }
@@ -292,6 +325,7 @@ public class ParametresUI {
     }
 
     public void handleKey(int key, int action) {
+        if (confirmVisible) return;
         if (hexField.isEditing()) {
             hexField.keyAction(key, action);
         } else if (floatField.isEditing()) {
@@ -301,6 +335,7 @@ public class ParametresUI {
     }
 
     public void handleChar(int codepoint) {
+        if (confirmVisible) return;
         if (hexField.isEditing()) {
             hexField.keyChar(codepoint);
         } else if (floatField.isEditing()) {
@@ -310,6 +345,46 @@ public class ParametresUI {
 
     private boolean hasColorPicker(String catId) {
         return "arriereplan".equals(catId) || "menu".equals(catId);
+    }
+
+    private void showConfirmPopup(Runnable oui, Runnable non) {
+        confirmVisible = true;
+        confirmOuiAction = oui;
+        confirmNonAction = non;
+    }
+
+    private void renderConfirmPopup() {
+        float cx = (width - CONFIRM_W) / 2;
+        float cy = (36 + (height - 36) / 2) - CONFIRM_H / 2;
+        drawQuad(0, 0, width, height, 0.08f, 0.08f, 0.1f, 0.55f);
+        drawQuad(cx, cy, CONFIRM_W, CONFIRM_H, 0.15f, 0.15f, 0.2f, 0.9f);
+        Text.drawText(textShader, "Sauvegarder ?",
+            cx + CONFIRM_W / 2 - Text.getTextExtent("Sauvegarder ?", 1.5f)[0] / 2f, cy + 18, 1.5f, 1f, 1f, 1f);
+        float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
+        Text.drawText(textShader, "Oui",
+            cx + 30, btnY + 2, 1.5f, 0.4f, 0.9f, 0.4f);
+        Text.drawText(textShader, "Non",
+            cx + CONFIRM_W - 60, btnY + 2, 1.5f, 0.9f, 0.4f, 0.4f);
+    }
+
+    private void handleConfirmClick(float mx, float my) {
+        float cx = (width - CONFIRM_W) / 2;
+        float cy = (36 + (height - 36) / 2) - CONFIRM_H / 2;
+        float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
+        float ouiX = cx + 20;
+        float nonX = cx + CONFIRM_W - 20 - CONFIRM_BTN_W;
+        if (my >= btnY && my <= btnY + CONFIRM_BTN_H) {
+            if (mx >= ouiX && mx <= ouiX + CONFIRM_BTN_W) {
+                confirmVisible = false;
+                if (confirmOuiAction != null) confirmOuiAction.run();
+                return;
+            }
+            if (mx >= nonX && mx <= nonX + CONFIRM_BTN_W) {
+                confirmVisible = false;
+                if (confirmNonAction != null) confirmNonAction.run();
+                return;
+            }
+        }
     }
 
     private void drawButton(float x, float y, float w, float h, String label, float r, float g, float b) {

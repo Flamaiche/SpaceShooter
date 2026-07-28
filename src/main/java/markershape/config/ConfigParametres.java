@@ -13,6 +13,7 @@ public class ConfigParametres {
     public List<Categorie> categories;
 
     private static ConfigParametres instance;
+    private boolean dirty;
 
     public static ConfigParametres get() {
         if (instance == null) {
@@ -40,6 +41,7 @@ public class ConfigParametres {
     public static void recharger() {
         instance = null;
         get();
+        if (instance != null) instance.dirty = false;
     }
 
     public static void sauvegarder() {
@@ -47,6 +49,11 @@ public class ConfigParametres {
         ArrayList<ConfigParametres> list = new ArrayList<>();
         list.add(instance);
         GetDonnee.writeJson("markershape/config/parametres.json", list);
+        instance.dirty = false;
+    }
+
+    public static void resetDirty() {
+        if (instance != null) instance.dirty = false;
     }
 
     public float getFloat(String key) {
@@ -62,12 +69,16 @@ public class ConfigParametres {
     public void setFloat(String key, float val) {
         if (valeurs == null) valeurs = new JsonObject();
         valeurs.addProperty(key, val);
+        dirty = true;
     }
 
     public void setBool(String key, boolean val) {
         if (valeurs == null) valeurs = new JsonObject();
         valeurs.addProperty(key, val);
+        dirty = true;
     }
+
+    public boolean hasChanges() { return dirty; }
 
     @Override
     public boolean equals(Object o) {
