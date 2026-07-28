@@ -158,11 +158,6 @@ public class ParametresUI {
                 cfg.setFloat(prefix + "R", fr);
                 cfg.setFloat(prefix + "G", fg);
                 cfg.setFloat(prefix + "B", fb);
-                if ("arriereplan".equals(cat.id)) {
-                    cfg.setFloat("menuR", fr);
-                    cfg.setFloat("menuG", fg);
-                    cfg.setFloat("menuB", fb);
-                }
                 hexField.setText(hexField.getText());
             });
             hexField.render(textShader);
