@@ -209,8 +209,8 @@ public class App {
                 }
             }
 
-            glfwSwapBuffers(window);
             glfwPollEvents();
+            glfwSwapBuffers(window);
         }
     }
 

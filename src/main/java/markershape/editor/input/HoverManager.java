@@ -25,8 +25,8 @@ public class HoverManager {
         int listHoveredId = ctx.ui.entityList.getHoveredId();
 
         if (!ctx.ui.isOverUI(mx, my) && !ctx.selection.isOverOverlay(mx, my)) {
-            vertId = ctx.pick.findVertexAt(mx, my);
-            if (vertId < 0) edgeId = ctx.pick.pickEdge(mx, my);
+            vertId = ctx.pick.findVisibleVertexAt(mx, my);
+            if (vertId < 0) edgeId = ctx.pick.pickVisibleEdge(mx, my);
         }
 
         if (listHoveredId >= 0) {
