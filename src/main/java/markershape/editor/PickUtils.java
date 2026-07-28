@@ -9,16 +9,13 @@ import markershape.shape.render.ShapeRenderer;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
 
 public class PickUtils {
     private ShapeRenderer renderer;
     private EditorCamera camera;
     private int width, height;
+
+    private final Vector3f camPos = new Vector3f();
 
     public void setRenderer(ShapeRenderer r) { this.renderer = r; }
     public void setCamera(EditorCamera c) { this.camera = c; }
@@ -35,7 +32,7 @@ public class PickUtils {
         return findVertexAtImpl(mx, my, true);
     }
 
-    private int findVertexAtImpl(float mx, float my, boolean checkDepth) {
+    private int findVertexAtImpl(float mx, float my, boolean checkVisibility) {
         if (!renderer.hasShape()) return -1;
         ShapeData data = renderer.getShapeData();
         if (data == null || data.vertices.isEmpty()) return -1;
@@ -43,10 +40,13 @@ public class PickUtils {
         Matrix4f mvp = new Matrix4f(camera.getProjection());
         mvp.mul(camera.getViewMatrix());
 
-        float bestDist2 = 64f; // 8^2
+        camPos.set(camera.getPosition());
+
+        float bestDist2 = 64f;
         int bestId = -1;
         Vector4f p = new Vector4f();
 
+        System.err.println("[PickUtils] findVertexAtImpl checkVis=" + checkVisibility + " faces=" + (data.faces != null ? data.faces.size() : 0) + " click=" + mx + "," + my);
         for (Vertex v : data.vertices.values()) {
             p.set(v.x, v.y, v.z, 1f).mul(mvp);
             if (p.w <= 0) continue;
@@ -56,7 +56,7 @@ public class PickUtils {
             float dy = sy - my;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDist2) {
-                if (!checkDepth || isDepthAtOrInFront(sx, sy, p)) {
+                if (!checkVisibility || isVertexVisible(v, data)) {
                     bestDist2 = d2;
                     bestId = v.id;
                 }
@@ -74,13 +74,15 @@ public class PickUtils {
         return pickEdgeImpl(mx, my, true);
     }
 
-    private int pickEdgeImpl(float mx, float my, boolean checkDepth) {
+    private int pickEdgeImpl(float mx, float my, boolean checkVisibility) {
         if (!renderer.hasShape()) return -1;
         ShapeData data = renderer.getShapeData();
         if (data == null || data.edges.isEmpty()) return -1;
 
         Matrix4f mvp = new Matrix4f(camera.getProjection());
         mvp.mul(camera.getViewMatrix());
+
+        camPos.set(camera.getPosition());
 
         float bestDist = 14f;
         int bestId = -1;
@@ -102,13 +104,117 @@ public class PickUtils {
 
             float d = pointToSegDist(mx, my, ax, ay, bx, by);
             if (d < bestDist) {
-                if (!checkDepth || isEdgeSegmentVisibleAt(mx, my, ax, ay, bx, by, pa, pb)) {
+                if (!checkVisibility || isEdgeVisible(va, vb, data)) {
                     bestDist = d;
                     bestId = e.id;
                 }
             }
         }
         return bestId;
+    }
+
+    private boolean isVertexVisible(Vertex v, ShapeData data) {
+        if (data.faces == null || data.faces.isEmpty()) {
+            System.err.println("[PickUtils] NO FACES - vertex " + v.id + " always visible");
+            return true;
+        }
+
+        Vector3f ro = new Vector3f(camPos);
+        Vector3f rd = new Vector3f(v.x - ro.x, v.y - ro.y, v.z - ro.z);
+        float maxDist = rd.length();
+        if (maxDist < 1e-8f) return true;
+        rd.normalize();
+
+        Vector3f e1 = new Vector3f();
+        Vector3f e2 = new Vector3f();
+        Vector3f P = new Vector3f();
+        Vector3f T = new Vector3f();
+        Vector3f Q = new Vector3f();
+
+        int triCount = 0;
+        for (int[] poly : data.faces) {
+            for (int j = 0; j + 2 < poly.length; j += 3) {
+                triCount++;
+                Vertex va = data.vertices.get(poly[j]);
+                Vertex vb = data.vertices.get(poly[j + 1]);
+                Vertex vc = data.vertices.get(poly[j + 2]);
+                if (va == null || vb == null || vc == null) continue;
+                if (va.id == v.id || vb.id == v.id || vc.id == v.id) continue;
+
+                Vector3f a = new Vector3f(va.x, va.y, va.z);
+                Vector3f b = new Vector3f(vb.x, vb.y, vb.z);
+                Vector3f c = new Vector3f(vc.x, vc.y, vc.z);
+
+                e1.set(b).sub(a);
+                e2.set(c).sub(a);
+                P.set(rd).cross(e2);
+                float det = e1.dot(P);
+                if (Math.abs(det) < 1e-12f) continue;
+                float invDet = 1f / det;
+                T.set(ro).sub(a);
+                float u = T.dot(P) * invDet;
+                if (u < 0 || u > 1) continue;
+                Q.set(T).cross(e1);
+                float w = rd.dot(Q) * invDet;
+                if (w < 0 || u + w > 1) continue;
+                float t = e2.dot(Q) * invDet;
+                if (t > 1e-5f && t < maxDist - 1e-5f) {
+                    System.err.println("[PickUtils] HIT face (" + va.id + "," + vb.id + "," + vc.id + ") u=" + u + " w=" + w + " t=" + t + " maxDist=" + maxDist);
+                    return false;
+                }
+            }
+        }
+        System.err.println("[PickUtils] v" + v.id + " VISIBLE (no occluder among " + triCount + " tris)");
+        return true;
+    }
+
+    private boolean isEdgeVisible(Vertex va, Vertex vb, ShapeData data) {
+        if (isVertexVisible(va, data)) return true;
+        if (isVertexVisible(vb, data)) return true;
+        float mx = (va.x + vb.x) * 0.5f;
+        float my = (va.y + vb.y) * 0.5f;
+        float mz = (va.z + vb.z) * 0.5f;
+
+        Vector3f ro = new Vector3f(camPos);
+        Vector3f rd = new Vector3f(mx - ro.x, my - ro.y, mz - ro.z);
+        float maxDist = rd.length();
+        if (maxDist < 1e-8f) return true;
+        rd.normalize();
+
+        if (data.faces == null) return true;
+        Vector3f e1 = new Vector3f(), e2 = new Vector3f(), P = new Vector3f();
+        Vector3f T = new Vector3f(), Q = new Vector3f();
+        for (int[] poly : data.faces) {
+            for (int j = 0; j + 2 < poly.length; j += 3) {
+                Vertex fva = data.vertices.get(poly[j]);
+                Vertex fvb = data.vertices.get(poly[j + 1]);
+                Vertex fvc = data.vertices.get(poly[j + 2]);
+                if (fva == null || fvb == null || fvc == null) continue;
+                boolean hasA = fva.id == va.id || fvb.id == va.id || fvc.id == va.id;
+                boolean hasB = fva.id == vb.id || fvb.id == vb.id || fvc.id == vb.id;
+                if (hasA && hasB) continue;
+
+                Vector3f a = new Vector3f(fva.x, fva.y, fva.z);
+                Vector3f b = new Vector3f(fvb.x, fvb.y, fvb.z);
+                Vector3f c = new Vector3f(fvc.x, fvc.y, fvc.z);
+
+                e1.set(b).sub(a);
+                e2.set(c).sub(a);
+                P.set(rd).cross(e2);
+                float det = e1.dot(P);
+                if (Math.abs(det) < 1e-12f) continue;
+                float invDet = 1f / det;
+                T.set(ro).sub(a);
+                float u = T.dot(P) * invDet;
+                if (u < 0 || u > 1) continue;
+                Q.set(T).cross(e1);
+                float w = rd.dot(Q) * invDet;
+                if (w < 0 || u + w > 1) continue;
+                float t = e2.dot(Q) * invDet;
+                if (t > 1e-5f && t < maxDist - 1e-5f) return false;
+            }
+        }
+        return true;
     }
 
     private float pointToSegDist(float px, float py, float ax, float ay, float bx, float by) {
@@ -120,41 +226,6 @@ public class PickUtils {
         return (float) Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
     }
 
-    private float segmentClampT(float px, float py, float ax, float ay, float bx, float by) {
-        float dx = bx - ax, dy = by - ay;
-        float lenSq = dx * dx + dy * dy;
-        if (lenSq < 1e-8f) return 0f;
-        float t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
-        return Math.max(0f, Math.min(1f, t));
-    }
-
-    private boolean isDepthAtOrInFront(float screenX, float screenY, Vector4f clipPos) {
-        float ndcZ = clipPos.z / clipPos.w;
-        float myDepth = ndcZ * 0.5f + 0.5f;
-        int px = Math.round(screenX);
-        int py = height - Math.round(screenY) - 1;
-        if (px < 0 || px >= width || py < 0 || py >= height) return false;
-        FloatBuffer depthBuf = BufferUtils.createFloatBuffer(1);
-        glReadPixels(px, py, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, depthBuf);
-        float storedDepth = depthBuf.get(0);
-        return myDepth <= storedDepth + 0.002f;
-    }
-
-    private boolean isEdgeSegmentVisibleAt(float mx, float my,
-                                            float ax, float ay, float bx, float by,
-                                            Vector4f ca, Vector4f cb) {
-        // Check both endpoints first
-        if (isDepthAtOrInFront(ax, ay, ca)) return true;
-        if (isDepthAtOrInFront(bx, by, cb)) return true;
-        // Check at interpolated closest point
-        float t = segmentClampT(mx, my, ax, ay, bx, by);
-        float px = ax + t * (bx - ax);
-        float py = ay + t * (by - ay);
-        float ndcZ = (ca.z / ca.w) + t * (cb.z / cb.w - ca.z / ca.w);
-        Vector4f interpolated = new Vector4f(0, 0, ndcZ, 1f);
-        return isDepthAtOrInFront(px, py, interpolated);
-    }
-
     public Vector3f getClickWorldPos(float mx, float my) {
         Matrix4f invProjView = new Matrix4f(camera.getProjection());
         invProjView.mul(camera.getViewMatrix());
@@ -163,24 +234,54 @@ public class PickUtils {
         float ndcX = (2f * mx) / width - 1f;
         float ndcY = 1f - (2f * my) / height;
 
-        FloatBuffer depthBuf = BufferUtils.createFloatBuffer(1);
-        glReadPixels((int) mx, height - (int) my - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, depthBuf);
-        float depth = depthBuf.get(0);
-
-        if (depth < 1.0f) {
-            Vector4f worldP = new Vector4f(ndcX, ndcY, depth * 2f - 1f, 1f).mul(invProjView);
-            worldP.div(worldP.w);
-            return new Vector3f(worldP.x, worldP.y, worldP.z);
-        }
-
         Vector4f nearP = new Vector4f(ndcX, ndcY, -1f, 1f).mul(invProjView);
         nearP.div(nearP.w);
         Vector4f farP = new Vector4f(ndcX, ndcY, 1f, 1f).mul(invProjView);
         farP.div(farP.w);
 
         Vector3f rayOrig = new Vector3f(nearP.x, nearP.y, nearP.z);
-        Vector3f rayDir = new Vector3f(farP.x - nearP.x, farP.y - nearP.y, farP.z - nearP.z).normalize();
+        Vector3f rayDir = new Vector3f(farP.x - nearP.x, farP.y - nearP.y, farP.z - nearP.z);
+        rayDir.normalize();
 
+        // Ray-cast against shape faces first
+        if (renderer.hasShape()) {
+            ShapeData data = renderer.getShapeData();
+            if (data != null && data.faces != null) {
+                float bestT = Float.MAX_VALUE;
+                Vector3f e1 = new Vector3f(), e2 = new Vector3f(), P = new Vector3f();
+                Vector3f T = new Vector3f(), Q = new Vector3f();
+                for (int[] poly : data.faces) {
+                    for (int j = 0; j + 2 < poly.length; j += 3) {
+                        Vertex va = data.vertices.get(poly[j]);
+                        Vertex vb = data.vertices.get(poly[j + 1]);
+                        Vertex vc = data.vertices.get(poly[j + 2]);
+                        if (va == null || vb == null || vc == null) continue;
+                        Vector3f a = new Vector3f(va.x, va.y, va.z);
+                        Vector3f b = new Vector3f(vb.x, vb.y, vb.z);
+                        Vector3f c = new Vector3f(vc.x, vc.y, vc.z);
+                        e1.set(b).sub(a);
+                        e2.set(c).sub(a);
+                        P.set(rayDir).cross(e2);
+                        float det = e1.dot(P);
+                        if (Math.abs(det) < 1e-12f) continue;
+                        float invDet = 1f / det;
+                        T.set(rayOrig).sub(a);
+                        float u = T.dot(P) * invDet;
+                        if (u < 0 || u > 1) continue;
+                        Q.set(T).cross(e1);
+                        float w = rayDir.dot(Q) * invDet;
+                        if (w < 0 || u + w > 1) continue;
+                        float t = e2.dot(Q) * invDet;
+                        if (t > 1e-5f && t < bestT) bestT = t;
+                    }
+                }
+                if (bestT < Float.MAX_VALUE) {
+                    return new Vector3f(rayDir).mul(bestT).add(rayOrig);
+                }
+            }
+        }
+
+        // Fallback: target plane intersection
         Vector3f target = camera.getTarget();
         Vector3f viewDir = new Vector3f(target).sub(camera.getPosition()).normalize();
 

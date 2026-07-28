@@ -115,24 +115,7 @@ public class ClickHandler {
             return;
         }
 
-        // 3. Fallback: occluded vertex (no depth check)
-        vertId = ctx.pick.findVertexAt(mx, my);
-        if (vertId >= 0) {
-            vertex.handleClick(mx, my, vertId, picked -> {
-                if (ctx.creatingEdge) edge.onVertexPicked(picked);
-                else ctx.selection.selectVertex(picked);
-            });
-            return;
-        }
-
-        // 4. Fallback: occluded edge (no depth check)
-        edgeId = ctx.pick.pickEdge(mx, my);
-        if (edgeId >= 0) {
-            ctx.selection.selectEdge(edgeId);
-            return;
-        }
-
-        // 5. Click near crosshair → select vertex at that position
+        // 3. Click near crosshair → select vertex at that position
         if (ctx.selection.crosshairValid) {
             ShapeData data = ctx.renderer.getShapeData();
             if (data != null) {
