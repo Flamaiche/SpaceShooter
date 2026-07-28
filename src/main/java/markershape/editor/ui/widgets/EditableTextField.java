@@ -45,7 +45,6 @@ public class EditableTextField {
             editing = true;
             oldText = text;
             editBuffer.setLength(0);
-            editBuffer.append(text);
             editStart = System.currentTimeMillis();
         }
     }
@@ -75,13 +74,12 @@ public class EditableTextField {
                 editing = true;
                 oldText = text;
                 editBuffer.setLength(0);
-                editBuffer.append(text);
                 editStart = System.currentTimeMillis();
             }
             return true;
         }
         if (editing) {
-            cancelEditing();
+            confirm();
         }
         return false;
     }
