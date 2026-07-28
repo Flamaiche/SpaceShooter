@@ -67,8 +67,6 @@ public class ParametresUI {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        drawQuad(0, 0, width, height, 0.08f, 0.08f, 0.1f, 0.85f);
-
         if (currentMenu < 0) renderCategories();
         else renderSubMenu();
     }
