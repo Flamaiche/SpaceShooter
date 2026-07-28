@@ -133,10 +133,16 @@ public class ParametresUI {
                 int nr = Integer.parseInt(newHex.substring(1, 3), 16);
                 int ng = Integer.parseInt(newHex.substring(3, 5), 16);
                 int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-                cfg.setFloat(prefix + "R", nr / 255f);
-                cfg.setFloat(prefix + "G", ng / 255f);
-                cfg.setFloat(prefix + "B", nb / 255f);
-                hexField.setText(hexField.getText()); // keep text in sync
+                float fr = nr / 255f, fg = ng / 255f, fb = nb / 255f;
+                cfg.setFloat(prefix + "R", fr);
+                cfg.setFloat(prefix + "G", fg);
+                cfg.setFloat(prefix + "B", fb);
+                if ("arriereplan".equals(cat.id)) {
+                    cfg.setFloat("menuR", fr);
+                    cfg.setFloat("menuG", fg);
+                    cfg.setFloat("menuB", fb);
+                }
+                hexField.setText(hexField.getText());
             });
             hexField.render(textShader);
             preambleRows = 2;
