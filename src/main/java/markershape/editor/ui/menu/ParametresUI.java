@@ -104,6 +104,8 @@ public class ParametresUI {
             width / 2f - Text.getTextExtent("Parametres", 3f)[0] / 2f, 50, 3f, 1f, 1f, 1f);
 
         float sy = 130;
+        float panelH = visible.size() * (CAT_H + CAT_GAP);
+        drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, panelH + 20, 0.08f, 0.08f, 0.1f, 0.7f);
         for (int vi = 0; vi < visible.size(); vi++) {
             ConfigParametres.Categorie cat = cats.get(visible.get(vi));
             float y = sy + vi * (CAT_H + CAT_GAP);
@@ -129,7 +131,13 @@ public class ParametresUI {
             width / 2f - Text.getTextExtent(cat.label, 3f)[0] / 2f, 50, 3f, 1f, 1f, 1f);
 
         float sy = 110;
-        int preambleRows = 0;
+        int preambleRows = hasColorPicker(cat.id) ? 2 : 0;
+        int visibleCount = 0;
+        for (ConfigParametres.Param p : cat.params) {
+            if (p.isVisible(cfg)) visibleCount++;
+        }
+        float panelH = preambleRows * (ROW_H + ROW_GAP) + visibleCount * (ROW_H + ROW_GAP) + 20;
+        drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, panelH, 0.08f, 0.08f, 0.1f, 0.7f);
 
         if (hasColorPicker(cat.id)) {
             String prefix = "arriereplan".equals(cat.id) ? "bg" : "menu";
@@ -158,7 +166,6 @@ public class ParametresUI {
                 hexField.setText(hexField.getText());
             });
             hexField.render(textShader);
-            preambleRows = 2;
         }
 
         int rendered = 0;
