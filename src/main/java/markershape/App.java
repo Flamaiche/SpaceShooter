@@ -152,9 +152,9 @@ public class App {
     private void applyConfig() {
         ConfigParametres cfg = ConfigParametres.get();
 
-        bgR = cfg.getFloat("bgR");
-        bgG = cfg.getFloat("bgG");
-        bgB = cfg.getFloat("bgB");
+        bgR = cfg.getFloat("bgR") / 255f;
+        bgG = cfg.getFloat("bgG") / 255f;
+        bgB = cfg.getFloat("bgB") / 255f;
 
         if (editor != null) {
             editor.renderer.setPointSize(cfg.getFloat("pointSize"));
@@ -173,9 +173,9 @@ public class App {
         }
 
         BlurBackground.transparentUI = cfg.getBool("transparentUI");
-        BlurBackground.menuR = cfg.getFloat("menuR");
-        BlurBackground.menuG = cfg.getFloat("menuG");
-        BlurBackground.menuB = cfg.getFloat("menuB");
+        BlurBackground.menuR = cfg.getFloat("menuR") / 255f;
+        BlurBackground.menuG = cfg.getFloat("menuG") / 255f;
+        BlurBackground.menuB = cfg.getFloat("menuB") / 255f;
 
         if (editor != null) editor.editorUI.syncFromConfig();
     }

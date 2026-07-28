@@ -4,16 +4,16 @@
     {
       "name": "default",
       "valeurs": {
-        "pointSize": 5,
-        "lineWidth": 3,
+        "pointSize": 7.0,
+        "lineWidth": 4.0,
         "faceAlpha": 1.0,
         "transparentUI": false,
-        "menuR": -0.030000009,
-        "menuG": 0.019999992,
-        "menuB": 1.0300001,
-        "bgR": 0.9500001,
-        "bgG": 1.0000001,
-        "bgB": 0.37000003,
+        "menuR": 13,
+        "menuG": 31,
+        "menuB": 186,
+        "bgR": 255,
+        "bgG": 255,
+        "bgB": 94,
         "gridVisible": true,
         "snapEnabled": false,
         "snapStep": 1.0,
@@ -71,24 +71,24 @@
               "label": "Couleur menu R",
               "type": "float",
               "min": 0.0,
-              "max": 1.0,
-              "step": 0.05
+              "max": 255.0,
+              "step": 1.0
             },
             {
               "key": "menuG",
               "label": "Couleur menu V",
               "type": "float",
               "min": 0.0,
-              "max": 1.0,
-              "step": 0.05
+              "max": 255.0,
+              "step": 1.0
             },
             {
               "key": "menuB",
               "label": "Couleur menu B",
               "type": "float",
               "min": 0.0,
-              "max": 1.0,
-              "step": 0.05
+              "max": 255.0,
+              "step": 1.0
             }
           ]
         },
@@ -101,24 +101,24 @@
               "label": "Fond R",
               "type": "float",
               "min": 0.0,
-              "max": 1.0,
-              "step": 0.05
+              "max": 255.0,
+              "step": 1.0
             },
             {
               "key": "bgG",
               "label": "Fond V",
               "type": "float",
               "min": 0.0,
-              "max": 1.0,
-              "step": 0.05
+              "max": 255.0,
+              "step": 1.0
             },
             {
               "key": "bgB",
               "label": "Fond B",
               "type": "float",
               "min": 0.0,
-              "max": 1.0,
-              "step": 0.05
+              "max": 255.0,
+              "step": 1.0
             }
           ]
         },
@@ -198,7 +198,8 @@
             }
           ]
         }
-      ]
+      ],
+      "dirty": false
     }
   ]
 }

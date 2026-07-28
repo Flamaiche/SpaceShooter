@@ -100,12 +100,12 @@ public class ConfigParametres {
         cp.valeurs.addProperty("lineWidth", 3);
         cp.valeurs.addProperty("faceAlpha", 1.0);
         cp.valeurs.addProperty("transparentUI", true);
-        cp.valeurs.addProperty("menuR", 0.12);
-        cp.valeurs.addProperty("menuG", 0.12);
-        cp.valeurs.addProperty("menuB", 0.18);
-        cp.valeurs.addProperty("bgR", 0.1);
-        cp.valeurs.addProperty("bgG", 0.1);
-        cp.valeurs.addProperty("bgB", 0.12);
+        cp.valeurs.addProperty("menuR", 13);
+        cp.valeurs.addProperty("menuG", 31);
+        cp.valeurs.addProperty("menuB", 46);
+        cp.valeurs.addProperty("bgR", 26);
+        cp.valeurs.addProperty("bgG", 26);
+        cp.valeurs.addProperty("bgB", 31);
         cp.valeurs.addProperty("gridVisible", true);
         cp.valeurs.addProperty("snapEnabled", false);
         cp.valeurs.addProperty("snapStep", 1.0);
@@ -133,13 +133,13 @@ public class ConfigParametres {
         menuCat.id = "menu"; menuCat.label = "Barre de menu";
         menuCat.params = new ArrayList<>();
         menuCat.params.add(param("transparentUI", "Fond menu transparent", "bool", 0, 0, 0));
-        Param menuR = param("menuR", "Couleur menu R", "float", 0, 1, 0.05f);
+        Param menuR = param("menuR", "Couleur menu R", "float", 0, 255, 1);
         menuR.showIf = new ShowIf("transparentUI", false);
         menuCat.params.add(menuR);
-        Param menuG = param("menuG", "Couleur menu V", "float", 0, 1, 0.05f);
+        Param menuG = param("menuG", "Couleur menu V", "float", 0, 255, 1);
         menuG.showIf = new ShowIf("transparentUI", false);
         menuCat.params.add(menuG);
-        Param menuB = param("menuB", "Couleur menu B", "float", 0, 1, 0.05f);
+        Param menuB = param("menuB", "Couleur menu B", "float", 0, 255, 1);
         menuB.showIf = new ShowIf("transparentUI", false);
         menuCat.params.add(menuB);
         cats.add(menuCat);
@@ -147,9 +147,9 @@ public class ConfigParametres {
         Categorie arriere = new Categorie();
         arriere.id = "arriereplan"; arriere.label = "Arriere-plan";
         arriere.params = new ArrayList<>();
-        arriere.params.add(param("bgR", "Fond R", "float", 0, 1, 0.05f));
-        arriere.params.add(param("bgG", "Fond V", "float", 0, 1, 0.05f));
-        arriere.params.add(param("bgB", "Fond B", "float", 0, 1, 0.05f));
+        arriere.params.add(param("bgR", "Fond R", "float", 0, 255, 1));
+        arriere.params.add(param("bgG", "Fond V", "float", 0, 255, 1));
+        arriere.params.add(param("bgB", "Fond B", "float", 0, 255, 1));
         cats.add(arriere);
 
         Categorie grille = new Categorie();

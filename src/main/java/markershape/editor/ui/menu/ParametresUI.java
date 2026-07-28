@@ -142,22 +142,21 @@ public class ParametresUI {
         if (hasColorPicker(cat.id)) {
             String prefix = "arriereplan".equals(cat.id) ? "bg" : "menu";
             float vr = cfg.getFloat(prefix + "R"), vg = cfg.getFloat(prefix + "G"), vb = cfg.getFloat(prefix + "B");
-            drawQuad(MENU_X + 30, sy, MENU_W - 60, 70, vr, vg, vb, 1f);
+            drawQuad(MENU_X + 30, sy, MENU_W - 60, 70, vr / 255f, vg / 255f, vb / 255f, 1f);
 
-            String hex = String.format("#%02X%02X%02X", (int)(vr*255), (int)(vg*255), (int)(vb*255));
+            String hex = String.format("#%02X%02X%02X", (int)vr, (int)vg, (int)vb);
             float hx = width / 2f - Text.getTextExtent(hex, 2f)[0] / 2f;
             hexField.setText(hex);
             hexField.setPosition(hx, sy + 26);
             hexField.setScale(2f);
-            hexField.setColor(1f - vr, 1f - vg, 1f - vb);
+            hexField.setColor(1f - vr / 255f, 1f - vg / 255f, 1f - vb / 255f);
             hexField.setOnConfirm(newHex -> {
                 int nr = Integer.parseInt(newHex.substring(1, 3), 16);
                 int ng = Integer.parseInt(newHex.substring(3, 5), 16);
                 int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-                float fr = nr / 255f, fg = ng / 255f, fb = nb / 255f;
-                cfg.setFloat(prefix + "R", fr);
-                cfg.setFloat(prefix + "G", fg);
-                cfg.setFloat(prefix + "B", fb);
+                cfg.setFloat(prefix + "R", nr);
+                cfg.setFloat(prefix + "G", ng);
+                cfg.setFloat(prefix + "B", nb);
                 hexField.setText(hexField.getText());
             });
             hexField.render(textShader);
