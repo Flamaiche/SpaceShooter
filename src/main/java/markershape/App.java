@@ -34,7 +34,7 @@ public class App {
     }
 
     private void start() {
-        init();
+           init();
         loop();
         cleanup();
     }

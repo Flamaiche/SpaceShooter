@@ -112,8 +112,9 @@ public class ParametresUI {
             width / 2f - Text.getTextExtent("Parametres", 3f)[0] / 2f, 50, 3f, tR, tG, tB);
 
         float sy = 130;
-        float panelH = visible.size() * (CAT_H + CAT_GAP);
-        drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, panelH + 20, 0.08f, 0.08f, 0.1f, 0.7f);
+        float contentH = visible.size() * (CAT_H + CAT_GAP);
+        float btnY = sy + contentH + 22;
+        drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, contentH + 80, 0.08f, 0.08f, 0.1f, 0.7f);
         for (int vi = 0; vi < visible.size(); vi++) {
             ConfigParametres.Categorie cat = cats.get(visible.get(vi));
             float y = sy + vi * (CAT_H + CAT_GAP);
@@ -125,14 +126,10 @@ public class ParametresUI {
             Text.drawText(textShader, cat.label + "  >", MENU_X + 16, y + 10, 2f, itc, itc, itc);
         }
 
-        float by = sy + visible.size() * (CAT_H + CAT_GAP) + 20;
         if (cfg.hasChanges()) {
-            drawButton(width / 2f - 320, by, 200, 38, "Sauvegarder", 0.2f, 0.3f, 0.2f);
-            drawButton(width / 2f - 100, by, 200, 38, "Appliquer", 0.2f, 0.25f, 0.3f);
-        } else {
-            drawButton(width / 2f - 210, by, 200, 38, "Appliquer", 0.2f, 0.25f, 0.3f);
+            drawButton(width / 2f - 210, btnY, 200, 38, "Sauvegarder", 0.2f, 0.3f, 0.2f);
         }
-        drawButton(width / 2f + 120, by, 200, 38, "Retour", 0.25f, 0.25f, 0.3f);
+        drawButton(width / 2f + 10, btnY, 200, 38, "Retour", 0.25f, 0.25f, 0.3f);
     }
 
     private void renderSubMenu() {
@@ -157,9 +154,10 @@ public class ParametresUI {
         for (ConfigParametres.Param p : cat.params) {
             if (p.isVisible(cfg)) visibleCount++;
         }
-        float panelH = preambleRows * (ROW_H + ROW_GAP) + visibleCount * (ROW_H + ROW_GAP) + 20;
-        if (isArriere) panelH = 10 * (ROW_H + ROW_GAP) + 20;
-        drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, panelH, 0.08f, 0.08f, 0.1f, 0.7f);
+        float contentH = isArriere ? (80 + 3 * (ROW_H + ROW_GAP) + 8 + 80 + 3 * (ROW_H + ROW_GAP))
+                                  : (preambleRows * (ROW_H + ROW_GAP) + visibleCount * (ROW_H + ROW_GAP));
+        float btnY = sy + contentH + 22;
+        drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, contentH + 80, 0.08f, 0.08f, 0.1f, 0.7f);
 
         float[] panelBg = TextColor.composite(0.08f, 0.08f, 0.1f, 0.7f, new float[]{bgR, bgG, bgB});
         float rowTc = TextColor.contrast(panelBg[0], panelBg[1], panelBg[2]);
@@ -259,10 +257,12 @@ public class ParametresUI {
             rendered++;
         }
 
-        float by = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP) + 20;
-        if (isArriere) by = sy + rendered * (ROW_H + ROW_GAP) + 20;
-        drawButton(width / 2f - 210, by, 200, 38, "Appliquer", 0.2f, 0.25f, 0.3f);
-        drawButton(width / 2f + 10, by, 200, 38, "Retour", 0.25f, 0.25f, 0.3f);
+        drawSubMenuButtons(btnY);
+    }
+
+    private void drawSubMenuButtons(float btnY) {
+        drawButton(width / 2f - 210, btnY, 200, 38, "Appliquer", 0.2f, 0.25f, 0.3f);
+        drawButton(width / 2f + 10, btnY, 200, 38, "Retour", 0.25f, 0.25f, 0.3f);
     }
 
     private void renderFloatField(float y, ConfigParametres.Param p) {
@@ -303,6 +303,7 @@ public class ParametresUI {
         if (cfg.categories == null) return;
 
         float sy = 130;
+        float contentH = visibleIdxs.size() * (CAT_H + CAT_GAP);
         for (int vi = 0; vi < visibleIdxs.size(); vi++) {
             int idx = visibleIdxs.get(vi);
             float y = sy + vi * (CAT_H + CAT_GAP);
@@ -311,27 +312,16 @@ public class ParametresUI {
                 return;
             }
         }
-        float by = sy + visibleIdxs.size() * (CAT_H + CAT_GAP) + 20;
+        float by = sy + contentH + 22;
         if (my >= by && my <= by + 38) {
-            if (cfg.hasChanges()) {
-                if (mx >= width / 2f - 320 && mx <= width / 2f - 120) {
-                    showConfirmPopup(
-                        () -> { ConfigParametres.sauvegarder(); if (onApply != null) onApply.run(); this.visible = false; if (onBack != null) onBack.run(); },
-                        () -> {}
-                    );
-                    return;
-                }
-                if (mx >= width / 2f - 100 && mx <= width / 2f + 100) {
-                    if (onApply != null) onApply.run();
-                    return;
-                }
-            } else {
-                if (mx >= width / 2f - 210 && mx <= width / 2f - 10) {
-                    if (onApply != null) onApply.run();
-                    return;
-                }
+            if (cfg.hasChanges() && mx >= width / 2f - 210 && mx <= width / 2f - 10) {
+                showConfirmPopup(
+                    () -> { ConfigParametres.sauvegarder(); if (onApply != null) onApply.run(); this.visible = false; if (onBack != null) onBack.run(); },
+                    () -> {}
+                );
+                return;
             }
-            if (mx >= width / 2f + 120 && mx <= width / 2f + 320) {
+            if (mx >= width / 2f + 10 && mx <= width / 2f + 210) {
                 if (cfg.hasChanges()) {
                     showConfirmPopup(
                         () -> { ConfigParametres.sauvegarder(); if (onApply != null) onApply.run(); this.visible = false; if (onBack != null) onBack.run(); },
@@ -342,6 +332,7 @@ public class ParametresUI {
                     this.visible = false;
                     if (onBack != null) onBack.run();
                 }
+                return;
             }
         }
     }
@@ -482,8 +473,9 @@ public class ParametresUI {
             }
         }
 
-        float by = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP) + 20;
-        if (isArriere) by = sy + rendered * (ROW_H + ROW_GAP) + 20;
+        float contentH = isArriere ? (80 + 3 * (ROW_H + ROW_GAP) + 8 + 80 + 3 * (ROW_H + ROW_GAP))
+                                  : (preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP));
+        float by = sy + contentH + 22;
         if (my >= by && my <= by + 38) {
             hexField.cancelEditing();
             textHexField.cancelEditing();
