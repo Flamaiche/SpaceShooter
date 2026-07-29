@@ -158,95 +158,135 @@ public class ParametresUI {
 
         float sy = 110;
         boolean isArriere = "arriereplan".equals(cat.id);
-        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 4 : 2) : 0;
+        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 0 : 2) : 0;
         int visibleCount = 0;
         for (ConfigParametres.Param p : cat.params) {
             if (p.isVisible(cfg)) visibleCount++;
         }
         float panelH = preambleRows * (ROW_H + ROW_GAP) + visibleCount * (ROW_H + ROW_GAP) + 20;
+        if (isArriere) panelH = 10 * (ROW_H + ROW_GAP) + 20;
         drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, panelH, 0.08f, 0.08f, 0.1f, 0.7f);
 
         float[] panelBg = TextColor.composite(0.08f, 0.08f, 0.1f, 0.7f, new float[]{bgR, bgG, bgB});
         float rowTc = TextColor.contrast(panelBg[0], panelBg[1], panelBg[2]);
 
+        int rendered = 0;
+
         if (hasColorPicker(cat.id)) {
-            String prefix = isArriere ? "bg" : "menu";
-            float vr = cfg.getFloat(prefix + "R"), vg = cfg.getFloat(prefix + "G"), vb = cfg.getFloat(prefix + "B");
-            drawQuad(MENU_X + 30, sy, MENU_W - 60, 70, vr / 255f, vg / 255f, vb / 255f, 1f);
-
-            String hex = String.format("#%02X%02X%02X", (int)vr, (int)vg, (int)vb);
-            float hx = width / 2f - Text.getTextExtent(hex, 2f)[0] / 2f;
-            hexField.setText(hex);
-            hexField.setPosition(hx, sy + 26);
-            hexField.setScale(2f);
-            hexField.setColor(vr / 255f, vg / 255f, vb / 255f);
-            hexField.setOnConfirm(newHex -> {
-                int nr = Integer.parseInt(newHex.substring(1, 3), 16);
-                int ng = Integer.parseInt(newHex.substring(3, 5), 16);
-                int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-                cfg.setFloat(prefix + "R", nr);
-                cfg.setFloat(prefix + "G", ng);
-                cfg.setFloat(prefix + "B", nb);
-                hexField.setText(hexField.getText());
-            });
-            hexField.render(textShader);
-
             if (isArriere) {
-                float textY = sy + (ROW_H + ROW_GAP) * 2 + 8;
-                float trV = cfg.getFloat("textR"), tgV = cfg.getFloat("textG"), tbV = cfg.getFloat("textB");
-                drawQuad(MENU_X + 30, textY, MENU_W - 60, 70, trV / 255f, tgV / 255f, tbV / 255f, 1f);
+                // --- BG color ---
+                float curY = sy;
+                float vr = cfg.getFloat("bgR"), vg = cfg.getFloat("bgG"), vb = cfg.getFloat("bgB");
+                drawQuad(MENU_X + 30, curY, MENU_W - 60, 70, vr / 255f, vg / 255f, vb / 255f, 1f);
+                String hex = String.format("#%02X%02X%02X", (int)vr, (int)vg, (int)vb);
+                float hx = width / 2f - Text.getTextExtent(hex, 2f)[0] / 2f;
+                hexField.setText(hex);
+                hexField.setPosition(hx, curY + 26);
+                hexField.setScale(2f);
+                hexField.setColor(vr / 255f, vg / 255f, vb / 255f);
+                hexField.setOnConfirm(newHex -> {
+                    int nr = Integer.parseInt(newHex.substring(1, 3), 16);
+                    int ng = Integer.parseInt(newHex.substring(3, 5), 16);
+                    int nb = Integer.parseInt(newHex.substring(5, 7), 16);
+                    cfg.setFloat("bgR", nr); cfg.setFloat("bgG", ng); cfg.setFloat("bgB", nb);
+                    hexField.setText(hexField.getText());
+                });
+                hexField.render(textShader);
 
+                curY += 80;
+                for (int idx : new int[]{0, 1, 2}) {
+                    ConfigParametres.Param p = cat.params.get(idx);
+                    drawFloatRow(curY, p, rowTc);
+                    if (p.key.equals(editingFloatKey)) renderFloatField(curY, p);
+                    curY += ROW_H + ROW_GAP;
+                    rendered++;
+                }
+                curY += 8;
+
+                // --- Text color ---
+                float trV = cfg.getFloat("textR"), tgV = cfg.getFloat("textG"), tbV = cfg.getFloat("textB");
+                drawQuad(MENU_X + 30, curY, MENU_W - 60, 70, trV / 255f, tgV / 255f, tbV / 255f, 1f);
                 String textHex = String.format("#%02X%02X%02X", (int)trV, (int)tgV, (int)tbV);
                 float thx = width / 2f - Text.getTextExtent(textHex, 2f)[0] / 2f;
                 textHexField.setText(textHex);
-                textHexField.setPosition(thx, textY + 26);
+                textHexField.setPosition(thx, curY + 26);
                 textHexField.setScale(2f);
                 textHexField.setColor(trV / 255f, tgV / 255f, tbV / 255f);
                 textHexField.setOnConfirm(newHex -> {
                     int nr = Integer.parseInt(newHex.substring(1, 3), 16);
                     int ng = Integer.parseInt(newHex.substring(3, 5), 16);
                     int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-                    cfg.setFloat("textR", nr);
-                    cfg.setFloat("textG", ng);
-                    cfg.setFloat("textB", nb);
+                    cfg.setFloat("textR", nr); cfg.setFloat("textG", ng); cfg.setFloat("textB", nb);
                     textHexField.setText(textHexField.getText());
                 });
                 textHexField.render(textShader);
+
+                curY += 80;
+                for (int idx : new int[]{3, 4, 5}) {
+                    ConfigParametres.Param p = cat.params.get(idx);
+                    drawFloatRow(curY, p, rowTc);
+                    if (p.key.equals(editingFloatKey)) renderFloatField(curY, p);
+                    curY += ROW_H + ROW_GAP;
+                    rendered++;
+                }
+            } else {
+                String prefix = "menu";
+                float vr = cfg.getFloat(prefix + "R"), vg = cfg.getFloat(prefix + "G"), vb = cfg.getFloat(prefix + "B");
+                drawQuad(MENU_X + 30, sy, MENU_W - 60, 70, vr / 255f, vg / 255f, vb / 255f, 1f);
+                String hex = String.format("#%02X%02X%02X", (int)vr, (int)vg, (int)vb);
+                float hx = width / 2f - Text.getTextExtent(hex, 2f)[0] / 2f;
+                hexField.setText(hex);
+                hexField.setPosition(hx, sy + 26);
+                hexField.setScale(2f);
+                hexField.setColor(vr / 255f, vg / 255f, vb / 255f);
+                hexField.setOnConfirm(newHex -> {
+                    int nr = Integer.parseInt(newHex.substring(1, 3), 16);
+                    int ng = Integer.parseInt(newHex.substring(3, 5), 16);
+                    int nb = Integer.parseInt(newHex.substring(5, 7), 16);
+                    cfg.setFloat(prefix + "R", nr); cfg.setFloat(prefix + "G", ng); cfg.setFloat(prefix + "B", nb);
+                    hexField.setText(hexField.getText());
+                });
+                hexField.render(textShader);
             }
         }
 
-        int rendered = 0;
         for (ConfigParametres.Param p : cat.params) {
             if (!p.isVisible(cfg)) continue;
+            if (isArriere && rendered >= 6) break;
+            if (hasColorPicker(cat.id) && !isArriere && rendered >= visibleCount) break;
             float y = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP);
 
             if ("bool".equals(p.type)) {
                 drawBoolRow(y, p, rowTc);
             } else {
                 drawFloatRow(y, p, rowTc);
-                if (p.key.equals(editingFloatKey)) {
-                    float vx = MENU_X + MENU_W / 2f + 20;
-                    float val = cfg.getFloat(p.key);
-                    String display = fmtNum(val);
-                    floatField.setText(display);
-                    floatField.setPosition(vx + 2, y + 6);
-                    floatField.setScale(1.7f);
-                    floatField.setBounds(p.min, p.max);
-                    floatField.setColor(1f, 1f, 0f);
-                    floatField.setOnConfirm(newVal -> {
-                        try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
-                        catch (NumberFormatException ignored) {}
-                        editingFloatKey = null;
-                    });
-                    floatField.render(textShader);
-                }
+                if (p.key.equals(editingFloatKey) && !isArriere) renderFloatField(y, p);
             }
             rendered++;
         }
 
         float by = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP) + 20;
+        if (isArriere) by = sy + rendered * (ROW_H + ROW_GAP) + 20;
         drawButton(width / 2f - 210, by, 200, 38, "Appliquer", 0.2f, 0.25f, 0.3f);
         drawButton(width / 2f + 10, by, 200, 38, "Retour", 0.25f, 0.25f, 0.3f);
+    }
+
+    private void renderFloatField(float y, ConfigParametres.Param p) {
+        ConfigParametres cfg = ConfigParametres.get();
+        float val = cfg.getFloat(p.key);
+        float vx = MENU_X + MENU_W / 2f + 20;
+        String display = fmtNum(val);
+        floatField.setText(display);
+        floatField.setPosition(vx + 2, y + 6);
+        floatField.setScale(1.7f);
+        floatField.setBounds(p.min, p.max);
+        floatField.setColor(1f, 1f, 0f);
+        floatField.setOnConfirm(newVal -> {
+            try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
+            catch (NumberFormatException ignored) {}
+            editingFloatKey = null;
+        });
+        floatField.render(textShader);
     }
 
     public void click(float mx, float my) {
@@ -326,60 +366,130 @@ public class ParametresUI {
 
         float sy = 110;
         boolean isArriere = "arriereplan".equals(cat.id);
-        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 4 : 2) : 0;
+        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 0 : 2) : 0;
         int rendered = 0;
 
-        for (ConfigParametres.Param p : cat.params) {
-            if (!p.isVisible(cfg)) continue;
-            float y = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP);
-
-            if ("bool".equals(p.type)) {
-                if (mx >= MENU_X && mx <= MENU_X + MENU_W && my >= y && my <= y + ROW_H) {
-                    cfg.setBool(p.key, !cfg.getBool(p.key));
-                    return;
-                }
-            } else {
+        if (isArriere) {
+            float curY = sy + 80;
+            for (int idx : new int[]{0, 1, 2}) {
+                ConfigParametres.Param p = cat.params.get(idx);
                 float val = cfg.getFloat(p.key);
-                float vx = MENU_X + MENU_W / 2f + 20;
-
-                boolean onMinus = mx >= vx - 30 && mx <= vx - 6 && my >= y && my <= y + ROW_H;
-                boolean onPlus  = mx >= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 6
-                               && mx <= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 30
-                               && my >= y && my <= y + ROW_H;
-
-                if (onMinus && val > p.min) {
-                    cfg.setFloat(p.key, val - p.step);
-                    editingFloatKey = null;
-                    return;
-                }
-                if (onPlus && val < p.max) {
-                    cfg.setFloat(p.key, val + p.step);
-                    editingFloatKey = null;
-                    return;
-                }
-
-                if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
-                    float[] ext = Text.getTextExtent(fmtNum(val), 1.7f);
-                    if (mx >= vx && mx <= vx + ext[0] + 4 && my >= y && my <= y + ROW_H) {
-                        editingFloatKey = p.key;
-                        floatField.setText(fmtNum(val));
-                        floatField.setPosition(vx + 2, y + 6);
-                        floatField.setScale(1.7f);
-                        floatField.setBounds(p.min, p.max);
-                        floatField.setOnConfirm(newVal -> {
-                            try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
-                            catch (NumberFormatException ignored) {}
-                            editingFloatKey = null;
-                        });
-                        floatField.activate();
-                        return;
+                if ("float".equals(p.type)) {
+                    float vx = MENU_X + MENU_W / 2f + 20;
+                    boolean onMinus = mx >= vx - 30 && mx <= vx - 6 && my >= curY && my <= curY + ROW_H;
+                    boolean onPlus = mx >= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 6
+                                 && mx <= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 30
+                                 && my >= curY && my <= curY + ROW_H;
+                    if (onMinus && val > p.min) { cfg.setFloat(p.key, val - p.step); editingFloatKey = null; return; }
+                    if (onPlus && val < p.max) { cfg.setFloat(p.key, val + p.step); editingFloatKey = null; return; }
+                    if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
+                        float[] ext = Text.getTextExtent(fmtNum(val), 1.7f);
+                        if (mx >= vx && mx <= vx + ext[0] + 4 && my >= curY && my <= curY + ROW_H) {
+                            editingFloatKey = p.key;
+                            floatField.setText(fmtNum(val));
+                            floatField.setPosition(vx + 2, curY + 6);
+                            floatField.setScale(1.7f);
+                            floatField.setBounds(p.min, p.max);
+                            floatField.setOnConfirm(newVal -> {
+                                try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
+                                catch (NumberFormatException ignored) {}
+                                editingFloatKey = null;
+                            });
+                            floatField.activate();
+                            return;
+                        }
                     }
                 }
+                curY += ROW_H + ROW_GAP;
+                rendered++;
             }
-            rendered++;
+            curY = sy + 80 + 3 * (ROW_H + ROW_GAP) + 8 + 80;
+            for (int idx : new int[]{3, 4, 5}) {
+                ConfigParametres.Param p = cat.params.get(idx);
+                float val = cfg.getFloat(p.key);
+                if ("float".equals(p.type)) {
+                    float vx = MENU_X + MENU_W / 2f + 20;
+                    boolean onMinus = mx >= vx - 30 && mx <= vx - 6 && my >= curY && my <= curY + ROW_H;
+                    boolean onPlus = mx >= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 6
+                                 && mx <= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 30
+                                 && my >= curY && my <= curY + ROW_H;
+                    if (onMinus && val > p.min) { cfg.setFloat(p.key, val - p.step); editingFloatKey = null; return; }
+                    if (onPlus && val < p.max) { cfg.setFloat(p.key, val + p.step); editingFloatKey = null; return; }
+                    if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
+                        float[] ext = Text.getTextExtent(fmtNum(val), 1.7f);
+                        if (mx >= vx && mx <= vx + ext[0] + 4 && my >= curY && my <= curY + ROW_H) {
+                            editingFloatKey = p.key;
+                            floatField.setText(fmtNum(val));
+                            floatField.setPosition(vx + 2, curY + 6);
+                            floatField.setScale(1.7f);
+                            floatField.setBounds(p.min, p.max);
+                            floatField.setOnConfirm(newVal -> {
+                                try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
+                                catch (NumberFormatException ignored) {}
+                                editingFloatKey = null;
+                            });
+                            floatField.activate();
+                            return;
+                        }
+                    }
+                }
+                curY += ROW_H + ROW_GAP;
+                rendered++;
+            }
+        } else {
+            for (ConfigParametres.Param p : cat.params) {
+                if (!p.isVisible(cfg)) continue;
+                float y = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP);
+
+                if ("bool".equals(p.type)) {
+                    if (mx >= MENU_X && mx <= MENU_X + MENU_W && my >= y && my <= y + ROW_H) {
+                        cfg.setBool(p.key, !cfg.getBool(p.key));
+                        return;
+                    }
+                } else {
+                    float val = cfg.getFloat(p.key);
+                    float vx = MENU_X + MENU_W / 2f + 20;
+
+                    boolean onMinus = mx >= vx - 30 && mx <= vx - 6 && my >= y && my <= y + ROW_H;
+                    boolean onPlus  = mx >= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 6
+                                   && mx <= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 30
+                                   && my >= y && my <= y + ROW_H;
+
+                    if (onMinus && val > p.min) {
+                        cfg.setFloat(p.key, val - p.step);
+                        editingFloatKey = null;
+                        return;
+                    }
+                    if (onPlus && val < p.max) {
+                        cfg.setFloat(p.key, val + p.step);
+                        editingFloatKey = null;
+                        return;
+                    }
+
+                    if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
+                        float[] ext = Text.getTextExtent(fmtNum(val), 1.7f);
+                        if (mx >= vx && mx <= vx + ext[0] + 4 && my >= y && my <= y + ROW_H) {
+                            editingFloatKey = p.key;
+                            floatField.setText(fmtNum(val));
+                            floatField.setPosition(vx + 2, y + 6);
+                            floatField.setScale(1.7f);
+                            floatField.setBounds(p.min, p.max);
+                            floatField.setOnConfirm(newVal -> {
+                                try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
+                                catch (NumberFormatException ignored) {}
+                                editingFloatKey = null;
+                            });
+                            floatField.activate();
+                            return;
+                        }
+                    }
+                }
+                rendered++;
+            }
         }
 
         float by = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP) + 20;
+        if (isArriere) by = sy + rendered * (ROW_H + ROW_GAP) + 20;
         if (my >= by && my <= by + 38) {
             hexField.cancelEditing();
             textHexField.cancelEditing();
