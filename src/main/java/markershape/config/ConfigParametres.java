@@ -106,6 +106,12 @@ public class ConfigParametres {
         cp.valeurs.addProperty("bgR", 26);
         cp.valeurs.addProperty("bgG", 26);
         cp.valeurs.addProperty("bgB", 31);
+        cp.valeurs.addProperty("textR", 51);
+        cp.valeurs.addProperty("textG", 33);
+        cp.valeurs.addProperty("textB", 15);
+        cp.valeurs.addProperty("refBgR", 255);
+        cp.valeurs.addProperty("refBgG", 255);
+        cp.valeurs.addProperty("refBgB", 0);
         cp.valeurs.addProperty("gridVisible", true);
         cp.valeurs.addProperty("snapEnabled", false);
         cp.valeurs.addProperty("snapStep", 1.0);
@@ -150,6 +156,12 @@ public class ConfigParametres {
         arriere.params.add(param("bgR", "Fond R", "float", 0, 255, 1));
         arriere.params.add(param("bgG", "Fond V", "float", 0, 255, 1));
         arriere.params.add(param("bgB", "Fond B", "float", 0, 255, 1));
+        arriere.params.add(param("textR", "Texte R", "float", 0, 255, 1));
+        arriere.params.add(param("textG", "Texte V", "float", 0, 255, 1));
+        arriere.params.add(param("textB", "Texte B", "float", 0, 255, 1));
+        arriere.params.add(param("refBgR", "Ref fond R", "float", 0, 255, 1));
+        arriere.params.add(param("refBgG", "Ref fond V", "float", 0, 255, 1));
+        arriere.params.add(param("refBgB", "Ref fond B", "float", 0, 255, 1));
         cats.add(arriere);
 
         Categorie grille = new Categorie();
