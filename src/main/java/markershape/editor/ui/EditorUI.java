@@ -4,6 +4,7 @@ import gamegl.gestion.texte.Text;
 import learngl.Shader;
 import markershape.editor.ui.control.Button;
 import markershape.editor.ui.control.EntityListPanel;
+import markershape.editor.ui.util.TextColor;
 import markershape.editor.ui.control.FilterPanel;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.ConfirmSavePopup;
@@ -33,6 +34,8 @@ public class EditorUI {
     public final ConfirmSavePopup confirmSave;
     public final BlurBackground blur;
     public final EntityListPanel entityList;
+    private float lastMenuR = -1f, lastMenuG = -1f, lastMenuB = -1f;
+    private boolean lastTransparentUI;
 
     public EditorUI(int w, int h, Runnable onSave, Runnable onQuit, Runnable onNewEdge, Runnable onNewVertex) {
         this.onSave = onSave;
@@ -113,10 +116,28 @@ public class EditorUI {
             newBtn.bgR = BlurBackground.menuR; newBtn.bgG = BlurBackground.menuG; newBtn.bgB = BlurBackground.menuB;
             filterBtn.bgR = BlurBackground.menuR; filterBtn.bgG = BlurBackground.menuG; filterBtn.bgB = BlurBackground.menuB;
         }
+
+        float tc = opaque ? TextColor.contrast(BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB)
+                          : BlurBackground.textColor();
+        saveBtn.textR = tc; saveBtn.textG = tc; saveBtn.textB = tc;
+        quitBtn.textR = tc; quitBtn.textG = tc; quitBtn.textB = tc;
+        filterBtn.textR = tc; filterBtn.textG = tc; filterBtn.textB = tc;
+
+        if (opaque) {
+            setActiveMode(newMenu.getActiveMode());
+        }
     }
 
     public void render(String currentFile) {
         blur.captureScreen();
+
+        if (BlurBackground.menuR != lastMenuR || BlurBackground.menuG != lastMenuG || BlurBackground.menuB != lastMenuB
+            || BlurBackground.transparentUI != lastTransparentUI) {
+            lastMenuR = BlurBackground.menuR; lastMenuG = BlurBackground.menuG; lastMenuB = BlurBackground.menuB;
+            lastTransparentUI = BlurBackground.transparentUI;
+            syncFromConfig();
+        }
+
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -232,6 +253,8 @@ public class EditorUI {
             } else {
                 newBtn.bgR = 0.25f; newBtn.bgG = 0.3f; newBtn.bgB = 0.25f;
             }
+            float tc = TextColor.contrast(newBtn.bgR, newBtn.bgG, newBtn.bgB);
+            newBtn.textR = tc; newBtn.textG = tc; newBtn.textB = tc;
         }
     }
 

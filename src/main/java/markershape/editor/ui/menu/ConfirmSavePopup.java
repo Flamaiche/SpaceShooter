@@ -61,11 +61,12 @@ public class ConfirmSavePopup {
         blur.drawBlurredBg(0, 0, width, height, 0.55f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
         blur.drawBlurredBg(cx, cy, CONFIRM_W, CONFIRM_H, 0.88f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
 
+        float tc = BlurBackground.textColor();
         Text.drawText(textShader, "Sauvegarder ?",
-            cx + CONFIRM_W / 2 - 50, cy + 18, 1.5f, 1f, 1f, 1f);
+            cx + CONFIRM_W / 2 - 50, cy + 18, 1.5f, tc, tc, tc);
         Text.drawText(textShader, "[Oui]",
-            cx + 30, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, 0.4f, 0.9f, 0.4f);
+            cx + 30, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, tc, tc, tc);
         Text.drawText(textShader, "[Non]",
-            cx + CONFIRM_W - 70, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, 0.9f, 0.4f, 0.4f);
+            cx + CONFIRM_W - 70, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, tc, tc, tc);
     }
 }

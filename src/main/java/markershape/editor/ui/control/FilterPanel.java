@@ -108,14 +108,17 @@ public class FilterPanel {
             shader.unbind();
         }
 
+        float tc = BlurBackground.textColor();
+
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
 
         for (int i = 0; i < filterLabels.length; i++) {
             float iy = filterY + i * CHECKBOX_H;
             String prefix = filterValues[i] ? "[x] " : "[ ] ";
+            float brightness = filterValues[i] ? 1f : 0.6f;
             Text.drawText(textShader, prefix + filterLabels[i],
-                filterX + 8, iy + 4, 1.5f, 0.85f, 0.85f, 1f);
+                filterX + 8, iy + 4, 1.5f, tc * brightness, tc * brightness, tc * brightness);
         }
 
         for (int i = 0; i < sliderLabels.length; i++) {
@@ -127,13 +130,13 @@ public class FilterPanel {
 
             String valStr = String.format("%." + SLIDER_DECIMALS + "f", sliderValues[i]);
             Text.drawText(textShader, sliderLabels[i] + ":",
-                filterX + 8, iy + 2, 1.5f, 0.7f, 0.7f, 0.9f);
+                filterX + 8, iy + 2, 1.5f, tc, tc, tc);
             Text.drawText(textShader, valStr,
-                filterX + VAL_X, iy + 2, 1.5f, 0.7f, 0.7f, 0.9f);
+                filterX + VAL_X, iy + 2, 1.5f, tc, tc, tc);
             Text.drawText(textShader, "[-]",
-                filterX + MINUS_X, iy + 2, 1.5f, 0.8f, 0.8f, 1f);
+                filterX + MINUS_X, iy + 2, 1.5f, tc, tc, tc);
             Text.drawText(textShader, "[+]",
-                filterX + PLUS_X, iy + 2, 1.5f, 0.8f, 0.8f, 1f);
+                filterX + PLUS_X, iy + 2, 1.5f, tc, tc, tc);
 
             buf.clear();
             float tx = trackX, ty = trackY, tw = TRACK_W, th = 6;
