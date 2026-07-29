@@ -36,7 +36,6 @@ public class ParametresUI {
     private Runnable onApply;
     public boolean visible;
     private final EditableTextField hexField;
-    private final EditableTextField refHexField;
     private final EditableTextField textHexField;
     private final EditableTextField floatField;
     private String editingFloatKey;
@@ -52,7 +51,6 @@ public class ParametresUI {
     public ParametresUI(Runnable onBack) {
         this.onBack = onBack;
         this.hexField = new EditableTextField("#000000", EditableTextField.ValueType.HEX_COLOR, 0, 0);
-        this.refHexField = new EditableTextField("#FFFF00", EditableTextField.ValueType.HEX_COLOR, 0, 0);
         this.textHexField = new EditableTextField("#33210F", EditableTextField.ValueType.HEX_COLOR, 0, 0);
         this.floatField = new EditableTextField("0", EditableTextField.ValueType.FLOAT, 0, 0);
         shader = new Shader("shaders/markershape/ui_Vertex.glsl",
@@ -160,7 +158,7 @@ public class ParametresUI {
 
         float sy = 110;
         boolean isArriere = "arriereplan".equals(cat.id);
-        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 6 : 2) : 0;
+        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 4 : 2) : 0;
         int visibleCount = 0;
         for (ConfigParametres.Param p : cat.params) {
             if (p.isVisible(cfg)) visibleCount++;
@@ -214,27 +212,6 @@ public class ParametresUI {
                     textHexField.setText(textHexField.getText());
                 });
                 textHexField.render(textShader);
-
-                float refY = sy + (ROW_H + ROW_GAP) * 4 + 16;
-                float rr = cfg.getFloat("refBgR"), rg = cfg.getFloat("refBgG"), rb = cfg.getFloat("refBgB");
-                drawQuad(MENU_X + 30, refY, MENU_W - 60, 70, rr / 255f, rg / 255f, rb / 255f, 1f);
-
-                String refHex = String.format("#%02X%02X%02X", (int)rr, (int)rg, (int)rb);
-                float rhx = width / 2f - Text.getTextExtent(refHex, 2f)[0] / 2f;
-                refHexField.setText(refHex);
-                refHexField.setPosition(rhx, refY + 26);
-                refHexField.setScale(2f);
-                refHexField.setColor(rr / 255f, rg / 255f, rb / 255f);
-                refHexField.setOnConfirm(newHex -> {
-                    int nr = Integer.parseInt(newHex.substring(1, 3), 16);
-                    int ng = Integer.parseInt(newHex.substring(3, 5), 16);
-                    int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-                    cfg.setFloat("refBgR", nr);
-                    cfg.setFloat("refBgG", ng);
-                    cfg.setFloat("refBgB", nb);
-                    refHexField.setText(refHexField.getText());
-                });
-                refHexField.render(textShader);
             }
         }
 
@@ -284,7 +261,6 @@ public class ParametresUI {
 
     private void clickCategories(float mx, float my) {
         hexField.cancelEditing();
-        refHexField.cancelEditing();
         textHexField.cancelEditing();
         floatField.cancelEditing();
         editingFloatKey = null;
@@ -345,12 +321,12 @@ public class ParametresUI {
 
         if (hasColorPicker(cat.id)) {
             if (hexField.click(mx, my)) return;
-            if ("arriereplan".equals(cat.id) && (refHexField.click(mx, my) || textHexField.click(mx, my))) return;
+            if ("arriereplan".equals(cat.id) && textHexField.click(mx, my)) return;
         }
 
         float sy = 110;
         boolean isArriere = "arriereplan".equals(cat.id);
-        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 6 : 2) : 0;
+        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 4 : 2) : 0;
         int rendered = 0;
 
         for (ConfigParametres.Param p : cat.params) {
@@ -406,7 +382,6 @@ public class ParametresUI {
         float by = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP) + 20;
         if (my >= by && my <= by + 38) {
             hexField.cancelEditing();
-            refHexField.cancelEditing();
             textHexField.cancelEditing();
             floatField.cancelEditing();
             editingFloatKey = null;
@@ -425,8 +400,6 @@ public class ParametresUI {
         if (confirmVisible) return;
         if (hexField.isEditing()) {
             hexField.keyAction(key, action);
-        } else if (refHexField.isEditing()) {
-            refHexField.keyAction(key, action);
         } else if (textHexField.isEditing()) {
             textHexField.keyAction(key, action);
         } else if (floatField.isEditing()) {
@@ -439,8 +412,6 @@ public class ParametresUI {
         if (confirmVisible) return;
         if (hexField.isEditing()) {
             hexField.keyChar(codepoint);
-        } else if (refHexField.isEditing()) {
-            refHexField.keyChar(codepoint);
         } else if (textHexField.isEditing()) {
             textHexField.keyChar(codepoint);
         } else if (floatField.isEditing()) {

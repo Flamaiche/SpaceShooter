@@ -159,9 +159,6 @@ public class ConfigParametres {
         arriere.params.add(param("textR", "Texte R", "float", 0, 255, 1));
         arriere.params.add(param("textG", "Texte V", "float", 0, 255, 1));
         arriere.params.add(param("textB", "Texte B", "float", 0, 255, 1));
-        arriere.params.add(param("refBgR", "Ref fond R", "float", 0, 255, 1));
-        arriere.params.add(param("refBgG", "Ref fond V", "float", 0, 255, 1));
-        arriere.params.add(param("refBgB", "Ref fond B", "float", 0, 255, 1));
         cats.add(arriere);
 
         Categorie grille = new Categorie();

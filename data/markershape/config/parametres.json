@@ -125,6 +125,30 @@
               "min": 0.0,
               "max": 255.0,
               "step": 1.0
+            },
+            {
+              "key": "textR",
+              "label": "Texte R",
+              "type": "float",
+              "min": 0.0,
+              "max": 255.0,
+              "step": 1.0
+            },
+            {
+              "key": "textG",
+              "label": "Texte V",
+              "type": "float",
+              "min": 0.0,
+              "max": 255.0,
+              "step": 1.0
+            },
+            {
+              "key": "textB",
+              "label": "Texte B",
+              "type": "float",
+              "min": 0.0,
+              "max": 255.0,
+              "step": 1.0
             }
           ]
         },
