@@ -107,10 +107,7 @@ public class ParametresUI {
         float bgG = cfg.getFloat("bgG") / 255f;
         float bgB = cfg.getFloat("bgB") / 255f;
 
-        float tr = cfg.getFloat("textR") / 255f, tg = cfg.getFloat("textG") / 255f, tb = cfg.getFloat("textB") / 255f;
-        float rf = cfg.getFloat("refBgR") / 255f, gf = cfg.getFloat("refBgG") / 255f, bf = cfg.getFloat("refBgB") / 255f;
-        float[] tCol = TextColor.menuText(tr, tg, tb, bgR, bgG, bgB, rf, gf, bf);
-        float tR = tCol[0], tG = tCol[1], tB = tCol[2];
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         Text.drawText(textShader, "Parametres",
             width / 2f - Text.getTextExtent("Parametres", 3f)[0] / 2f, 50, 3f, tR, tG, tB);
 
@@ -148,10 +145,7 @@ public class ParametresUI {
         float bgR = cfg.getFloat("bgR") / 255f;
         float bgG = cfg.getFloat("bgG") / 255f;
         float bgB = cfg.getFloat("bgB") / 255f;
-        float tr = cfg.getFloat("textR") / 255f, tg = cfg.getFloat("textG") / 255f, tb = cfg.getFloat("textB") / 255f;
-        float rf = cfg.getFloat("refBgR") / 255f, gf = cfg.getFloat("refBgG") / 255f, bf = cfg.getFloat("refBgB") / 255f;
-        float[] tCol = TextColor.menuText(tr, tg, tb, bgR, bgG, bgB, rf, gf, bf);
-        float tR = tCol[0], tG = tCol[1], tB = tCol[2];
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
         Text.drawText(textShader, cat.label,
             width / 2f - Text.getTextExtent(cat.label, 3f)[0] / 2f, 50, 3f, tR, tG, tB);

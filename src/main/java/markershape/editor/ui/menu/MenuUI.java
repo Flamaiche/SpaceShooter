@@ -90,10 +90,7 @@ public class MenuUI {
         }
         shader.unbind();
 
-        float tr = cfg.getFloat("textR") / 255f, tg = cfg.getFloat("textG") / 255f, tb = cfg.getFloat("textB") / 255f;
-        float rf = cfg.getFloat("refBgR") / 255f, gf = cfg.getFloat("refBgG") / 255f, bf = cfg.getFloat("refBgB") / 255f;
-        float[] tCol = TextColor.menuText(tr, tg, tb, bgR, bgG, bgB, rf, gf, bf);
-        float tR = tCol[0], tG = tCol[1], tB = tCol[2];
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         Text.drawText(textShader, "MarkerShape",
             cx - Text.getTextExtent("MarkerShape", 4f)[0] / 2f, 40, 4f, tR, tG, tB);
         Text.drawText(textShader, "Editeur de modeles 3D",
