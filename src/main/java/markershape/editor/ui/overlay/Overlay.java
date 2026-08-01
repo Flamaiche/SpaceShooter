@@ -2,7 +2,9 @@ package markershape.editor.ui.overlay;
 
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
+import markershape.config.ConfigParametres;
 import markershape.editor.ui.control.Button;
+import markershape.editor.ui.menu.BlurBackground;
 import org.joml.Matrix4f;
 
 import java.nio.FloatBuffer;
@@ -60,24 +62,23 @@ public abstract class Overlay {
         uiShader.bind();
         uiShader.setUniformMat4f("projection", ortho);
 
-        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
-            float mr = markershape.editor.ui.menu.BlurBackground.menuR;
-            float mg = markershape.editor.ui.menu.BlurBackground.menuG;
-            float mb = markershape.editor.ui.menu.BlurBackground.menuB;
-            buf.clear();
-            buf.put(new float[]{
-                px,    py,    mr, mg, mb, 0.95f,
-                px+pw, py,    mr, mg, mb, 0.95f,
-                px+pw, py+ph, mr, mg, mb, 0.95f,
-                px,    py,    mr, mg, mb, 0.95f,
-                px+pw, py+ph, mr, mg, mb, 0.95f,
-                px,    py+ph, mr, mg, mb, 0.95f,
-            }).flip();
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-        }
+        float alpha = BlurBackground.panelAlpha();
+        float mr = BlurBackground.menuR;
+        float mg = BlurBackground.menuG;
+        float mb = BlurBackground.menuB;
+        buf.clear();
+        buf.put(new float[]{
+            px,    py,    mr, mg, mb, alpha,
+            px+pw, py,    mr, mg, mb, alpha,
+            px+pw, py+ph, mr, mg, mb, alpha,
+            px,    py,    mr, mg, mb, alpha,
+            px+pw, py+ph, mr, mg, mb, alpha,
+            px,    py+ph, mr, mg, mb, alpha,
+        }).flip();
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         renderContent(uiShader, textShader, ortho, buf, vao, vbo);
 
@@ -87,8 +88,10 @@ public abstract class Overlay {
 
         renderText(textShader);
 
-        float tc = markershape.editor.ui.menu.BlurBackground.textColor();
-        deleteBtn.textR = tc; deleteBtn.textG = tc; deleteBtn.textB = tc;
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        deleteBtn.textR = tR; deleteBtn.textG = tG; deleteBtn.textB = tB;
+        deleteBtn.bgA = BlurBackground.btnAlpha();
         deleteBtn.render(uiShader, textShader, ortho, buf, vao, vbo);
         closeBtn.render(uiShader, textShader, ortho, buf, vao, vbo);
     }

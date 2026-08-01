@@ -67,7 +67,6 @@ public class Editor {
             () -> { ctx.creatingVertex = true; ctx.creatingEdge = false; ctx.edgeFirstVertex = -1; editorUI.setActiveMode(0); editorUI.closeNewMenu(); selection.hideOverlays(); selection.selectedVertex = -1; selection.selectedEdge = -1; });
         editorUI.setFilterCallback(this::applyFilterSettings);
         ctx.ui = editorUI;
-        ctx.blur = editorUI.blur;
 
         faceUtils = new FaceUtils();
         edge = new EdgeAction(ctx, faceUtils);
@@ -148,23 +147,16 @@ public class Editor {
         editorUI.render(currentFile);
 
         if (ctx.selection.vertexOverlay.isVisible()) {
-            var vo = ctx.selection.vertexOverlay;
-            if (ctx.blur != null) ctx.blur.drawBlurredBg(vo.getPx(), vo.getPy(), vo.getPw(), vo.getPh(), 0.85f, markershape.editor.ui.menu.BlurBackground.menuR, markershape.editor.ui.menu.BlurBackground.menuG, markershape.editor.ui.menu.BlurBackground.menuB);
-
             ctx.selection.vertexOverlay.render(editorUI.shader(), editorUI.textShader(),
                 editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
         }
 
         if (ctx.selection.edgeOverlay.isVisible()) {
-            var eo = ctx.selection.edgeOverlay;
-            if (ctx.blur != null) ctx.blur.drawBlurredBg(eo.getPx(), eo.getPy(), eo.getPw(), eo.getPh(), 0.85f, markershape.editor.ui.menu.BlurBackground.menuR, markershape.editor.ui.menu.BlurBackground.menuG, markershape.editor.ui.menu.BlurBackground.menuB);
             ctx.selection.edgeOverlay.render(editorUI.shader(), editorUI.textShader(),
                 editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
         }
 
         if (ctx.selection.siblingPicker.isVisible()) {
-            var sp = ctx.selection.siblingPicker;
-            if (ctx.blur != null) ctx.blur.drawBlurredBg(sp.getX(), sp.getY(), sp.getW(), sp.getH(), 0.88f, markershape.editor.ui.menu.BlurBackground.menuR, markershape.editor.ui.menu.BlurBackground.menuG, markershape.editor.ui.menu.BlurBackground.menuB);
             ctx.selection.siblingPicker.render(editorUI.shader(), editorUI.textShader(),
                 editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
         }
@@ -173,7 +165,6 @@ public class Editor {
     }
 
     public void goToMenu() {
-        renderer.cleanup();
         currentFile = null;
         ctx.currentFilename = null;
         ctx.exitModes();

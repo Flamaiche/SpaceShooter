@@ -1,5 +1,6 @@
 package markershape.editor.ui.menu;
 
+import markershape.config.ConfigParametres;
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
 import org.joml.Matrix4f;
@@ -11,7 +12,6 @@ public class ConfirmSavePopup {
     private int width, height;
     private boolean visible;
     private Runnable confirmAction;
-    private BlurBackground blur;
     private Shader textShader;
 
     public static final float CONFIRM_W = 220;
@@ -19,8 +19,7 @@ public class ConfirmSavePopup {
     public static final float CONFIRM_BTN_W = 70;
     public static final float CONFIRM_BTN_H = 28;
 
-    public ConfirmSavePopup(BlurBackground blur, Shader textShader) {
-        this.blur = blur;
+    public ConfirmSavePopup(Shader textShader) {
         this.textShader = textShader;
     }
 
@@ -58,15 +57,13 @@ public class ConfirmSavePopup {
         float cx = (width - CONFIRM_W) / 2;
         float cy = (36 + (height - 36) / 2) - CONFIRM_H / 2;
 
-        blur.drawBlurredBg(0, 0, width, height, 0.55f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
-        blur.drawBlurredBg(cx, cy, CONFIRM_W, CONFIRM_H, 0.88f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
-
-        float tc = BlurBackground.textColor();
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         Text.drawText(textShader, "Sauvegarder ?",
-            cx + CONFIRM_W / 2 - 50, cy + 18, 1.5f, tc, tc, tc);
+            cx + CONFIRM_W / 2 - 50, cy + 18, 1.5f, tR, tG, tB);
         Text.drawText(textShader, "[Oui]",
-            cx + 30, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, tc, tc, tc);
+            cx + 30, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, tR, tG, tB);
         Text.drawText(textShader, "[Non]",
-            cx + CONFIRM_W - 70, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, tc, tc, tc);
+            cx + CONFIRM_W - 70, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, tR, tG, tB);
     }
 }

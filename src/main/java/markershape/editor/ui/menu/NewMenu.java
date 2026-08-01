@@ -1,5 +1,6 @@
 package markershape.editor.ui.menu;
 
+import markershape.config.ConfigParametres;
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
 import org.joml.Matrix4f;
@@ -21,17 +22,15 @@ public class NewMenu {
     private float btnX, btnY;
     private Shader shader;
     private Shader textShader;
-    private BlurBackground blur;
     private int vao, vbo;
     private final Matrix4f ortho = new Matrix4f();
     private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
 
-    public NewMenu(Shader shader, Shader textShader, int vao, int vbo, BlurBackground blur) {
+    public NewMenu(Shader shader, Shader textShader, int vao, int vbo) {
         this.shader = shader;
         this.textShader = textShader;
         this.vao = vao;
         this.vbo = vbo;
-        this.blur = blur;
     }
 
     public boolean isOpen() { return newMenuOpen; }
@@ -59,48 +58,42 @@ public class NewMenu {
         float dh = 2 * NEW_ITEM_H;
         float border = 1f;
 
-        if (markershape.editor.ui.menu.BlurBackground.transparentUI) {
-            blur.drawBlurredBg(dx - border, dy - border, NEW_DROP_W + 2 * border, dh + 2 * border,
-                0.82f, 0.5f, 0.5f, 0.55f);
-        }
-
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
 
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
-            float mr = markershape.editor.ui.menu.BlurBackground.menuR;
-            float mg = markershape.editor.ui.menu.BlurBackground.menuG;
-            float mb = markershape.editor.ui.menu.BlurBackground.menuB;
-            buf.clear();
-            buf.put(new float[]{
-                dx - border, dy - border, mr, mg, mb, 0.9f,
-                dx + NEW_DROP_W + border, dy - border, mr, mg, mb, 0.9f,
-                dx + NEW_DROP_W + border, dy + dh + border, mr, mg, mb, 0.9f,
-                dx - border, dy - border, mr, mg, mb, 0.9f,
-                dx + NEW_DROP_W + border, dy + dh + border, mr, mg, mb, 0.9f,
-                dx - border, dy + dh + border, mr, mg, mb, 0.9f,
-            }).flip();
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-        }
+        float dropAlpha = BlurBackground.panelAlpha();
+        float mr = BlurBackground.menuR;
+        float mg = BlurBackground.menuG;
+        float mb = BlurBackground.menuB;
+        buf.clear();
+        buf.put(new float[]{
+            dx - border, dy - border, mr, mg, mb, dropAlpha,
+            dx + NEW_DROP_W + border, dy - border, mr, mg, mb, dropAlpha,
+            dx + NEW_DROP_W + border, dy + dh + border, mr, mg, mb, dropAlpha,
+            dx - border, dy - border, mr, mg, mb, dropAlpha,
+            dx + NEW_DROP_W + border, dy + dh + border, mr, mg, mb, dropAlpha,
+            dx - border, dy + dh + border, mr, mg, mb, dropAlpha,
+        }).flip();
+        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         for (int i = 0; i < 2; i++) {
             float iy = dy + i * NEW_ITEM_H;
             if (i == activeMode) {
-                float mr = markershape.editor.ui.menu.BlurBackground.menuR;
-                float mg = markershape.editor.ui.menu.BlurBackground.menuG;
-                float mb = markershape.editor.ui.menu.BlurBackground.menuB;
+                float mr2 = BlurBackground.menuR;
+                float mg2 = BlurBackground.menuG;
+                float mb2 = BlurBackground.menuB;
                 buf.clear();
                 buf.put(new float[]{
-                    dx, iy, mr+0.15f, mg+0.1f, mb, 0.85f,
-                    dx + NEW_DROP_W, iy, mr+0.15f, mg+0.1f, mb, 0.85f,
-                    dx + NEW_DROP_W, iy + NEW_ITEM_H, mr+0.15f, mg+0.1f, mb, 0.85f,
-                    dx, iy, mr+0.15f, mg+0.1f, mb, 0.85f,
-                    dx + NEW_DROP_W, iy + NEW_ITEM_H, mr+0.15f, mg+0.1f, mb, 0.85f,
-                    dx, iy + NEW_ITEM_H, mr+0.15f, mg+0.1f, mb, 0.85f,
+                    dx, iy, mr2+0.15f, mg2+0.1f, mb2, 0.85f,
+                    dx + NEW_DROP_W, iy, mr2+0.15f, mg2+0.1f, mb2, 0.85f,
+                    dx + NEW_DROP_W, iy + NEW_ITEM_H, mr2+0.15f, mg2+0.1f, mb2, 0.85f,
+                    dx, iy, mr2+0.15f, mg2+0.1f, mb2, 0.85f,
+                    dx + NEW_DROP_W, iy + NEW_ITEM_H, mr2+0.15f, mg2+0.1f, mb2, 0.85f,
+                    dx, iy + NEW_ITEM_H, mr2+0.15f, mg2+0.1f, mb2, 0.85f,
                 }).flip();
                 glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -115,12 +108,13 @@ public class NewMenu {
         for (int i = 0; i < 2; i++) {
             float iy = dy + i * NEW_ITEM_H;
             String prefix = (i == activeMode) ? "> " : "  ";
-            float tc = markershape.editor.ui.menu.BlurBackground.textColor();
+            ConfigParametres cfg = ConfigParametres.get();
+            float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
             Text.drawText(textShader, prefix + items[i],
                 dx + 8, iy + 4, 1.5f,
-                i == activeMode ? 1f : tc,
-                i == activeMode ? 1f : tc,
-                i == activeMode ? 0.4f : tc);
+                i == activeMode ? tR * 1.3f : tR,
+                i == activeMode ? tG * 1.3f : tG,
+                i == activeMode ? tB * 1.3f : tB);
         }
     }
 

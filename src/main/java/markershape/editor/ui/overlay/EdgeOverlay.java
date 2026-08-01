@@ -2,6 +2,7 @@ package markershape.editor.ui.overlay;
 
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
+import markershape.config.ConfigParametres;
 import markershape.shape.Edge;
 import org.joml.Matrix4f;
 
@@ -96,21 +97,24 @@ public class EdgeOverlay extends Overlay {
 
     @Override
     protected void renderText(Shader textShader) {
-        float bc = markershape.editor.ui.menu.BlurBackground.textColor();
-        float dim = bc * 0.6f + 0.2f;
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        float dimR = tR * 0.7f, dimG = tG * 0.7f, dimB = tB * 0.7f;
 
-        Text.drawText(textShader, "Edge #" + edge.id, px + 12, py + 10, 1.5f, bc, bc, bc);
-        Text.drawText(textShader, "Vertex A: " + vertexA, px + 12, py + 42, 1.5f, bc, bc, 1f);
-        Text.drawText(textShader, "Vertex B: " + vertexB, px + 12, py + 66, 1.5f, bc, bc, 1f);
+        Text.drawText(textShader, "Edge #" + edge.id, px + 12, py + 10, 1.5f, tR, tG, tB);
+        Text.drawText(textShader, "Vertex A: " + vertexA, px + 12, py + 42, 1.5f, tR, tG, tB);
+        Text.drawText(textShader, "Vertex B: " + vertexB, px + 12, py + 66, 1.5f, tR, tG, tB);
 
         String modeStr = edge.mode.equals("stun") ? "stun" : "move";
-        Text.drawText(textShader, "Mode: " + modeStr, px + 12, py + 90, 1.5f, dim, dim, dim);
+        Text.drawText(textShader, "Mode: " + modeStr, px + 12, py + 90, 1.5f, dimR, dimG, dimB);
 
-        float tc = (selectedField == 1) ? bc : dim;
-        Text.drawText(textShader, "Thick:", px + 12, py + 120, 1.5f, bc, bc, 1f);
+        float tcR = (selectedField == 1) ? tR : dimR;
+        float tcG = (selectedField == 1) ? tG : dimG;
+        float tcB = (selectedField == 1) ? tB : dimB;
+        Text.drawText(textShader, "Thick:", px + 12, py + 120, 1.5f, tR, tG, tB);
         Text.drawText(textShader, String.format("%.3f", edge.thickness),
-            px + VAL_X, py + 120, 1.5f, tc, tc, tc);
-        Text.drawText(textShader, "[-]", px + MINUS_X, py + 121, 1.5f, bc, bc, 1f);
-        Text.drawText(textShader, "[+]", px + PLUS_X, py + 121, 1.5f, bc, bc, 1f);
+            px + VAL_X, py + 120, 1.5f, tcR, tcG, tcB);
+        Text.drawText(textShader, "[-]", px + MINUS_X, py + 121, 1.5f, tR, tG, tB);
+        Text.drawText(textShader, "[+]", px + PLUS_X, py + 121, 1.5f, tR, tG, tB);
     }
 }

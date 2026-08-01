@@ -2,6 +2,7 @@ package markershape.editor.ui.control;
 
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
+import markershape.config.ConfigParametres;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.shape.Edge;
 import markershape.shape.ShapeData;
@@ -26,7 +27,6 @@ public class EntityListPanel {
     private int hoveredId = -1;
     private int scrollOffset;
     private ShapeData data;
-    private BlurBackground blur;
     private Shader shader, textShader;
     private int vao, vbo;
     private final Matrix4f ortho = new Matrix4f();
@@ -36,12 +36,11 @@ public class EntityListPanel {
     private static final int ITEM_H = 22;
     private static final int NAV_W = 44;
 
-    public EntityListPanel(Shader shader, Shader textShader, int vao, int vbo, BlurBackground blur) {
+    public EntityListPanel(Shader shader, Shader textShader, int vao, int vbo) {
         this.shader = shader;
         this.textShader = textShader;
         this.vao = vao;
         this.vbo = vbo;
-        this.blur = blur;
     }
 
     public void setSize(int w, int h) { this.h = h; ortho.setOrtho2D(0, w, h, 0); }
@@ -120,9 +119,8 @@ public class EntityListPanel {
         this.y = paneY;
         this.h = paneH;
 
-        blur.drawBlurredBg(px, paneY, pw, paneH, 0.85f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
-        float tc = markershape.editor.ui.menu.BlurBackground.textColor();
-        float tcDim = tc > 0.5f ? 0.4f : 0.3f;
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -131,19 +129,18 @@ public class EntityListPanel {
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
 
-        if (!BlurBackground.transparentUI) {
-            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-            buf.clear();
-            buf.put(new float[]{
-                px, paneY, mr, mg, mb, 0.92f,
-                px + pw, paneY, mr, mg, mb, 0.92f,
-                px + pw, paneY + paneH, mr, mg, mb, 0.92f,
-                px, paneY, mr, mg, mb, 0.92f,
-                px + pw, paneY + paneH, mr, mg, mb, 0.92f,
-                px, paneY + paneH, mr, mg, mb, 0.92f,
-            }).flip();
-            drawQuad();
-        }
+        float panelAlpha = BlurBackground.panelAlpha();
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+        buf.clear();
+        buf.put(new float[]{
+            px, paneY, mr, mg, mb, panelAlpha,
+            px + pw, paneY, mr, mg, mb, panelAlpha,
+            px + pw, paneY + paneH, mr, mg, mb, panelAlpha,
+            px, paneY, mr, mg, mb, panelAlpha,
+            px + pw, paneY + paneH, mr, mg, mb, panelAlpha,
+            px, paneY + paneH, mr, mg, mb, panelAlpha,
+        }).flip();
+        drawQuad();
 
         shader.unbind();
 
@@ -153,21 +150,17 @@ public class EntityListPanel {
             float tx = t == 0 ? px : midX;
             float tw = t == 0 ? midX - px : px + pw - NAV_W - midX;
             boolean act = (t == 0 && activeMode == MODE_VERTEX) || (t == 1 && activeMode == MODE_EDGE);
-            if (!BlurBackground.transparentUI) {
-                float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-                buf.clear();
-                buf.put(new float[]{
-                    tx, paneY, mr, mg, mb, 0.92f,
-                    tx+tw-1, paneY, mr, mg, mb, 0.92f,
-                    tx+tw-1, paneY+HEADER_H, mr, mg, mb, 0.92f,
-                    tx, paneY, mr, mg, mb, 0.92f,
-                    tx+tw-1, paneY+HEADER_H, mr, mg, mb, 0.92f,
-                    tx, paneY+HEADER_H, mr, mg, mb, 0.92f,
-                }).flip();
-                drawQuad();
-            }
+            buf.clear();
+            buf.put(new float[]{
+                tx, paneY, mr, mg, mb, panelAlpha,
+                tx+tw-1, paneY, mr, mg, mb, panelAlpha,
+                tx+tw-1, paneY+HEADER_H, mr, mg, mb, panelAlpha,
+                tx, paneY, mr, mg, mb, panelAlpha,
+                tx+tw-1, paneY+HEADER_H, mr, mg, mb, panelAlpha,
+                tx, paneY+HEADER_H, mr, mg, mb, panelAlpha,
+            }).flip();
+            drawQuad();
             if (act) {
-                float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
                 buf.clear();
                 buf.put(new float[]{
                     tx, paneY+HEADER_H-3, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
@@ -181,25 +174,23 @@ public class EntityListPanel {
             }
             shader.unbind();
             String label = t == 0 ? "Sommets" : "Ar\u00EAtes";
-            Text.drawText(textShader, label, tx + 10, paneY + 5, 1.5f, tc, tc, act ? tc : tc * 0.6f);
+            Text.drawText(textShader, label, tx + 10, paneY + 5, 1.5f,
+                tR * (act ? 1f : 0.6f), tG * (act ? 1f : 0.6f), tB * (act ? 1f : 0.6f));
             shader.bind();
             shader.setUniformMat4f("projection", ortho);
         }
 
         float navX = px + pw - NAV_W;
-        if (!BlurBackground.transparentUI) {
-            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-            buf.clear();
-            buf.put(new float[]{
-                navX, paneY, mr, mg, mb, 0.92f,
-                px+pw, paneY, mr, mg, mb, 0.92f,
-                px+pw, paneY+HEADER_H, mr, mg, mb, 0.92f,
-                navX, paneY, mr, mg, mb, 0.92f,
-                px+pw, paneY+HEADER_H, mr, mg, mb, 0.92f,
-                navX, paneY+HEADER_H, mr, mg, mb, 0.92f,
-            }).flip();
-            drawQuad();
-        }
+        buf.clear();
+        buf.put(new float[]{
+            navX, paneY, mr, mg, mb, panelAlpha,
+            px+pw, paneY, mr, mg, mb, panelAlpha,
+            px+pw, paneY+HEADER_H, mr, mg, mb, panelAlpha,
+            navX, paneY, mr, mg, mb, panelAlpha,
+            px+pw, paneY+HEADER_H, mr, mg, mb, panelAlpha,
+            navX, paneY+HEADER_H, mr, mg, mb, panelAlpha,
+        }).flip();
+        drawQuad();
 
         {
             int vis = visibleItems();
@@ -207,13 +198,14 @@ public class EntityListPanel {
             boolean canPrev = scrollOffset > 0;
             boolean canNext = scrollOffset + vis < tot;
             shader.unbind();
-            Text.drawText(textShader, "<", navX + 10, paneY + 5, 1.5f, canPrev ? tc : tcDim, canPrev ? tc : tcDim, canPrev ? tc : tcDim);
-            Text.drawText(textShader, ">", navX + 28, paneY + 5, 1.5f, canNext ? tc : tcDim, canNext ? tc : tcDim, canNext ? tc : tcDim);
+            Text.drawText(textShader, "<", navX + 10, paneY + 5, 1.5f,
+                tR * (canPrev ? 1f : 0.4f), tG * (canPrev ? 1f : 0.4f), tB * (canPrev ? 1f : 0.4f));
+            Text.drawText(textShader, ">", navX + 28, paneY + 5, 1.5f,
+                tR * (canNext ? 1f : 0.4f), tG * (canNext ? 1f : 0.4f), tB * (canNext ? 1f : 0.4f));
             shader.bind();
             shader.setUniformMat4f("projection", ortho);
         }
 
-        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
         float lineY = paneY + HEADER_H;
         buf.clear();
         buf.put(new float[]{
@@ -240,7 +232,8 @@ public class EntityListPanel {
                 Vertex v = vs[i];
                 shader.unbind();
                 String label = "#" + v.id + "  (" + fmt(v.x) + ", " + fmt(v.y) + ", " + fmt(v.z) + ")";
-                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f, tc, tc, hover ? 1f : tc * 0.7f);
+                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f,
+                    tR * (hover ? 1f : 0.7f), tG * (hover ? 1f : 0.7f), tB * (hover ? 1f : 0.7f));
                 shader.bind();
                 shader.setUniformMat4f("projection", ortho);
             }
@@ -254,7 +247,8 @@ public class EntityListPanel {
                 Edge e = es[i];
                 shader.unbind();
                 String label = "#" + e.id + "  " + e.a + "\u2192" + e.b + "  [" + e.mode + "]";
-                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f, tc, tc, hover ? 1f : tc * 0.7f);
+                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f,
+                    tR * (hover ? 1f : 0.7f), tG * (hover ? 1f : 0.7f), tB * (hover ? 1f : 0.7f));
                 shader.bind();
                 shader.setUniformMat4f("projection", ortho);
             }
@@ -283,7 +277,6 @@ public class EntityListPanel {
     }
 
     private void drawQuad() {
-        buf.flip();
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);

@@ -40,6 +40,14 @@ public class ShapeRenderer {
     private float pointSize = 5f, lineWidth = 3f, faceAlpha = 1f;
     private int screenW = 1280, screenH = 720;
 
+    public ShapeRenderer() {
+        try {
+            shader = new Shader(shaderPath + "default_Vertex.glsl", shaderPath + "default_Fragment.glsl");
+        } catch (Exception e) {
+            System.err.println("[ShapeRenderer] default shader load error: " + e.getMessage());
+        }
+    }
+
     public void setScreenSize(int w, int h) {
         screenW = w;
         screenH = h;
@@ -146,8 +154,8 @@ public class ShapeRenderer {
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
-        if (shape == null || shader == null) {
-            LogFile.log("[ShapeRenderer] render skipped: shape=" + (shape == null) + " shader=" + (shader == null));
+        if (shader == null) {
+            LogFile.log("[ShapeRenderer] render skipped: shader=" + (shader == null));
             return;
         }
 
@@ -161,6 +169,11 @@ public class ShapeRenderer {
         glEnable(GL_DEPTH_TEST);
 
         if (grid.anyVisible()) grid.render();
+
+        if (shape == null) {
+            shader.unbind();
+            return;
+        }
 
         if (showFaces) {
             shader.setUniform1f("uAlpha", faceAlpha);

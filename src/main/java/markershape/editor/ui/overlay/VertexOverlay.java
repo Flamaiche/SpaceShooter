@@ -2,6 +2,8 @@ package markershape.editor.ui.overlay;
 
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
+import markershape.config.ConfigParametres;
+import markershape.editor.ui.menu.BlurBackground;
 import markershape.shape.Vertex;
 import org.joml.Matrix4f;
 
@@ -134,18 +136,22 @@ public class VertexOverlay extends Overlay {
         }
 
         float sepY = py + fieldYOff[0] - 4;
-        drawLine(buf, px + 10, sepY, px + pw - 10, sepY, 0.3f, 0.3f, 0.4f, 1f);
+        float mr = BlurBackground.menuR;
+        float mg = BlurBackground.menuG;
+        float mb = BlurBackground.menuB;
+        drawLine(buf, px + 10, sepY, px + pw - 10, sepY, mr + 0.15f, mg + 0.15f, mb + 0.2f, 0.9f);
         glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
         glDrawArrays(GL_LINES, 0, 2);
     }
 
     @Override
     protected void renderText(Shader textShader) {
-        float bc = markershape.editor.ui.menu.BlurBackground.textColor();
-        float dim = bc * 0.6f + 0.2f;
-        float dim2 = bc * 0.4f + 0.3f;
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        float dimR = tR * 0.7f, dimG = tG * 0.7f, dimB = tB * 0.7f;
+        float dim2R = tR * 0.5f, dim2G = tG * 0.5f, dim2B = tB * 0.5f;
 
-        Text.drawText(textShader, "Vertex #" + vertex.id, px + 12, py + 10, 1.5f, bc, bc, bc);
+        Text.drawText(textShader, "Vertex #" + vertex.id, px + 12, py + 10, 1.5f, tR, tG, tB);
 
         for (int i = 0; i < fieldYOff.length; i++) {
             float fy = py + fieldYOff[i];
@@ -153,18 +159,18 @@ public class VertexOverlay extends Overlay {
             String fmt = i <= 2 ? "%.3f" : "%.2f";
             boolean sel = (i == selectedField);
 
-            Text.drawText(textShader, fieldLabels[i], px + 12, fy, 1.5f, bc, bc, 1f);
-            Text.drawText(textShader, String.format(fmt, val), px + VAL_X, fy, 1.5f, sel ? bc : dim, sel ? bc : dim, sel ? bc : dim);
-            Text.drawText(textShader, "[-]", px + MINUS_X, fy + 1, 1.5f, bc, bc, 1f);
-            Text.drawText(textShader, "[+]", px + PLUS_X, fy + 1, 1.5f, bc, bc, 1f);
+            Text.drawText(textShader, fieldLabels[i], px + 12, fy, 1.5f, tR, tG, tB);
+            Text.drawText(textShader, String.format(fmt, val), px + VAL_X, fy, 1.5f, sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB);
+            Text.drawText(textShader, "[-]", px + MINUS_X, fy + 1, 1.5f, tR, tG, tB);
+            Text.drawText(textShader, "[+]", px + PLUS_X, fy + 1, 1.5f, tR, tG, tB);
         }
 
-        Text.drawText(textShader, "Edges: " + edgeCount, px + 12, py + 186, 1.5f, dim, dim, dim);
+        Text.drawText(textShader, "Edges: " + edgeCount, px + 12, py + 186, 1.5f, dimR, dimG, dimB);
 
         if (siblingIds != null && siblingIds.length > 0) {
             float[] labelExt = Text.getTextExtent("Also:", 1.5f);
             float baseY = py + 210;
-            Text.drawText(textShader, "Also:", px + 12, baseY, 1.5f, dim, dim, dim);
+            Text.drawText(textShader, "Also:", px + 12, baseY, 1.5f, dimR, dimG, dimB);
             float bx = px + 12 + labelExt[0] + 4;
             float by = baseY;
             float maxX = px + pw - 12;
@@ -179,7 +185,7 @@ public class VertexOverlay extends Overlay {
                 }
                 siblingBadgePos[i][0] = bx;
                 siblingBadgePos[i][1] = by;
-                Text.drawText(textShader, label, bx, by, 1.5f, dim2, dim2, dim2);
+                Text.drawText(textShader, label, bx, by, 1.5f, dim2R, dim2G, dim2B);
                 bx += ext[0] + 4;
             }
         }

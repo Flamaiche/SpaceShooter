@@ -1,112 +1,12 @@
 package markershape.editor.ui.menu;
 
-import learngl.Shader;
-import org.joml.Matrix4f;
-import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.*;
-import static org.lwjgl.opengl.GL13.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
-
 public class BlurBackground {
     public static boolean transparentUI = true;
     public static float menuR = 0.12f, menuG = 0.12f, menuB = 0.18f;
 
-    /** Returns 0f (black text) or 1f (white text) based on background luminance. */
-    public static float textColor() {
-        float r, g, b;
-        if (transparentUI) {
-            float a = 0.75f;
-            r = menuR * a + 0.5f * (1f - a);
-            g = menuG * a + 0.5f * (1f - a);
-            b = menuB * a + 0.5f * (1f - a);
-        } else {
-            r = menuR;
-            g = menuG;
-            b = menuB;
-        }
-        float lum = 0.299f * r + 0.587f * g + 0.114f * b;
-        return lum > 0.5f ? 0f : 1f;
-    }
-
-    private int width, height;
-    private Shader blurShader;
-    private int screenTex = -1;
-    private int vao, vbo;
-    private final Matrix4f ortho = new Matrix4f();
-    private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
-
-    public BlurBackground(Shader blurShader, int vao, int vbo) {
-        this.blurShader = blurShader;
-        this.vao = vao;
-        this.vbo = vbo;
-    }
-
-    public void setSize(int w, int h) {
-        width = w;
-        height = h;
-        ortho.setOrtho2D(0, width, h, 0);
-        if (screenTex >= 0) { glDeleteTextures(screenTex); screenTex = -1; }
-    }
-
-    public void captureScreen() {
-        if (screenTex < 0) {
-            screenTex = glGenTextures();
-            glBindTexture(GL_TEXTURE_2D, screenTex);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
-        glReadBuffer(GL_BACK);
-        glBindTexture(GL_TEXTURE_2D, screenTex);
-        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, width, height);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    public void drawBlurredBg(float x, float y, float w, float h, float alpha, float tr, float tg, float tb) {
-        glEnable(GL_BLEND);
-        glDisable(GL_DEPTH_TEST);
-        blurShader.bind();
-        blurShader.setUniformMat4f("projection", ortho);
-        int texLoc = glGetUniformLocation(blurShader.getProgramId(), "uScreenTex");
-        if (texLoc != -1) glUniform1i(texLoc, 0);
-        blurShader.setUniform2f("uScreenSize", width, height);
-        blurShader.setUniform1f("uAlpha", alpha);
-        blurShader.setUniform3f("uTint", tr, tg, tb);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, screenTex);
-
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        buf.clear();
-        buf.put(new float[]{
-            x, y, 0f, 0f, 0f, 0f,
-            x+w, y, 0f, 0f, 0f, 0f,
-            x+w, y+h, 0f, 0f, 0f, 0f,
-            x, y, 0f, 0f, 0f, 0f,
-            x+w, y+h, 0f, 0f, 0f, 0f,
-            x, y+h, 0f, 0f, 0f, 0f,
-        }).flip();
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        blurShader.unbind();
-    }
-
-    public void cleanup() {
-        if (screenTex >= 0) { glDeleteTextures(screenTex); screenTex = -1; }
-    }
+    public static float panelAlpha() { return transparentUI ? 0.3f : 0.85f; }
+    public static float rowAlpha()   { return transparentUI ? 0.35f : 0.85f; }
+    public static float btnAlpha()   { return transparentUI ? 0.45f : 0.95f; }
+    public static float dimAlpha()   { return transparentUI ? 0.45f : 0.55f; }
+    public static float boxAlpha()   { return transparentUI ? 0.7f : 0.9f; }
 }
