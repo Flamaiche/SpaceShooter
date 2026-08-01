@@ -2,6 +2,8 @@ package markershape.editor.ui.overlay;
 
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
+import markershape.config.ConfigParametres;
+import markershape.editor.ui.menu.BlurBackground;
 import markershape.shape.*;
 import org.joml.Matrix4f;
 
@@ -75,54 +77,50 @@ public class SiblingPicker {
         uiShader.bind();
         uiShader.setUniformMat4f("projection", ortho);
 
-        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
-            float mr = markershape.editor.ui.menu.BlurBackground.menuR;
-            float mg = markershape.editor.ui.menu.BlurBackground.menuG;
-            float mb = markershape.editor.ui.menu.BlurBackground.menuB;
-            buf.clear();
-            buf.put(new float[]{
-                px, py, mr, mg, mb, 0.95f,
-                px+PW, py, mr, mg, mb, 0.95f,
-                px+PW, py+ph, mr, mg, mb, 0.95f,
-                px, py, mr, mg, mb, 0.95f,
-                px+PW, py+ph, mr, mg, mb, 0.95f,
-                px, py+ph, mr, mg, mb, 0.95f,
-            }).flip();
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-        }
+        float alpha = BlurBackground.panelAlpha();
+        float mr = BlurBackground.menuR;
+        float mg = BlurBackground.menuG;
+        float mb = BlurBackground.menuB;
+        buf.clear();
+        buf.put(new float[]{
+            px, py, mr, mg, mb, alpha,
+            px+PW, py, mr, mg, mb, alpha,
+            px+PW, py+ph, mr, mg, mb, alpha,
+            px, py, mr, mg, mb, alpha,
+            px+PW, py+ph, mr, mg, mb, alpha,
+            px, py+ph, mr, mg, mb, alpha,
+        }).flip();
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // row backgrounds
-        if (!markershape.editor.ui.menu.BlurBackground.transparentUI) {
-            float mr = markershape.editor.ui.menu.BlurBackground.menuR;
-            float mg = markershape.editor.ui.menu.BlurBackground.menuG;
-            float mb = markershape.editor.ui.menu.BlurBackground.menuB;
-            for (int i = 0; i < ids.length; i++) {
-                float ry = py + 30 + i * ROW_H;
-                float mult = (i % 2 == 0) ? 1.15f : 0.95f;
-                buf.clear();
-                buf.put(new float[]{
-                    px+2, ry, mr*mult, mg*mult, mb*mult, 1f,
-                    px+PW-2, ry, mr*mult, mg*mult, mb*mult, 1f,
-                    px+PW-2, ry+ROW_H, mr*mult, mg*mult, mb*mult, 1f,
-                    px+2, ry, mr*mult, mg*mult, mb*mult, 1f,
-                    px+PW-2, ry+ROW_H, mr*mult, mg*mult, mb*mult, 1f,
-                    px+2, ry+ROW_H, mr*mult, mg*mult, mb*mult, 1f,
-                }).flip();
-                glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-                glDrawArrays(GL_TRIANGLES, 0, 6);
-            }
+        float rowAlpha = BlurBackground.rowAlpha();
+        for (int i = 0; i < ids.length; i++) {
+            float ry = py + 30 + i * ROW_H;
+            float mult = (i % 2 == 0) ? 1.15f : 0.95f;
+            buf.clear();
+            buf.put(new float[]{
+                px+2, ry, mr*mult, mg*mult, mb*mult, rowAlpha,
+                px+PW-2, ry, mr*mult, mg*mult, mb*mult, rowAlpha,
+                px+PW-2, ry+ROW_H, mr*mult, mg*mult, mb*mult, rowAlpha,
+                px+2, ry, mr*mult, mg*mult, mb*mult, rowAlpha,
+                px+PW-2, ry+ROW_H, mr*mult, mg*mult, mb*mult, rowAlpha,
+                px+2, ry+ROW_H, mr*mult, mg*mult, mb*mult, rowAlpha,
+            }).flip();
+            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         uiShader.unbind();
 
-        float tc = markershape.editor.ui.menu.BlurBackground.textColor();
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
-        Text.drawText(textShader, "Select vertex:", px + 8, py + 8, 1.5f, tc, tc, 1f);
+        Text.drawText(textShader, "Select vertex:", px + 8, py + 8, 1.5f, tR, tG, tB);
 
         for (int i = 0; i < vertices.length; i++) {
             Vertex v = vertices[i];
@@ -149,7 +147,7 @@ public class SiblingPicker {
             uiShader.unbind();
 
             Text.drawText(textShader, "#" + v.id + " (" + String.format("%.2f,%.2f,%.2f", v.r, v.g, v.b) + ")",
-                px + 30, ry, 1.5f, tc, tc, tc);
+                px + 30, ry, 1.5f, tR, tG, tB);
         }
     }
 }

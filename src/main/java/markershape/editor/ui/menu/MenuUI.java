@@ -69,9 +69,9 @@ public class MenuUI {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         ConfigParametres cfg = ConfigParametres.get();
-        float bgR = cfg.getFloat("bgR") / 255f;
-        float bgG = cfg.getFloat("bgG") / 255f;
-        float bgB = cfg.getFloat("bgB") / 255f;
+        float bgR = BlurBackground.menuR;
+        float bgG = BlurBackground.menuG;
+        float bgB = BlurBackground.menuB;
 
         float cx = width / 2f;
         float px = cx - PANEL_W / 2f;
@@ -79,14 +79,15 @@ public class MenuUI {
         float listH = shapes.length * (ITEM_H + ITEM_GAP);
         float panelH = listH + 40;
 
+        float panelAlpha = BlurBackground.panelAlpha();
+        float rowAlpha = BlurBackground.rowAlpha();
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
-        drawQuad(px, PANEL_Y, PANEL_W, panelH, 0.08f, 0.08f, 0.1f, 0.7f);
-
+        drawQuad(px, PANEL_Y, PANEL_W, panelH, bgR, bgG, bgB, panelAlpha);
         for (int i = 0; i < shapes.length; i++) {
             float y = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
-            float shade = 0.12f + (i % 2 == 0 ? 0.05f : 0f);
-            drawQuad(px + 10, y, PANEL_W - 20, ITEM_H, shade, shade, shade + 0.03f, 0.7f);
+            float aOff = (i % 2 == 0 ? 0.03f : 0f);
+            drawQuad(px + 10, y, PANEL_W - 20, ITEM_H, bgR + aOff, bgG + aOff, bgB + aOff, rowAlpha);
         }
         shader.unbind();
 
@@ -97,17 +98,10 @@ public class MenuUI {
             cx - Text.getTextExtent("Editeur de modeles 3D", 1.8f)[0] / 2f, 85, 1.8f, tR, tG, tB);
 
         for (int i = 0; i < shapes.length; i++) {
-            float shade = 0.12f + (i % 2 == 0 ? 0.05f : 0f);
-            float[] itemBg = TextColor.composite(
-                shade, shade, shade + 0.03f, 0.7f,
-                0.08f, 0.08f, 0.1f, 0.7f);
-            float[] bg = TextColor.composite(itemBg, new float[]{bgR, bgG, bgB});
-            float itc = TextColor.contrast(bg[0], bg[1], bg[2]);
-
             String name = shapes[i].replace(".json", "");
             float y = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
             Text.drawText(textShader, name,
-                cx - Text.getTextExtent(name, 2.2f)[0] / 2f, y + 8, 2.2f, itc, itc, itc);
+                cx - Text.getTextExtent(name, 2.2f)[0] / 2f, y + 8, 2.2f, tR, tG, tB);
         }
 
         float by = PANEL_Y + panelH + 16;
@@ -120,24 +114,18 @@ public class MenuUI {
         if (paramBtn == null || paramBtn.x != bx || paramBtn.y != by) {
             paramBtn = new Button("Parametres", bx, by, btnW, btnH, onParams);
             paramBtn.textScale = 2.2f;
-            paramBtn.bgR = 0.2f; paramBtn.bgG = 0.2f; paramBtn.bgB = 0.3f;
+            paramBtn.bgR = bgR + 0.05f; paramBtn.bgG = bgG + 0.05f; paramBtn.bgB = bgB + 0.1f;
 
             quitBtn = new Button("Quitter", bx + btnW + gap, by, btnW, btnH, onQuit);
             quitBtn.textScale = 2.2f;
-            quitBtn.bgR = 0.3f; quitBtn.bgG = 0.12f; quitBtn.bgB = 0.12f;
+            quitBtn.bgR = bgR + 0.1f; quitBtn.bgG = bgG + 0.02f; quitBtn.bgB = bgB + 0.02f;
         }
 
-        if (bgR != lastBgR || bgG != lastBgG || bgB != lastBgB) {
-            lastBgR = bgR; lastBgG = bgG; lastBgB = bgB;
-            float[] btnBg = TextColor.composite(0.2f, 0.2f, 0.3f, 0.9f,
-                new float[]{bgR, bgG, bgB});
-            float btc = TextColor.contrast(btnBg[0], btnBg[1], btnBg[2]);
-            paramBtn.textR = btc; paramBtn.textG = btc; paramBtn.textB = btc;
-            float[] qBg = TextColor.composite(0.3f, 0.12f, 0.12f, 0.9f,
-                new float[]{bgR, bgG, bgB});
-            float qtc = TextColor.contrast(qBg[0], qBg[1], qBg[2]);
-            quitBtn.textR = qtc; quitBtn.textG = qtc; quitBtn.textB = qtc;
-        }
+        float btnAlpha = BlurBackground.btnAlpha();
+        paramBtn.bgA = btnAlpha;
+        quitBtn.bgA = btnAlpha;
+        paramBtn.textR = tR; paramBtn.textG = tG; paramBtn.textB = tB;
+        quitBtn.textR = tR; quitBtn.textG = tG; quitBtn.textB = tB;
 
         paramBtn.render(shader, textShader, ortho, buf, vao, vbo);
         quitBtn.render(shader, textShader, ortho, buf, vao, vbo);

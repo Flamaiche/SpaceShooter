@@ -8,8 +8,8 @@
         "lineWidth": 4.0,
         "faceAlpha": 1.0,
         "transparentUI": true,
-        "menuR": 255.0,
-        "menuG": 31,
+        "menuR": 1.0,
+        "menuG": 228.0,
         "menuB": 186,
         "bgR": 0.0,
         "bgG": 100.0,
@@ -62,7 +62,7 @@
         },
         {
           "id": "menu",
-          "label": "Menu",
+          "label": "Barre de menu",
           "params": [
             {
               "key": "transparentUI",

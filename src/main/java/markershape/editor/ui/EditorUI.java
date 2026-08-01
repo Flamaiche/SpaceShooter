@@ -6,6 +6,7 @@ import markershape.editor.ui.control.Button;
 import markershape.editor.ui.control.EntityListPanel;
 import markershape.editor.ui.util.TextColor;
 import markershape.editor.ui.control.FilterPanel;
+import markershape.config.ConfigParametres;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.ConfirmSavePopup;
 import markershape.editor.ui.menu.NewMenu;
@@ -19,7 +20,7 @@ import static org.lwjgl.opengl.GL30.*;
 
 public class EditorUI {
     private int width, height;
-    private Shader shader, textShader, blurShader;
+    private Shader shader, textShader;
     private int vao, vbo;
 
     public static final int BAR_H = 36;
@@ -32,7 +33,6 @@ public class EditorUI {
     public final FilterPanel filter;
     public final NewMenu newMenu;
     public final ConfirmSavePopup confirmSave;
-    public final BlurBackground blur;
     public final EntityListPanel entityList;
     private float lastMenuR = -1f, lastMenuG = -1f, lastMenuB = -1f;
     private boolean lastTransparentUI;
@@ -46,8 +46,6 @@ public class EditorUI {
         shader = new Shader("shaders/markershape/ui_Vertex.glsl",
                             "shaders/markershape/ui_Fragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
-        blurShader = new Shader("shaders/markershape/blur_Vertex.glsl",
-                                "shaders/markershape/blur_Fragment.glsl");
 
         vao = glGenVertexArrays();
         vbo = glGenBuffers();
@@ -60,11 +58,10 @@ public class EditorUI {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 
-        blur = new BlurBackground(blurShader, vao, vbo);
-        filter = new FilterPanel(shader, textShader, vao, vbo, blur);
-        newMenu = new NewMenu(shader, textShader, vao, vbo, blur);
-        confirmSave = new ConfirmSavePopup(blur, textShader);
-        entityList = new EntityListPanel(shader, textShader, vao, vbo, blur);
+        filter = new FilterPanel(shader, textShader, vao, vbo);
+        newMenu = new NewMenu(shader, textShader, vao, vbo);
+        confirmSave = new ConfirmSavePopup(textShader);
+        entityList = new EntityListPanel(shader, textShader, vao, vbo);
 
         setSize(w, h);
     }
@@ -72,7 +69,6 @@ public class EditorUI {
     public void setSize(int w, int h) {
         width = w;
         height = h;
-        blur.setSize(w, h);
         filter.setSize(w, h);
         confirmSave.setSize(w, h);
         newMenu.setSize(w, h);
@@ -117,11 +113,13 @@ public class EditorUI {
             filterBtn.bgR = BlurBackground.menuR; filterBtn.bgG = BlurBackground.menuG; filterBtn.bgB = BlurBackground.menuB;
         }
 
-        float tc = opaque ? TextColor.contrast(BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB)
-                          : BlurBackground.textColor();
-        saveBtn.textR = tc; saveBtn.textG = tc; saveBtn.textB = tc;
-        quitBtn.textR = tc; quitBtn.textG = tc; quitBtn.textB = tc;
-        filterBtn.textR = tc; filterBtn.textG = tc; filterBtn.textB = tc;
+        ConfigParametres cfg = ConfigParametres.get();
+
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        saveBtn.textR = tR; saveBtn.textG = tG; saveBtn.textB = tB;
+        quitBtn.textR = tR; quitBtn.textG = tG; quitBtn.textB = tB;
+        filterBtn.textR = tR; filterBtn.textG = tG; filterBtn.textB = tB;
+        newBtn.textR = tR; newBtn.textG = tG; newBtn.textB = tB;
 
         if (opaque) {
             setActiveMode(newMenu.getActiveMode());
@@ -129,8 +127,6 @@ public class EditorUI {
     }
 
     public void render(String currentFile) {
-        blur.captureScreen();
-
         if (BlurBackground.menuR != lastMenuR || BlurBackground.menuG != lastMenuG || BlurBackground.menuB != lastMenuB
             || BlurBackground.transparentUI != lastTransparentUI) {
             lastMenuR = BlurBackground.menuR; lastMenuG = BlurBackground.menuG; lastMenuB = BlurBackground.menuB;
@@ -142,29 +138,26 @@ public class EditorUI {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        if (BlurBackground.transparentUI) {
-            blur.drawBlurredBg(0, 0, width, BAR_H, 0.75f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
-        } else {
-            FloatBuffer b = buf();
-            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-            b.put(new float[]{
-                0f, 0f, mr, mg, mb, 1f,
-                (float)width, 0f, mr, mg, mb, 1f,
-                (float)width, (float)BAR_H, mr, mg, mb, 1f,
-                0f, 0f, mr, mg, mb, 1f,
-                (float)width, (float)BAR_H, mr, mg, mb, 1f,
-                0f, (float)BAR_H, mr, mg, mb, 1f,
-            }).flip();
-            shader.bind();
-            shader.setUniformMat4f("projection", ortho());
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            shader.unbind();
-        }
+        float barAlpha = BlurBackground.panelAlpha();
+        FloatBuffer b = buf();
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+        b.put(new float[]{
+            0f, 0f, mr, mg, mb, barAlpha,
+            (float)width, 0f, mr, mg, mb, barAlpha,
+            (float)width, (float)BAR_H, mr, mg, mb, barAlpha,
+            0f, 0f, mr, mg, mb, barAlpha,
+            (float)width, (float)BAR_H, mr, mg, mb, barAlpha,
+            0f, (float)BAR_H, mr, mg, mb, barAlpha,
+        }).flip();
+        shader.bind();
+        shader.setUniformMat4f("projection", ortho());
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        shader.unbind();
         saveBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
         quitBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
         newBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
@@ -176,26 +169,40 @@ public class EditorUI {
         filter.render(filterBtn.x, BAR_H);
 
         String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
-        float tc = BlurBackground.textColor();
-        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1.5f, tc, tc, tc);
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1.5f, tR, tG, tB);
 
-        if (!BlurBackground.transparentUI && confirmSave.isVisible()) {
+        if (confirmSave.isVisible()) {
             float cx = (width - ConfirmSavePopup.CONFIRM_W) / 2;
             float cy = (36 + (height - 36) / 2) - ConfirmSavePopup.CONFIRM_H / 2;
-            FloatBuffer b = buf();
-            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+            float dimA = BlurBackground.dimAlpha();
+            float boxA = BlurBackground.boxAlpha();
+            b.clear();
             b.put(new float[]{
-                cx, cy, mr, mg, mb, 0.92f,
-                cx+ConfirmSavePopup.CONFIRM_W, cy, mr, mg, mb, 0.92f,
-                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, 0.92f,
-                cx, cy, mr, mg, mb, 0.92f,
-                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, 0.92f,
-                cx, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, 0.92f,
+                0f, 0f, mr, mg, mb, dimA,
+                (float)width, 0f, mr, mg, mb, dimA,
+                (float)width, (float)height, mr, mg, mb, dimA,
+                0f, 0f, mr, mg, mb, dimA,
+                (float)width, (float)height, mr, mg, mb, dimA,
+                0f, (float)height, mr, mg, mb, dimA,
             }).flip();
             shader.bind();
             shader.setUniformMat4f("projection", ortho());
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            b.clear();
+            b.put(new float[]{
+                cx, cy, mr, mg, mb, boxA,
+                cx+ConfirmSavePopup.CONFIRM_W, cy, mr, mg, mb, boxA,
+                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
+                cx, cy, mr, mg, mb, boxA,
+                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
+                cx, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
+            }).flip();
             glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
             glDrawArrays(GL_TRIANGLES, 0, 6);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -299,8 +306,6 @@ public class EditorUI {
     public void cleanup() {
         shader.cleanup();
         textShader.cleanup();
-        blurShader.cleanup();
-        blur.cleanup();
         glDeleteBuffers(vbo);
         glDeleteVertexArrays(vao);
     }

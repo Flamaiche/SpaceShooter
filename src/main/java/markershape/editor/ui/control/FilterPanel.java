@@ -2,6 +2,7 @@ package markershape.editor.ui.control;
 
 import gamegl.gestion.texte.Text;
 import learngl.Shader;
+import markershape.config.ConfigParametres;
 import markershape.editor.ui.menu.BlurBackground;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -40,19 +41,17 @@ public class FilterPanel {
     public static final int SLIDER_DECIMALS = 1;
 
     private Runnable filterCallback;
-    private BlurBackground blur;
     private Shader shader;
     private Shader textShader;
     private int vao, vbo;
     private final Matrix4f ortho = new Matrix4f();
     private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
 
-    public FilterPanel(Shader shader, Shader textShader, int vao, int vbo, BlurBackground blur) {
+    public FilterPanel(Shader shader, Shader textShader, int vao, int vbo) {
         this.shader = shader;
         this.textShader = textShader;
         this.vao = vao;
         this.vbo = vbo;
-        this.blur = blur;
     }
 
     public void setSize(int w, int h) { width = w; height = h; ortho.setOrtho2D(0, w, h, 0); }
@@ -84,31 +83,29 @@ public class FilterPanel {
 
         float ph = panelHeight();
 
-        blur.drawBlurredBg(filterX, filterY, PANEL_W, ph, 0.85f, BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB);
+        float panelAlpha = BlurBackground.panelAlpha();
+        shader.bind();
+        shader.setUniformMat4f("projection", ortho);
+        buf.clear();
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+        buf.put(new float[]{
+            filterX, filterY, mr, mg, mb, panelAlpha,
+            filterX+PANEL_W, filterY, mr, mg, mb, panelAlpha,
+            filterX+PANEL_W, filterY+ph, mr, mg, mb, panelAlpha,
+            filterX, filterY, mr, mg, mb, panelAlpha,
+            filterX+PANEL_W, filterY+ph, mr, mg, mb, panelAlpha,
+            filterX, filterY+ph, mr, mg, mb, panelAlpha,
+        }).flip();
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        shader.unbind();
 
-        if (!BlurBackground.transparentUI) {
-            shader.bind();
-            shader.setUniformMat4f("projection", ortho);
-            buf.clear();
-            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-            buf.put(new float[]{
-                filterX, filterY, mr, mg, mb, 0.92f,
-                filterX+PANEL_W, filterY, mr, mg, mb, 0.92f,
-                filterX+PANEL_W, filterY+ph, mr, mg, mb, 0.92f,
-                filterX, filterY, mr, mg, mb, 0.92f,
-                filterX+PANEL_W, filterY+ph, mr, mg, mb, 0.92f,
-                filterX, filterY+ph, mr, mg, mb, 0.92f,
-            }).flip();
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            shader.unbind();
-        }
-
-        float tc = BlurBackground.textColor();
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
         shader.bind();
         shader.setUniformMat4f("projection", ortho);
@@ -118,7 +115,7 @@ public class FilterPanel {
             String prefix = filterValues[i] ? "[x] " : "[ ] ";
             float brightness = filterValues[i] ? 1f : 0.6f;
             Text.drawText(textShader, prefix + filterLabels[i],
-                filterX + 8, iy + 4, 1.5f, tc * brightness, tc * brightness, tc * brightness);
+                filterX + 8, iy + 4, 1.5f, tR * brightness, tG * brightness, tB * brightness);
         }
 
         for (int i = 0; i < sliderLabels.length; i++) {
@@ -130,23 +127,28 @@ public class FilterPanel {
 
             String valStr = String.format("%." + SLIDER_DECIMALS + "f", sliderValues[i]);
             Text.drawText(textShader, sliderLabels[i] + ":",
-                filterX + 8, iy + 2, 1.5f, tc, tc, tc);
+                filterX + 8, iy + 2, 1.5f, tR, tG, tB);
             Text.drawText(textShader, valStr,
-                filterX + VAL_X, iy + 2, 1.5f, tc, tc, tc);
+                filterX + VAL_X, iy + 2, 1.5f, tR, tG, tB);
             Text.drawText(textShader, "[-]",
-                filterX + MINUS_X, iy + 2, 1.5f, tc, tc, tc);
+                filterX + MINUS_X, iy + 2, 1.5f, tR, tG, tB);
             Text.drawText(textShader, "[+]",
-                filterX + PLUS_X, iy + 2, 1.5f, tc, tc, tc);
+                filterX + PLUS_X, iy + 2, 1.5f, tR, tG, tB);
+
+            float trackA = BlurBackground.transparentUI ? 0.6f : 1f;
+            float trackR = Math.min(1f, mr * 0.75f), trackG = Math.min(1f, mg * 0.75f), trackB = Math.min(1f, mb * 0.75f);
+            float fillR = Math.min(1f, mr + 0.35f), fillG = Math.min(1f, mg + 0.35f), fillB = Math.min(1f, mb + 0.45f);
+            float thumbR = Math.min(1f, mr + 0.6f), thumbG = Math.min(1f, mg + 0.6f), thumbB = Math.min(1f, mb + 0.6f);
 
             buf.clear();
             float tx = trackX, ty = trackY, tw = TRACK_W, th = 6;
             buf.put(new float[]{
-                tx, ty, 0.3f, 0.3f, 0.4f, 1f,
-                tx+tw, ty, 0.3f, 0.3f, 0.4f, 1f,
-                tx+tw, ty+th, 0.3f, 0.3f, 0.4f, 1f,
-                tx, ty, 0.3f, 0.3f, 0.4f, 1f,
-                tx+tw, ty+th, 0.3f, 0.3f, 0.4f, 1f,
-                tx, ty+th, 0.3f, 0.3f, 0.4f, 1f,
+                tx, ty, trackR, trackG, trackB, trackA,
+                tx+tw, ty, trackR, trackG, trackB, trackA,
+                tx+tw, ty+th, trackR, trackG, trackB, trackA,
+                tx, ty, trackR, trackG, trackB, trackA,
+                tx+tw, ty+th, trackR, trackG, trackB, trackA,
+                tx, ty+th, trackR, trackG, trackB, trackA,
             }).flip();
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -156,12 +158,12 @@ public class FilterPanel {
             float fw = Math.max(2, frac * tw);
             buf.clear();
             buf.put(new float[]{
-                tx, ty, 0.5f, 0.7f, 1f, 1f,
-                tx+fw, ty, 0.5f, 0.7f, 1f, 1f,
-                tx+fw, ty+th, 0.5f, 0.7f, 1f, 1f,
-                tx, ty, 0.5f, 0.7f, 1f, 1f,
-                tx+fw, ty+th, 0.5f, 0.7f, 1f, 1f,
-                tx, ty+th, 0.5f, 0.7f, 1f, 1f,
+                tx, ty, fillR, fillG, fillB, 1f,
+                tx+fw, ty, fillR, fillG, fillB, 1f,
+                tx+fw, ty+th, fillR, fillG, fillB, 1f,
+                tx, ty, fillR, fillG, fillB, 1f,
+                tx+fw, ty+th, fillR, fillG, fillB, 1f,
+                tx, ty+th, fillR, fillG, fillB, 1f,
             }).flip();
             glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
             glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -170,12 +172,12 @@ public class FilterPanel {
             float thumbY = ty - 1;
             buf.clear();
             buf.put(new float[]{
-                thumbX, thumbY, 1f, 1f, 1f, 1f,
-                thumbX+6, thumbY, 1f, 1f, 1f, 1f,
-                thumbX+6, thumbY+8, 1f, 1f, 1f, 1f,
-                thumbX, thumbY, 1f, 1f, 1f, 1f,
-                thumbX+6, thumbY+8, 1f, 1f, 1f, 1f,
-                thumbX, thumbY+8, 1f, 1f, 1f, 1f,
+                thumbX, thumbY, thumbR, thumbG, thumbB, 1f,
+                thumbX+6, thumbY, thumbR, thumbG, thumbB, 1f,
+                thumbX+6, thumbY+8, thumbR, thumbG, thumbB, 1f,
+                thumbX, thumbY, thumbR, thumbG, thumbB, 1f,
+                thumbX+6, thumbY+8, thumbR, thumbG, thumbB, 1f,
+                thumbX, thumbY+8, thumbR, thumbG, thumbB, 1f,
             }).flip();
             glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
             glDrawArrays(GL_TRIANGLES, 0, 6);

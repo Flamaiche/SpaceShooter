@@ -189,10 +189,15 @@ public class App {
             glClearColor(bgR, bgG, bgB, 1f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            if (parametresUI != null && parametresUI.visible) {
-                parametresUI.render();
-            } else if (inMenu) {
-                menuUI.render();
+            if (parametresUI != null && parametresUI.visible || inMenu) {
+                view.set(editor.camera.getViewMatrix());
+                projection.set(editor.camera.getProjection());
+                editor.renderer.render(view, projection);
+                if (parametresUI != null && parametresUI.visible) {
+                    parametresUI.render();
+                } else {
+                    menuUI.render();
+                }
             } else {
                 view.set(editor.camera.getViewMatrix());
                 projection.set(editor.camera.getProjection());
