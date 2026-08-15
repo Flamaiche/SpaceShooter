@@ -6,6 +6,7 @@ public class UIContainer extends UIElement {
     public enum Alpha { PANEL, ROW, BTN, BOX, DIM, OPAQUE, HIGHLIGHT, NONE }
 
     public Alpha alpha = Alpha.PANEL;
+    public float customAlpha = -1f;
     public float bgR = Float.NaN;
     public float bgG = Float.NaN;
     public float bgB = Float.NaN;
@@ -22,7 +23,7 @@ public class UIContainer extends UIElement {
 
     @Override
     protected void renderSelf(UIRenderer r) {
-        float a = switch (alpha) {
+        float a = customAlpha >= 0f ? customAlpha : switch (alpha) {
             case PANEL -> BlurBackground.panelAlpha();
             case ROW   -> BlurBackground.rowAlpha();
             case BTN   -> BlurBackground.btnAlpha();

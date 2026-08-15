@@ -1,19 +1,14 @@
 package markershape.editor.ui.overlay;
 
-import gamegl.gestion.texte.Text;
-import learngl.Shader;
 import markershape.config.ConfigParametres;
+import markershape.editor.ui.framework.UIContainer;
+import markershape.editor.ui.framework.UIRenderer;
+import markershape.editor.ui.framework.UIText;
 import markershape.editor.ui.menu.BlurBackground;
-import markershape.shape.*;
-import org.joml.Matrix4f;
+import markershape.shape.ShapeData;
+import markershape.shape.Vertex;
 
-import java.nio.FloatBuffer;
 import java.util.function.Consumer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public class SiblingPicker {
     private boolean visible;
@@ -23,6 +18,21 @@ public class SiblingPicker {
     private static final float PW = 220;
     private static final float ROW_H = 26;
     private Consumer<Integer> callback;
+    private int width, height;
+    private final UIRenderer renderer = new UIRenderer();
+    private final UIContainer root = new UIContainer(0, 0, 1, 1);
+
+    private static float ts(float designScale) { return designScale / 720f; }
+
+    public SiblingPicker() {
+        root.alpha = UIContainer.Alpha.NONE;
+    }
+
+    public void setSize(int w, int h) {
+        width = w;
+        height = h;
+        renderer.setScreenSize(w, h);
+    }
 
     public boolean isVisible() { return visible; }
 
@@ -66,88 +76,58 @@ public class SiblingPicker {
         return -1;
     }
 
-    public void render(Shader uiShader, Shader textShader, Matrix4f ortho,
-                       FloatBuffer buf, int vao, int vbo) {
+    public void render() {
         if (!visible || vertices == null) return;
+        root.clear();
+        build();
+        root.render(renderer);
+    }
 
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        uiShader.bind();
-        uiShader.setUniformMat4f("projection", ortho);
-
-        float alpha = BlurBackground.panelAlpha();
-        float mr = BlurBackground.menuR;
-        float mg = BlurBackground.menuG;
-        float mb = BlurBackground.menuB;
-        buf.clear();
-        buf.put(new float[]{
-            px, py, mr, mg, mb, alpha,
-            px+PW, py, mr, mg, mb, alpha,
-            px+PW, py+ph, mr, mg, mb, alpha,
-            px, py, mr, mg, mb, alpha,
-            px+PW, py+ph, mr, mg, mb, alpha,
-            px, py+ph, mr, mg, mb, alpha,
-        }).flip();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        // row backgrounds
-        float rowAlpha = BlurBackground.rowAlpha();
-        for (int i = 0; i < ids.length; i++) {
-            float ry = py + 30 + i * ROW_H;
-            float mult = (i % 2 == 0) ? 1.15f : 0.95f;
-            buf.clear();
-            buf.put(new float[]{
-                px+2, ry, mr*mult, mg*mult, mb*mult, rowAlpha,
-                px+PW-2, ry, mr*mult, mg*mult, mb*mult, rowAlpha,
-                px+PW-2, ry+ROW_H, mr*mult, mg*mult, mb*mult, rowAlpha,
-                px+2, ry, mr*mult, mg*mult, mb*mult, rowAlpha,
-                px+PW-2, ry+ROW_H, mr*mult, mg*mult, mb*mult, rowAlpha,
-                px+2, ry+ROW_H, mr*mult, mg*mult, mb*mult, rowAlpha,
-            }).flip();
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-        }
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        uiShader.unbind();
-
+    private void build() {
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
-        Text.drawText(textShader, "Select vertex:", px + 8, py + 8, 1.5f, tR, tG, tB);
+        UIContainer panel = new UIContainer(px / width, py / height, PW / width, ph / height);
+        panel.alpha = UIContainer.Alpha.PANEL;
+        panel.bgR = mr;
+        panel.bgG = mg;
+        panel.bgB = mb;
+        root.add(panel);
 
-        for (int i = 0; i < vertices.length; i++) {
+        UIText title = new UIText(8f / PW, 8f / ph, ts(1.5f), "Select vertex:");
+        title.useConfigText = false;
+        title.tR = tR; title.tG = tG; title.tB = tB;
+        panel.add(title);
+
+        float rowAlpha = BlurBackground.rowAlpha();
+        for (int i = 0; i < ids.length; i++) {
             Vertex v = vertices[i];
             if (v == null) continue;
-            float ry = py + 30 + i * ROW_H + 4;
-            float sw = 16;
-            // color swatch using quad
-            uiShader.bind();
-            uiShader.setUniformMat4f("projection", ortho);
-            buf.clear();
-            buf.put(new float[]{
-                px+8, ry, v.r, v.g, v.b, 1f,
-                px+8+sw, ry, v.r, v.g, v.b, 1f,
-                px+8+sw, ry+sw, v.r, v.g, v.b, 1f,
-                px+8, ry, v.r, v.g, v.b, 1f,
-                px+8+sw, ry+sw, v.r, v.g, v.b, 1f,
-                px+8, ry+sw, v.r, v.g, v.b, 1f,
-            }).flip();
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glBindVertexArray(0);
-            uiShader.unbind();
+            float ry = 30 + i * ROW_H;
+            float mult = (i % 2 == 0) ? 1.15f : 0.95f;
 
-            Text.drawText(textShader, "#" + v.id + " (" + String.format("%.2f,%.2f,%.2f", v.r, v.g, v.b) + ")",
-                px + 30, ry, 1.5f, tR, tG, tB);
+            UIContainer row = new UIContainer(2f / PW, ry / ph, (PW - 4f) / PW, ROW_H / ph);
+            row.customAlpha = rowAlpha;
+            row.bgR = Math.min(1f, mr * mult);
+            row.bgG = Math.min(1f, mg * mult);
+            row.bgB = Math.min(1f, mb * mult);
+            panel.add(row);
+
+            UIContainer swatch = new UIContainer(8f / PW, (ry + 4f) / ph, 16f / PW, 16f / ph);
+            swatch.customAlpha = 1f;
+            swatch.bgR = v.r; swatch.bgG = v.g; swatch.bgB = v.b;
+            panel.add(swatch);
+
+            UIText t = new UIText(30f / PW, (ry + 4f) / ph, ts(1.5f),
+                "#" + v.id + " (" + String.format("%.2f,%.2f,%.2f", v.r, v.g, v.b) + ")");
+            t.useConfigText = false;
+            t.tR = tR; t.tG = tG; t.tB = tB;
+            panel.add(t);
         }
+    }
+
+    public void cleanup() {
+        renderer.cleanup();
     }
 }

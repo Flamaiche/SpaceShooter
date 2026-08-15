@@ -1,21 +1,13 @@
 package markershape.editor.ui.control;
 
-import gamegl.gestion.texte.Text;
-import learngl.Shader;
 import markershape.config.ConfigParametres;
+import markershape.editor.ui.framework.UIContainer;
+import markershape.editor.ui.framework.UIRenderer;
+import markershape.editor.ui.framework.UIText;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.shape.Edge;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
-import org.joml.Matrix4f;
-import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public class EntityListPanel {
     public static final int MODE_VERTEX = 0;
@@ -23,27 +15,29 @@ public class EntityListPanel {
 
     private int px, pw = 260;
     private int y, h;
+    private int width, height;
     private int activeMode = MODE_VERTEX;
     private int hoveredId = -1;
     private int scrollOffset;
     private ShapeData data;
-    private Shader shader, textShader;
-    private int vao, vbo;
-    private final Matrix4f ortho = new Matrix4f();
-    private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
+    private final UIRenderer renderer = new UIRenderer();
+    private final UIContainer root = new UIContainer(0, 0, 1, 1);
 
     private static final int HEADER_H = 28;
     private static final int ITEM_H = 22;
     private static final int NAV_W = 44;
 
-    public EntityListPanel(Shader shader, Shader textShader, int vao, int vbo) {
-        this.shader = shader;
-        this.textShader = textShader;
-        this.vao = vao;
-        this.vbo = vbo;
+    private static float ts(float designScale) { return designScale / 720f; }
+
+    public EntityListPanel() {
+        root.alpha = UIContainer.Alpha.NONE;
     }
 
-    public void setSize(int w, int h) { this.h = h; ortho.setOrtho2D(0, w, h, 0); }
+    public void setSize(int w, int h) {
+        this.width = w;
+        this.height = h;
+        renderer.setScreenSize(w, h);
+    }
     public void setData(ShapeData d) { data = d; }
     public int getActiveMode() { return activeMode; }
     public void setActiveMode(int mode) { activeMode = mode; hoveredId = -1; scrollOffset = 0; }
@@ -118,143 +112,98 @@ public class EntityListPanel {
         int paneH = Math.min(HEADER_H + 10 * ITEM_H + 4, screenH * 35 / 100);
         this.y = paneY;
         this.h = paneH;
+        root.clear();
+        build(paneY, paneH);
+        root.render(renderer);
+    }
 
+    private void build(int paneY, int paneH) {
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        UIContainer panel = new UIContainer((float) px / width, (float) paneY / height,
+            (float) pw / width, (float) paneH / height);
+        panel.alpha = UIContainer.Alpha.PANEL;
+        panel.bgR = mr;
+        panel.bgG = mg;
+        panel.bgB = mb;
+        root.add(panel);
 
-        shader.bind();
-        shader.setUniformMat4f("projection", ortho);
-
-        float panelAlpha = BlurBackground.panelAlpha();
-        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-        buf.clear();
-        buf.put(new float[]{
-            px, paneY, mr, mg, mb, panelAlpha,
-            px + pw, paneY, mr, mg, mb, panelAlpha,
-            px + pw, paneY + paneH, mr, mg, mb, panelAlpha,
-            px, paneY, mr, mg, mb, panelAlpha,
-            px + pw, paneY + paneH, mr, mg, mb, panelAlpha,
-            px, paneY + paneH, mr, mg, mb, panelAlpha,
-        }).flip();
-        drawQuad();
-
-        shader.unbind();
-
-        float midX = px + (pw - NAV_W) / 2;
-
+        float midX = (pw - NAV_W) / 2f;
         for (int t = 0; t < 2; t++) {
-            float tx = t == 0 ? px : midX;
-            float tw = t == 0 ? midX - px : px + pw - NAV_W - midX;
+            float tx = t == 0 ? 0 : midX;
+            float tw = t == 0 ? midX : pw - NAV_W - midX;
             boolean act = (t == 0 && activeMode == MODE_VERTEX) || (t == 1 && activeMode == MODE_EDGE);
-            buf.clear();
-            buf.put(new float[]{
-                tx, paneY, mr, mg, mb, panelAlpha,
-                tx+tw-1, paneY, mr, mg, mb, panelAlpha,
-                tx+tw-1, paneY+HEADER_H, mr, mg, mb, panelAlpha,
-                tx, paneY, mr, mg, mb, panelAlpha,
-                tx+tw-1, paneY+HEADER_H, mr, mg, mb, panelAlpha,
-                tx, paneY+HEADER_H, mr, mg, mb, panelAlpha,
-            }).flip();
-            drawQuad();
             if (act) {
-                buf.clear();
-                buf.put(new float[]{
-                    tx, paneY+HEADER_H-3, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
-                    tx+tw-1, paneY+HEADER_H-3, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
-                    tx+tw-1, paneY+HEADER_H, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
-                    tx, paneY+HEADER_H-3, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
-                    tx+tw-1, paneY+HEADER_H, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
-                    tx, paneY+HEADER_H, mr+0.25f, mg+0.45f, mb+0.8f, 0.8f,
-                }).flip();
-                drawQuad();
+                UIContainer underline = new UIContainer(tx / pw, (HEADER_H - 3f) / paneH,
+                    (tw - 1f) / pw, 3f / paneH);
+                underline.customAlpha = 0.8f;
+                underline.bgR = Math.min(1f, mr + 0.25f);
+                underline.bgG = Math.min(1f, mg + 0.45f);
+                underline.bgB = Math.min(1f, mb + 0.8f);
+                panel.add(underline);
             }
-            shader.unbind();
-            String label = t == 0 ? "Sommets" : "Ar\u00EAtes";
-            Text.drawText(textShader, label, tx + 10, paneY + 5, 1.5f,
-                tR * (act ? 1f : 0.6f), tG * (act ? 1f : 0.6f), tB * (act ? 1f : 0.6f));
-            shader.bind();
-            shader.setUniformMat4f("projection", ortho);
+            UIText label = text(tx + 10f, 5f, t == 0 ? "Sommets" : "Aretes",
+                tR * (act ? 1f : 0.8f), tG * (act ? 1f : 0.8f), tB * (act ? 1f : 0.8f), pw, paneH);
+            panel.add(label);
         }
 
-        float navX = px + pw - NAV_W;
-        buf.clear();
-        buf.put(new float[]{
-            navX, paneY, mr, mg, mb, panelAlpha,
-            px+pw, paneY, mr, mg, mb, panelAlpha,
-            px+pw, paneY+HEADER_H, mr, mg, mb, panelAlpha,
-            navX, paneY, mr, mg, mb, panelAlpha,
-            px+pw, paneY+HEADER_H, mr, mg, mb, panelAlpha,
-            navX, paneY+HEADER_H, mr, mg, mb, panelAlpha,
-        }).flip();
-        drawQuad();
+        int vis = visibleItems();
+        int tot = totalItems();
+        boolean canPrev = scrollOffset > 0;
+        boolean canNext = scrollOffset + vis < tot;
+        float navX = pw - NAV_W;
+        panel.add(text(navX + 8f, 5f, "<", tR * (canPrev ? 1f : 0.4f), tG * (canPrev ? 1f : 0.4f), tB * (canPrev ? 1f : 0.4f), pw, paneH));
+        panel.add(text(navX + 24f, 5f, ">", tR * (canNext ? 1f : 0.4f), tG * (canNext ? 1f : 0.4f), tB * (canNext ? 1f : 0.4f), pw, paneH));
 
-        {
-            int vis = visibleItems();
-            int tot = totalItems();
-            boolean canPrev = scrollOffset > 0;
-            boolean canNext = scrollOffset + vis < tot;
-            shader.unbind();
-            Text.drawText(textShader, "<", navX + 10, paneY + 5, 1.5f,
-                tR * (canPrev ? 1f : 0.4f), tG * (canPrev ? 1f : 0.4f), tB * (canPrev ? 1f : 0.4f));
-            Text.drawText(textShader, ">", navX + 28, paneY + 5, 1.5f,
-                tR * (canNext ? 1f : 0.4f), tG * (canNext ? 1f : 0.4f), tB * (canNext ? 1f : 0.4f));
-            shader.bind();
-            shader.setUniformMat4f("projection", ortho);
-        }
-
-        float lineY = paneY + HEADER_H;
-        buf.clear();
-        buf.put(new float[]{
-            px + 8, lineY, mr+0.1f, mg+0.1f, mb+0.1f, 1f,
-            px + pw - 8, lineY, mr+0.1f, mg+0.1f, mb+0.1f, 1f,
-        }).flip();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_LINES, 0, 2);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        shader.bind();
-        shader.setUniformMat4f("projection", ortho);
+        UIContainer sep = new UIContainer(8f / pw, (float) HEADER_H / paneH, (pw - 16f) / pw, 1f / paneH);
+        sep.customAlpha = 1f;
+        sep.bgR = Math.min(1f, mr + 0.1f);
+        sep.bgG = Math.min(1f, mg + 0.1f);
+        sep.bgB = Math.min(1f, mb + 0.1f);
+        panel.add(sep);
 
         if (activeMode == MODE_VERTEX) {
             Vertex[] vs = data.vertices.values().toArray(new Vertex[0]);
             for (int i = scrollOffset; i < vs.length; i++) {
-                float iy = paneY + HEADER_H + (i - scrollOffset) * ITEM_H;
-                if (iy + ITEM_H > paneY + paneH) break;
-                boolean hover = vs[i].id == hoveredId;
-                if (hover) drawItemHighlight(iy);
+                float oy = HEADER_H + (i - scrollOffset) * ITEM_H;
+                if (oy + ITEM_H > paneH) break;
                 Vertex v = vs[i];
-                shader.unbind();
+                boolean hover = v.id == hoveredId;
+                if (hover) panel.add(highlight(oy, paneH));
                 String label = "#" + v.id + "  (" + fmt(v.x) + ", " + fmt(v.y) + ", " + fmt(v.z) + ")";
-                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f,
-                    tR * (hover ? 1f : 0.7f), tG * (hover ? 1f : 0.7f), tB * (hover ? 1f : 0.7f));
-                shader.bind();
-                shader.setUniformMat4f("projection", ortho);
+                panel.add(text(10f, oy + 2f, label, tR * (hover ? 1f : 0.9f), tG * (hover ? 1f : 0.9f), tB * (hover ? 1f : 0.9f), pw, paneH));
             }
         } else {
             Edge[] es = data.edges.values().toArray(new Edge[0]);
             for (int i = scrollOffset; i < es.length; i++) {
-                float iy = paneY + HEADER_H + (i - scrollOffset) * ITEM_H;
-                if (iy + ITEM_H > paneY + paneH) break;
-                boolean hover = es[i].id == hoveredId;
-                if (hover) drawItemHighlight(iy);
+                float oy = HEADER_H + (i - scrollOffset) * ITEM_H;
+                if (oy + ITEM_H > paneH) break;
                 Edge e = es[i];
-                shader.unbind();
-                String label = "#" + e.id + "  " + e.a + "\u2192" + e.b + "  [" + e.mode + "]";
-                Text.drawText(textShader, label, px + 10, iy + 2, 1.5f,
-                    tR * (hover ? 1f : 0.7f), tG * (hover ? 1f : 0.7f), tB * (hover ? 1f : 0.7f));
-                shader.bind();
-                shader.setUniformMat4f("projection", ortho);
+                boolean hover = e.id == hoveredId;
+                if (hover) panel.add(highlight(oy, paneH));
+                String label = "#" + e.id + "  " + e.a + "->" + e.b + "  [" + e.mode + "]";
+                panel.add(text(10f, oy + 2f, label, tR * (hover ? 1f : 0.9f), tG * (hover ? 1f : 0.9f), tB * (hover ? 1f : 0.9f), pw, paneH));
             }
         }
-        shader.unbind();
-        glDisable(GL_BLEND);
+    }
+
+    private UIContainer highlight(float oy, float paneH) {
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+        UIContainer hl = new UIContainer(4f / pw, oy / paneH, (pw - 8f) / pw, (float) ITEM_H / paneH);
+        hl.customAlpha = 0.25f;
+        hl.bgR = Math.min(1f, mr + 0.15f);
+        hl.bgG = Math.min(1f, mg + 0.3f);
+        hl.bgB = Math.min(1f, mb + 0.7f);
+        return hl;
+    }
+
+    private UIText text(float x, float y, String label, float r, float g, float b, float pw, float paneH) {
+        UIText t = new UIText(x / pw, y / paneH, ts(1.5f), label);
+        t.useConfigText = false;
+        t.tR = r; t.tG = g; t.tB = b;
+        return t;
     }
 
     public void updateHover(float mx, float my) {
@@ -262,31 +211,12 @@ public class EntityListPanel {
         hoveredId = getHoveredIdAt(mx, my);
     }
 
-    private void drawItemHighlight(float iy) {
-        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-        buf.clear();
-        buf.put(new float[]{
-            px + 4, iy, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
-            px + pw - 4, iy, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
-            px + pw - 4, iy + ITEM_H, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
-            px + 4, iy, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
-            px + pw - 4, iy + ITEM_H, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
-            px + 4, iy + ITEM_H, mr+0.15f, mg+0.3f, mb+0.7f, 0.25f,
-        }).flip();
-        drawQuad();
-    }
-
-    private void drawQuad() {
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-
     private static String fmt(float v) {
         if (v == (int) v) return String.valueOf((int) v);
         return String.format("%.2f", v);
+    }
+
+    public void cleanup() {
+        renderer.cleanup();
     }
 }
