@@ -112,6 +112,9 @@ public class Editor {
         renderer.setScreenSize(w, h);
         editorUI.setSize(w, h);
         if (menuUI != null) menuUI.setSize(w, h);
+        ctx.selection.vertexOverlay.setSize(w, h);
+        ctx.selection.edgeOverlay.setSize(w, h);
+        ctx.selection.siblingPicker.setSize(w, h);
         ctx.windowWidth = w;
         ctx.windowHeight = h;
     }
@@ -144,21 +147,19 @@ public class Editor {
         renderer.render(view, projection);
 
         editorUI.entityList.setData(ctx.renderer.getShapeData());
+
         editorUI.render(currentFile);
 
         if (ctx.selection.vertexOverlay.isVisible()) {
-            ctx.selection.vertexOverlay.render(editorUI.shader(), editorUI.textShader(),
-                editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+            ctx.selection.vertexOverlay.render();
         }
 
         if (ctx.selection.edgeOverlay.isVisible()) {
-            ctx.selection.edgeOverlay.render(editorUI.shader(), editorUI.textShader(),
-                editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+            ctx.selection.edgeOverlay.render();
         }
 
         if (ctx.selection.siblingPicker.isVisible()) {
-            ctx.selection.siblingPicker.render(editorUI.shader(), editorUI.textShader(),
-                editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+            ctx.selection.siblingPicker.render();
         }
 
         editorUI.renderEntityList(width, height);

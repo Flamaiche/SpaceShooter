@@ -1,6 +1,5 @@
 package markershape.editor.ui;
 
-import learngl.Shader;
 import markershape.config.ConfigParametres;
 import markershape.editor.ui.control.EntityListPanel;
 import markershape.editor.ui.control.FilterPanel;
@@ -11,19 +10,11 @@ import markershape.editor.ui.framework.UIText;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.ConfirmSavePopup;
 import markershape.editor.ui.menu.NewMenu;
-import markershape.editor.ui.util.TextColor;
-
-import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public class EditorUI {
     private int width, height;
-    private Shader shader, textShader;
-    private int vao, vbo;
 
     public static final int BAR_H = 36;
     public static final int BTN_W = 130;
@@ -39,25 +30,11 @@ public class EditorUI {
 
     public EditorUI(int w, int h, Runnable onSave, Runnable onQuit, Runnable onNewEdge, Runnable onNewVertex) {
         root.alpha = UIContainer.Alpha.NONE;
-        shader = new Shader("shaders/markershape/ui_Vertex.glsl",
-                            "shaders/markershape/ui_Fragment.glsl");
-        textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
 
-        vao = glGenVertexArrays();
-        vbo = glGenBuffers();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 6 * 4, 0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 4, GL_FLOAT, false, 6 * 4, 2 * 4);
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        filter = new FilterPanel(shader, textShader, vao, vbo);
+        filter = new FilterPanel();
         newMenu = new NewMenu();
-        confirmSave = new ConfirmSavePopup(textShader);
-        entityList = new EntityListPanel(shader, textShader, vao, vbo);
+        confirmSave = new ConfirmSavePopup();
+        entityList = new EntityListPanel();
 
         setSize(w, h);
     }
@@ -121,21 +98,18 @@ public class EditorUI {
     private void applyNewBtnStyle(boolean opaque) {
         int mode = newMenu.getActiveMode();
         if (!opaque) {
-            newBtn.useConfigText = false;
-            newBtn.tR = 1f; newBtn.tG = 1f; newBtn.tB = 1f;
-            if (mode == 0) { newBtn.tG = 0.7f; newBtn.tB = 0.3f; }
-            else if (mode == 1) { newBtn.tG = 0.3f; newBtn.tB = 0.3f; }
+            if (mode == 0) { newBtn.useConfigText = false; newBtn.tR = 1f; newBtn.tG = 0.7f; newBtn.tB = 0.3f; }
+            else if (mode == 1) { newBtn.useConfigText = false; newBtn.tR = 1f; newBtn.tG = 0.3f; newBtn.tB = 0.3f; }
+            else { newBtn.useConfigText = true; }
         } else {
             if (mode == 0) {
                 newBtn.bgR = 0.4f; newBtn.bgG = 0.25f; newBtn.bgB = 0.15f;
-                float tc = TextColor.contrast(newBtn.bgR, newBtn.bgG, newBtn.bgB);
                 newBtn.useConfigText = false;
-                newBtn.tR = tc; newBtn.tG = tc; newBtn.tB = tc;
+                newBtn.tR = 1f; newBtn.tG = 0.7f; newBtn.tB = 0.3f;
             } else if (mode == 1) {
                 newBtn.bgR = 0.4f; newBtn.bgG = 0.15f; newBtn.bgB = 0.15f;
-                float tc = TextColor.contrast(newBtn.bgR, newBtn.bgG, newBtn.bgB);
                 newBtn.useConfigText = false;
-                newBtn.tR = tc; newBtn.tG = tc; newBtn.tB = tc;
+                newBtn.tR = 1f; newBtn.tG = 0.3f; newBtn.tB = 0.3f;
             } else {
                 newBtn.bgR = BlurBackground.menuR;
                 newBtn.bgG = BlurBackground.menuG;
@@ -169,31 +143,6 @@ public class EditorUI {
     }
 
     private void drawConfirmSave() {
-        if (!confirmSave.isVisible()) return;
-        float cx = (width - ConfirmSavePopup.CONFIRM_W) / 2;
-        float cy = (36 + (height - 36) / 2) - ConfirmSavePopup.CONFIRM_H / 2;
-        float boxA = BlurBackground.boxAlpha();
-        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-
-        FloatBuffer b = buf();
-        b.put(new float[]{
-            cx, cy, mr, mg, mb, boxA,
-            cx+ConfirmSavePopup.CONFIRM_W, cy, mr, mg, mb, boxA,
-            cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-            cx, cy, mr, mg, mb, boxA,
-            cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-            cx, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-        }).flip();
-        shader.bind();
-        shader.setUniformMat4f("projection", ortho());
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        shader.unbind();
-
         confirmSave.render();
     }
 
@@ -263,26 +212,11 @@ public class EditorUI {
 
     public void setFilterCallback(Runnable cb) { filter.setFilterCallback(cb); }
 
-    private final org.joml.Matrix4f _ortho = new org.joml.Matrix4f();
-    public org.joml.Matrix4f ortho() {
-        _ortho.setOrtho2D(0, width, height, 0);
-        return _ortho;
-    }
-
-    private final java.nio.FloatBuffer _buf = org.lwjgl.BufferUtils.createFloatBuffer(6 * 6);
-    public java.nio.FloatBuffer buf() { _buf.clear(); return _buf; }
-
-    public Shader shader() { return shader; }
-    public Shader textShader() { return textShader; }
-    public int vao() { return vao; }
-    public int vbo() { return vbo; }
-
     public void cleanup() {
         uiRenderer.cleanup();
         newMenu.cleanup();
-        shader.cleanup();
-        textShader.cleanup();
-        glDeleteBuffers(vbo);
-        glDeleteVertexArrays(vao);
+        confirmSave.cleanup();
+        filter.cleanup();
+        entityList.cleanup();
     }
 }

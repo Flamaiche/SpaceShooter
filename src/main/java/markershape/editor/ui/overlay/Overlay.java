@@ -1,48 +1,54 @@
 package markershape.editor.ui.overlay;
 
-import gamegl.gestion.texte.Text;
-import learngl.Shader;
-import markershape.config.ConfigParametres;
-import markershape.editor.ui.control.Button;
+import markershape.editor.ui.framework.UIContainer;
+import markershape.editor.ui.framework.UIButton;
+import markershape.editor.ui.framework.UIRenderer;
+import markershape.editor.ui.framework.UIText;
 import markershape.editor.ui.menu.BlurBackground;
-import org.joml.Matrix4f;
-
-import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public abstract class Overlay {
     protected boolean visible;
     protected float px, py;
     protected final float pw, ph;
-    protected final Button closeBtn;
-    protected final Button deleteBtn;
     protected int selectedField = -1;
     protected Runnable editCallback;
     protected Runnable preEditCallback;
     protected Runnable deleteCallback;
+    protected final UIRenderer renderer = new UIRenderer();
+    protected final UIContainer root = new UIContainer(0, 0, 1, 1);
+    protected int width, height;
+
+    protected static final float CLOSE_BTN_X = 28;
+    protected static final float CLOSE_BTN_W = 24;
+    protected static final float CLOSE_BTN_H = 24;
+    protected static final float DELETE_BTN_H = 28;
+
+    private static float ts(float designScale) { return designScale / 720f; }
 
     public Overlay(float pw, float ph) {
         this.pw = pw;
         this.ph = ph;
         px = 100; py = 100;
-        closeBtn = new Button("X", px + pw - 28, py + 4, 24, 24, null);
-        closeBtn.showBackground = false;
-        closeBtn.textScale = 1.5f;
-        closeBtn.textR = 1f; closeBtn.textG = 0.3f; closeBtn.textB = 0.3f;
-        deleteBtn = new Button("Delete", px + 10, py + ph - 38, pw - 20, 28,
-            () -> { if (deleteCallback != null) deleteCallback.run(); });
-        deleteBtn.bgR = 0.5f; deleteBtn.bgG = 0.1f; deleteBtn.bgB = 0.1f;
-        deleteBtn.textR = 1f; deleteBtn.textG = 1f; deleteBtn.textB = 1f;
+        root.alpha = UIContainer.Alpha.NONE;
+    }
+
+    public void setSize(int w, int h) {
+        width = w;
+        height = h;
+        renderer.setScreenSize(w, h);
     }
 
     public void setDeleteCallback(Runnable cb) { deleteCallback = cb; }
     public void hide() { visible = false; selectedField = -1; }
     public boolean isVisible() { return visible; }
-    public boolean isCloseClicked(float mx, float my) { return visible && closeBtn.isClicked(mx, my); }
+    public boolean isCloseClicked(float mx, float my) {
+        return visible && mx >= px + pw - CLOSE_BTN_X && mx <= px + pw - CLOSE_BTN_X + CLOSE_BTN_W
+            && my >= py + 4 && my <= py + 4 + CLOSE_BTN_H;
+    }
+    public boolean isDeleteClicked(float mx, float my) {
+        return visible && mx >= px + 10 && mx <= px + 10 + pw - 20
+            && my >= py + ph - DELETE_BTN_H - 10 && my <= py + ph - 10;
+    }
     public boolean contains(float mx, float my) {
         return mx >= px && mx <= px + pw && my >= py && my <= py + ph;
     }
@@ -51,63 +57,66 @@ public abstract class Overlay {
 
     protected abstract boolean hasEntity();
 
-    public void render(Shader uiShader, Shader textShader, Matrix4f ortho,
-                       FloatBuffer buf, int vao, int vbo) {
+    public void render() {
         if (!visible || !hasEntity()) return;
-
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        uiShader.bind();
-        uiShader.setUniformMat4f("projection", ortho);
-
-        float alpha = BlurBackground.panelAlpha();
-        float mr = BlurBackground.menuR;
-        float mg = BlurBackground.menuG;
-        float mb = BlurBackground.menuB;
-        buf.clear();
-        buf.put(new float[]{
-            px,    py,    mr, mg, mb, alpha,
-            px+pw, py,    mr, mg, mb, alpha,
-            px+pw, py+ph, mr, mg, mb, alpha,
-            px,    py,    mr, mg, mb, alpha,
-            px+pw, py+ph, mr, mg, mb, alpha,
-            px,    py+ph, mr, mg, mb, alpha,
-        }).flip();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        renderContent(uiShader, textShader, ortho, buf, vao, vbo);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        uiShader.unbind();
-
-        renderText(textShader);
-
-        ConfigParametres cfg = ConfigParametres.get();
-        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
-        deleteBtn.textR = tR; deleteBtn.textG = tG; deleteBtn.textB = tB;
-        deleteBtn.bgA = BlurBackground.btnAlpha();
-        deleteBtn.render(uiShader, textShader, ortho, buf, vao, vbo);
-        closeBtn.render(uiShader, textShader, ortho, buf, vao, vbo);
+        root.clear();
+        build();
+        root.render(renderer);
     }
 
-    protected abstract void renderContent(Shader uiShader, Shader textShader, Matrix4f ortho,
-                                          FloatBuffer buf, int vao, int vbo);
+    private void build() {
+        UIContainer panel = new UIContainer(px / width, py / height, pw / width, ph / height);
+        panel.alpha = UIContainer.Alpha.PANEL;
+        panel.bgR = BlurBackground.menuR;
+        panel.bgG = BlurBackground.menuG;
+        panel.bgB = BlurBackground.menuB;
+        root.add(panel);
 
-    protected abstract void renderText(Shader textShader);
+        buildContent(panel);
+
+        UIContainer delete = new UIContainer(10f / pw, (ph - DELETE_BTN_H - 10f) / ph,
+            (pw - 20f) / pw, DELETE_BTN_H / ph);
+        delete.alpha = UIContainer.Alpha.BTN;
+        delete.bgR = 0.5f; delete.bgG = 0.1f; delete.bgB = 0.1f;
+        delete.onClickAction = () -> { if (deleteCallback != null) deleteCallback.run(); };
+        panel.add(delete);
+        UIButton delLabel = new UIButton(0, 0, 1, 1, "Delete", ts(1.5f));
+        delLabel.alpha = UIContainer.Alpha.NONE;
+        delLabel.useConfigText = false;
+        delLabel.tR = 1f; delLabel.tG = 1f; delLabel.tB = 1f;
+        delete.add(delLabel);
+
+        UIContainer close = new UIContainer((pw - CLOSE_BTN_X) / pw, 4f / ph,
+            CLOSE_BTN_W / pw, CLOSE_BTN_H / ph);
+        close.alpha = UIContainer.Alpha.NONE;
+        close.onClickAction = this::hide;
+        panel.add(close);
+        UIText closeLabel = new UIText(0.5f, 0.5f, ts(1.5f), "X");
+        closeLabel.centered = true;
+        closeLabel.useConfigText = false;
+        closeLabel.tR = 1f; closeLabel.tG = 0.3f; closeLabel.tB = 0.3f;
+        close.add(closeLabel);
+    }
+
+    protected abstract void buildContent(UIContainer panel);
+
+    protected UIText label(float x, float y, String s, float r, float g, float b) {
+        UIText t = new UIText(x / pw, y / ph, ts(1.5f), s);
+        t.useConfigText = false;
+        t.tR = r; t.tG = g; t.tB = b;
+        return t;
+    }
+
+    protected UIContainer box(float x, float y, float w, float h, float r, float g, float b, float a) {
+        UIContainer c = new UIContainer(x / pw, y / ph, w / pw, h / ph);
+        c.customAlpha = a;
+        c.bgR = r; c.bgG = g; c.bgB = b;
+        return c;
+    }
 
     public void setPosition(float x, float y) {
         px = x;
         py = y;
-        closeBtn.x = px + pw - 28;
-        closeBtn.y = py + 4;
-        deleteBtn.x = px + 10;
-        deleteBtn.y = py + ph - 38;
     }
 
     public float getPx() { return px; }
@@ -115,21 +124,7 @@ public abstract class Overlay {
     public float getPw() { return pw; }
     public float getPh() { return ph; }
 
-    protected void drawHighlightRect(FloatBuffer buf, float x, float y, float w, float h) {
-        buf.clear();
-        buf.put(new float[]{
-            x, y, 0.3f, 0.5f, 0.9f, 0.3f,
-            x+w, y, 0.3f, 0.5f, 0.9f, 0.3f,
-            x+w, y+h, 0.3f, 0.5f, 0.9f, 0.3f,
-            x, y, 0.3f, 0.5f, 0.9f, 0.3f,
-            x+w, y+h, 0.3f, 0.5f, 0.9f, 0.3f,
-            x, y+h, 0.3f, 0.5f, 0.9f, 0.3f,
-        }).flip();
-    }
-
-    protected void drawLine(FloatBuffer buf, float x1, float y1, float x2, float y2,
-                            float r, float g, float b, float a) {
-        buf.clear();
-        buf.put(new float[]{ x1, y1, r, g, b, a, x2, y2, r, g, b, a }).flip();
+    public void cleanup() {
+        renderer.cleanup();
     }
 }

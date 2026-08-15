@@ -1,17 +1,8 @@
 package markershape.editor.ui.overlay;
 
-import gamegl.gestion.texte.Text;
-import learngl.Shader;
 import markershape.config.ConfigParametres;
+import markershape.editor.ui.framework.UIContainer;
 import markershape.shape.Edge;
-import org.joml.Matrix4f;
-
-import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public class EdgeOverlay extends Overlay {
     private Edge edge;
@@ -45,7 +36,10 @@ public class EdgeOverlay extends Overlay {
 
         if (isCloseClicked(mx, my)) { hide(); return -1; }
 
-        if (deleteBtn.isClicked(mx, my)) { deleteBtn.click(); return 10; }
+        if (isDeleteClicked(mx, my)) {
+            if (deleteCallback != null) deleteCallback.run();
+            return 10;
+        }
 
         float modeY = py + 90;
         if (my >= modeY && my <= modeY + 20) {
@@ -85,36 +79,25 @@ public class EdgeOverlay extends Overlay {
     }
 
     @Override
-    protected void renderContent(Shader uiShader, Shader textShader, Matrix4f ortho,
-                                 FloatBuffer buf, int vao, int vbo) {
-        if (selectedField == 1) {
-            float sy = py + 120;
-            drawHighlightRect(buf, px + VAL_X, sy, VAL_W, 20);
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-        }
-    }
-
-    @Override
-    protected void renderText(Shader textShader) {
+    protected void buildContent(UIContainer panel) {
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         float dimR = tR * 0.7f, dimG = tG * 0.7f, dimB = tB * 0.7f;
 
-        Text.drawText(textShader, "Edge #" + edge.id, px + 12, py + 10, 1.5f, tR, tG, tB);
-        Text.drawText(textShader, "Vertex A: " + vertexA, px + 12, py + 42, 1.5f, tR, tG, tB);
-        Text.drawText(textShader, "Vertex B: " + vertexB, px + 12, py + 66, 1.5f, tR, tG, tB);
+        panel.add(label(12, 10, "Edge #" + edge.id, tR, tG, tB));
+        panel.add(label(12, 42, "Vertex A: " + vertexA, tR, tG, tB));
+        panel.add(label(12, 66, "Vertex B: " + vertexB, tR, tG, tB));
 
         String modeStr = edge.mode.equals("stun") ? "stun" : "move";
-        Text.drawText(textShader, "Mode: " + modeStr, px + 12, py + 90, 1.5f, dimR, dimG, dimB);
+        panel.add(label(12, 90, "Mode: " + modeStr, dimR, dimG, dimB));
 
         float tcR = (selectedField == 1) ? tR : dimR;
         float tcG = (selectedField == 1) ? tG : dimG;
         float tcB = (selectedField == 1) ? tB : dimB;
-        Text.drawText(textShader, "Thick:", px + 12, py + 120, 1.5f, tR, tG, tB);
-        Text.drawText(textShader, String.format("%.3f", edge.thickness),
-            px + VAL_X, py + 120, 1.5f, tcR, tcG, tcB);
-        Text.drawText(textShader, "[-]", px + MINUS_X, py + 121, 1.5f, tR, tG, tB);
-        Text.drawText(textShader, "[+]", px + PLUS_X, py + 121, 1.5f, tR, tG, tB);
+        panel.add(label(12, 120, "Thick:", tR, tG, tB));
+        if (selectedField == 1) panel.add(box(VAL_X, 120, VAL_W, 20, 0.3f, 0.5f, 0.9f, 0.3f));
+        panel.add(label(VAL_X, 120, String.format("%.3f", edge.thickness), tcR, tcG, tcB));
+        panel.add(label(MINUS_X, 121, "[-]", tR, tG, tB));
+        panel.add(label(PLUS_X, 121, "[+]", tR, tG, tB));
     }
 }
