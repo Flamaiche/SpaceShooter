@@ -49,6 +49,13 @@ public class ClickHandler {
     private void handleUIClick(float mx, float my) {
         if (ctx.ui.isSaveClicked(mx, my)) { io.save(); return; }
         if (ctx.ui.isQuitClicked(mx, my)) {
+            ctx.ui.filter.setOpen(false);
+            ctx.ui.closeNewMenu();
+            ctx.exitModes();
+            ctx.ui.setActiveMode(-1);
+            ctx.selection.hideOverlays();
+            ctx.selection.siblingPicker.hide();
+            ctx.selection.reset();
             ctx.ui.showConfirmSave();
             ctx.ui.setConfirmSaveAction(() -> { io.save(); if (ctx.onGoToMenu != null) ctx.onGoToMenu.run(); });
             return;

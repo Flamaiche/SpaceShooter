@@ -78,6 +78,10 @@ public class FilterPanel {
     public void render(float btnX, float btnY) {
         if (!filterOpen) return;
 
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         filterX = btnX + (130 - PANEL_W) / 2;
         filterY = btnY;
 

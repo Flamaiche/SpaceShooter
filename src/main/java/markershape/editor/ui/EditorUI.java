@@ -1,15 +1,17 @@
 package markershape.editor.ui;
 
-import gamegl.gestion.texte.Text;
 import learngl.Shader;
-import markershape.editor.ui.control.Button;
-import markershape.editor.ui.control.EntityListPanel;
-import markershape.editor.ui.util.TextColor;
-import markershape.editor.ui.control.FilterPanel;
 import markershape.config.ConfigParametres;
+import markershape.editor.ui.control.EntityListPanel;
+import markershape.editor.ui.control.FilterPanel;
+import markershape.editor.ui.framework.UIButton;
+import markershape.editor.ui.framework.UIContainer;
+import markershape.editor.ui.framework.UIRenderer;
+import markershape.editor.ui.framework.UIText;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.ConfirmSavePopup;
 import markershape.editor.ui.menu.NewMenu;
+import markershape.editor.ui.util.TextColor;
 
 import java.nio.FloatBuffer;
 
@@ -25,24 +27,18 @@ public class EditorUI {
 
     public static final int BAR_H = 36;
     public static final int BTN_W = 130;
-    private Button saveBtn, quitBtn, filterBtn, newBtn;
-    private Runnable onSave, onQuit, onNewEdge, onNewVertex;
-
-    public boolean transparentBar = true;
 
     public final FilterPanel filter;
     public final NewMenu newMenu;
     public final ConfirmSavePopup confirmSave;
     public final EntityListPanel entityList;
-    private float lastMenuR = -1f, lastMenuG = -1f, lastMenuB = -1f;
-    private boolean lastTransparentUI;
+
+    private final UIRenderer uiRenderer = new UIRenderer();
+    private final UIContainer root = new UIContainer(0, 0, 1, 1);
+    private UIButton saveBtn, quitBtn, filterBtn, newBtn;
 
     public EditorUI(int w, int h, Runnable onSave, Runnable onQuit, Runnable onNewEdge, Runnable onNewVertex) {
-        this.onSave = onSave;
-        this.onQuit = onQuit;
-        this.onNewEdge = onNewEdge;
-        this.onNewVertex = onNewVertex;
-
+        root.alpha = UIContainer.Alpha.NONE;
         shader = new Shader("shaders/markershape/ui_Vertex.glsl",
                             "shaders/markershape/ui_Fragment.glsl");
         textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
@@ -59,7 +55,7 @@ public class EditorUI {
         glBindVertexArray(0);
 
         filter = new FilterPanel(shader, textShader, vao, vbo);
-        newMenu = new NewMenu(shader, textShader, vao, vbo);
+        newMenu = new NewMenu();
         confirmSave = new ConfirmSavePopup(textShader);
         entityList = new EntityListPanel(shader, textShader, vao, vbo);
 
@@ -69,85 +65,124 @@ public class EditorUI {
     public void setSize(int w, int h) {
         width = w;
         height = h;
+        uiRenderer.setScreenSize(w, h);
         filter.setSize(w, h);
         confirmSave.setSize(w, h);
         newMenu.setSize(w, h);
         entityList.setSize(w, h);
-
-        saveBtn = new Button("Sauvegarder", width - BTN_W * 2 - 10, 0, BTN_W, BAR_H, onSave);
-        saveBtn.textScale = 1.5f;
-        saveBtn.showBackground = !transparentBar;
-
-        quitBtn = new Button("Quitter", width - BTN_W - 5, 0, BTN_W, BAR_H, onQuit);
-        quitBtn.textScale = 1.5f;
-        quitBtn.showBackground = !transparentBar;
-
-        newBtn = new Button("New", width - BTN_W * 4 - 25, 0, BTN_W, BAR_H, () -> {
-            newMenu.toggle();
-            filter.setOpen(false);
-        });
-        newBtn.textScale = 1.5f;
-        newBtn.showBackground = !transparentBar;
-
-        filterBtn = new Button("Filtre", width - BTN_W * 3 - 20, 0, BTN_W, BAR_H, () -> {
-            filter.toggle();
-            newMenu.close();
-        });
-        filterBtn.textScale = 1.5f;
-        filterBtn.showBackground = !transparentBar;
-        syncFromConfig();
     }
 
     public void syncFromConfig() {
-        transparentBar = BlurBackground.transparentUI;
+    }
+
+    private static float ts(float designScale) { return designScale / 720f; }
+
+    private void buildBar(String currentFile) {
+        root.clear();
         boolean opaque = !BlurBackground.transparentUI;
-        saveBtn.showBackground = opaque;
-        quitBtn.showBackground = opaque;
-        newBtn.showBackground = opaque;
-        filterBtn.showBackground = opaque;
+        float fw = width, fh = height;
 
+        UIContainer bar = new UIContainer(0, 0, 1, BAR_H / fh);
+        bar.alpha = UIContainer.Alpha.PANEL;
+        bar.bgR = BlurBackground.menuR;
+        bar.bgG = BlurBackground.menuG;
+        bar.bgB = BlurBackground.menuB;
+        root.add(bar);
+
+        float btnW = BTN_W / fw;
+        saveBtn = makeBarButton((width - BTN_W * 2 - 10) / fw, btnW, "Sauvegarder", opaque);
+        quitBtn = makeBarButton((width - BTN_W - 5) / fw, btnW, "Quitter", opaque);
+        newBtn = makeBarButton((width - BTN_W * 4 - 25) / fw, btnW, "New", opaque);
+        filterBtn = makeBarButton((width - BTN_W * 3 - 20) / fw, btnW, "Filtre", opaque);
+        bar.add(saveBtn);
+        bar.add(quitBtn);
+        bar.add(newBtn);
+        bar.add(filterBtn);
+        applyNewBtnStyle(opaque);
+
+        String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
+        UIText fileLabel = new UIText(10f / fw, 10f / fh, ts(1.5f), "MarkerShape - " + label);
+        root.add(fileLabel);
+    }
+
+    private UIButton makeBarButton(float x, float w, String label, boolean opaque) {
+        UIButton b = new UIButton(x, 0, w, 1f, label, ts(1.5f));
         if (opaque) {
-            saveBtn.bgR = BlurBackground.menuR; saveBtn.bgG = BlurBackground.menuG; saveBtn.bgB = BlurBackground.menuB;
-            quitBtn.bgR = BlurBackground.menuR; quitBtn.bgG = BlurBackground.menuG; quitBtn.bgB = BlurBackground.menuB;
-            newBtn.bgR = BlurBackground.menuR; newBtn.bgG = BlurBackground.menuG; newBtn.bgB = BlurBackground.menuB;
-            filterBtn.bgR = BlurBackground.menuR; filterBtn.bgG = BlurBackground.menuG; filterBtn.bgB = BlurBackground.menuB;
+            b.alpha = UIContainer.Alpha.BTN;
+            b.bgR = BlurBackground.menuR;
+            b.bgG = BlurBackground.menuG;
+            b.bgB = BlurBackground.menuB;
+        } else {
+            b.alpha = UIContainer.Alpha.NONE;
         }
+        return b;
+    }
 
-        ConfigParametres cfg = ConfigParametres.get();
-
-        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
-        saveBtn.textR = tR; saveBtn.textG = tG; saveBtn.textB = tB;
-        quitBtn.textR = tR; quitBtn.textG = tG; quitBtn.textB = tB;
-        filterBtn.textR = tR; filterBtn.textG = tG; filterBtn.textB = tB;
-        newBtn.textR = tR; newBtn.textG = tG; newBtn.textB = tB;
-
-        if (opaque) {
-            setActiveMode(newMenu.getActiveMode());
+    private void applyNewBtnStyle(boolean opaque) {
+        int mode = newMenu.getActiveMode();
+        if (!opaque) {
+            newBtn.useConfigText = false;
+            newBtn.tR = 1f; newBtn.tG = 1f; newBtn.tB = 1f;
+            if (mode == 0) { newBtn.tG = 0.7f; newBtn.tB = 0.3f; }
+            else if (mode == 1) { newBtn.tG = 0.3f; newBtn.tB = 0.3f; }
+        } else {
+            if (mode == 0) {
+                newBtn.bgR = 0.4f; newBtn.bgG = 0.25f; newBtn.bgB = 0.15f;
+                float tc = TextColor.contrast(newBtn.bgR, newBtn.bgG, newBtn.bgB);
+                newBtn.useConfigText = false;
+                newBtn.tR = tc; newBtn.tG = tc; newBtn.tB = tc;
+            } else if (mode == 1) {
+                newBtn.bgR = 0.4f; newBtn.bgG = 0.15f; newBtn.bgB = 0.15f;
+                float tc = TextColor.contrast(newBtn.bgR, newBtn.bgG, newBtn.bgB);
+                newBtn.useConfigText = false;
+                newBtn.tR = tc; newBtn.tG = tc; newBtn.tB = tc;
+            } else {
+                newBtn.bgR = BlurBackground.menuR;
+                newBtn.bgG = BlurBackground.menuG;
+                newBtn.bgB = BlurBackground.menuB;
+                newBtn.useConfigText = true;
+            }
         }
     }
 
     public void render(String currentFile) {
-        if (BlurBackground.menuR != lastMenuR || BlurBackground.menuG != lastMenuG || BlurBackground.menuB != lastMenuB
-            || BlurBackground.transparentUI != lastTransparentUI) {
-            lastMenuR = BlurBackground.menuR; lastMenuG = BlurBackground.menuG; lastMenuB = BlurBackground.menuB;
-            lastTransparentUI = BlurBackground.transparentUI;
-            syncFromConfig();
-        }
-
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        float barAlpha = BlurBackground.panelAlpha();
-        FloatBuffer b = buf();
+        buildBar(currentFile);
+        root.render(uiRenderer);
+
+        newMenu.setBtnPos(newBtn.absX(uiRenderer), newBtn.absY(uiRenderer));
+        newMenu.render();
+
+        filter.render(filterBtn.absX(uiRenderer), BAR_H);
+
+        drawConfirmSave();
+    }
+
+    public void renderConfirmOnly() {
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        drawConfirmSave();
+    }
+
+    private void drawConfirmSave() {
+        if (!confirmSave.isVisible()) return;
+        float cx = (width - ConfirmSavePopup.CONFIRM_W) / 2;
+        float cy = (36 + (height - 36) / 2) - ConfirmSavePopup.CONFIRM_H / 2;
+        float boxA = BlurBackground.boxAlpha();
         float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+
+        FloatBuffer b = buf();
         b.put(new float[]{
-            0f, 0f, mr, mg, mb, barAlpha,
-            (float)width, 0f, mr, mg, mb, barAlpha,
-            (float)width, (float)BAR_H, mr, mg, mb, barAlpha,
-            0f, 0f, mr, mg, mb, barAlpha,
-            (float)width, (float)BAR_H, mr, mg, mb, barAlpha,
-            0f, (float)BAR_H, mr, mg, mb, barAlpha,
+            cx, cy, mr, mg, mb, boxA,
+            cx+ConfirmSavePopup.CONFIRM_W, cy, mr, mg, mb, boxA,
+            cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
+            cx, cy, mr, mg, mb, boxA,
+            cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
+            cx, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
         }).flip();
         shader.bind();
         shader.setUniformMat4f("projection", ortho());
@@ -158,57 +193,6 @@ public class EditorUI {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         shader.unbind();
-        saveBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
-        quitBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
-        newBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
-        filterBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
-
-        newMenu.setBtnPos(newBtn.x, newBtn.y);
-        newMenu.render();
-
-        filter.render(filterBtn.x, BAR_H);
-
-        String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
-        ConfigParametres cfg = ConfigParametres.get();
-        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
-        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1.5f, tR, tG, tB);
-
-        if (confirmSave.isVisible()) {
-            float cx = (width - ConfirmSavePopup.CONFIRM_W) / 2;
-            float cy = (36 + (height - 36) / 2) - ConfirmSavePopup.CONFIRM_H / 2;
-            float dimA = BlurBackground.dimAlpha();
-            float boxA = BlurBackground.boxAlpha();
-            b.clear();
-            b.put(new float[]{
-                0f, 0f, mr, mg, mb, dimA,
-                (float)width, 0f, mr, mg, mb, dimA,
-                (float)width, (float)height, mr, mg, mb, dimA,
-                0f, 0f, mr, mg, mb, dimA,
-                (float)width, (float)height, mr, mg, mb, dimA,
-                0f, (float)height, mr, mg, mb, dimA,
-            }).flip();
-            shader.bind();
-            shader.setUniformMat4f("projection", ortho());
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-
-            b.clear();
-            b.put(new float[]{
-                cx, cy, mr, mg, mb, boxA,
-                cx+ConfirmSavePopup.CONFIRM_W, cy, mr, mg, mb, boxA,
-                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-                cx, cy, mr, mg, mb, boxA,
-                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-                cx, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-            }).flip();
-            glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            shader.unbind();
-        }
 
         confirmSave.render();
     }
@@ -227,16 +211,17 @@ public class EditorUI {
     }
 
     public boolean isSaveClicked(float mx, float my) {
-        return saveBtn.isClicked(mx, my);
+        return saveBtn != null && saveBtn.contains(mx, my, uiRenderer);
     }
 
     public boolean isQuitClicked(float mx, float my) {
-        return quitBtn.isClicked(mx, my);
+        return quitBtn != null && quitBtn.contains(mx, my, uiRenderer);
     }
 
     public int clickNew(float mx, float my) {
-        if (newBtn.isClicked(mx, my)) {
-            newBtn.click();
+        if (newBtn != null && newBtn.contains(mx, my, uiRenderer)) {
+            newMenu.toggle();
+            filter.setOpen(false);
             return -2;
         }
         return newMenu.click(mx, my);
@@ -248,21 +233,6 @@ public class EditorUI {
 
     public void setActiveMode(int mode) {
         newMenu.setActiveMode(mode);
-        if (BlurBackground.transparentUI) {
-            newBtn.textR = 1f; newBtn.textG = 1f; newBtn.textB = 1f;
-            if (mode == 0) { newBtn.textR = 1f; newBtn.textG = 0.7f; newBtn.textB = 0.3f; }
-            else if (mode == 1) { newBtn.textR = 1f; newBtn.textG = 0.3f; newBtn.textB = 0.3f; }
-        } else {
-            if (mode == 0) {
-                newBtn.bgR = 0.4f; newBtn.bgG = 0.25f; newBtn.bgB = 0.15f;
-            } else if (mode == 1) {
-                newBtn.bgR = 0.4f; newBtn.bgG = 0.15f; newBtn.bgB = 0.15f;
-            } else {
-                newBtn.bgR = 0.25f; newBtn.bgG = 0.3f; newBtn.bgB = 0.25f;
-            }
-            float tc = TextColor.contrast(newBtn.bgR, newBtn.bgG, newBtn.bgB);
-            newBtn.textR = tc; newBtn.textG = tc; newBtn.textB = tc;
-        }
     }
 
     public void closeNewMenu() { newMenu.close(); }
@@ -275,8 +245,12 @@ public class EditorUI {
     public int clickConfirmSave(float mx, float my) { return confirmSave.click(mx, my); }
 
     public int clickFilter(float mx, float my) {
-        if (filterBtn.isClicked(mx, my)) { filterBtn.click(); newMenu.close(); return -2; }
-        return filter.clickFilter(mx, my, filterBtn.x);
+        if (filterBtn != null && filterBtn.contains(mx, my, uiRenderer)) {
+            filter.toggle();
+            newMenu.close();
+            return -2;
+        }
+        return filter.clickFilter(mx, my, filterBtn.absX(uiRenderer));
     }
 
     public boolean isFilterOpen() { return filter.isOpen(); }
@@ -304,6 +278,8 @@ public class EditorUI {
     public int vbo() { return vbo; }
 
     public void cleanup() {
+        uiRenderer.cleanup();
+        newMenu.cleanup();
         shader.cleanup();
         textShader.cleanup();
         glDeleteBuffers(vbo);
