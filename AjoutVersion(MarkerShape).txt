@@ -1,0 +1,103 @@
+Version : (A:Alpha)
+[V1.0]
+    01/06/2026:
+        - README MarkerShape : éditeur de formes 3D standalone
+    02/06/2026:
+        - base implémentation MarkerShape : App, Editor, ShapeLoader, édition sommets/arêtes
+        - menu principal avec liste des shapes + boutons éditeur (Sauvegarder/Quitter)
+        - refactor : structure markershape en packages camera/ io/ render/ model/ ui/
+        - ShapeIO renommé en ShapeLoader
+        - JavaDoc sur toutes les classes markershape
+        - fixes : paramètres framebuffer callback, taille buffer EditorUI (24→36), inversion yaw (drag droite = rotation droite), TextRenderer GL_TRIANGLES (GL_QUADS déprécié en core 3.3)
+    03/06/2026:
+        - shader fragment fix (discard gl_PointCoord retiré), points carrés via glPointSize
+        - depth test + picking depth-aware pour les points
+        - double glow (blanc 11px + noir 7px) au survol d'un sommet
+        - EdgeOverlay + hover line 2D sur les arêtes
+        - points invisibles par défaut, apparition au survol (comme les arêtes)
+        - filtre popup (Faces/Arêtes/Points + sliders taille pts/largeur lignes/alpha faces)
+        - VertexOverlay éditable (X/Y/Z/R/G/B) avec boutons [-]/[+]
+        - EdgeOverlay éditable (mode toggle, épaisseur [+]/[-])
+        - Edge VBO reconstruit chaque frame pour refléter les couleurs des sommets
+        - ShapeRenderer.rebuild() préserve le shader (évite delete+recreate)
+        - bouton Sauvegarder implémenté
+        - GL error 0x502 fixé (Shape.cleanup() bind VAO avant disable attrib arrays)
+        - déduplication des sommets au chargement (shipTEST.json 153→35 sommets)
+        - Converter.convert() restauré (1 sommet par position de triangle, pas de partage)
+        - ShapeLoader.load() sans déduplication (les sommets multiples sont conservés)
+        - VertexOverlay affiche les badges "Also: [#n]" pour tous les sommets à la même position, clic pour basculer
+        - SiblingPicker popup (liste des sommets à une position avec leurs couleurs, clic pour choisir)
+        - mode création d'arêtes (bouton "New Edge" → sélectionner 2 sommets → arête créée)
+        - résolution des frères intégrée dans la sélection normale et la création d'arêtes
+    04/06/2026:
+        - bouton "New Vertex" → clic dans la vue 3D pour créer un sommet blanc (depth buffer si géométrie sous la souris, sinon projection sur plan caméra)
+        - drag d'un sommet sélectionné (screen-space, suit la souris à profondeur fixe)
+        - points VBO dynamique (mise à jour chaque frame) pour refléter les positions en temps réel
+        - touche Suppr/Backspace supprime le sommet/arête sélectionné(e) avec cascade (edges → faces)
+        - cleanupFaces() retire automatiquement les faces dont les 3 arêtes n'existent plus
+        - connectedBetween() en ID exact uniquement (pas de transitivité frères) pour la détection de faces
+        - crosshair 3D (axes X/Y/Z rouge/vert/bleu) suivant la souris en mode création de sommet
+        - bouton "Delete" dans VertexOverlay et EdgeOverlay pour supprimer sommet/arête depuis la fenêtre
+    07/06/2026:
+        - refactoring complet (packages editor/, shape/, render/, callbacks GLFW purs)
+        - input 100% callbacks (plus de glfwGetCursorPos/glfwGetMouseButton)
+        - orbite souris (clic milieu/droit) + flèches + zoom molette
+        - popup ConfirmSave (Oui/Non) sur Quit, Escape ferme menus/filtres/désélectionne
+        - sélection sommet/arête propagée au renderer (highlight jaune visible)
+        - survol + sélection simultanés (arrête survolée en blanc même si une autre est sélectionnée)
+        - glow des points synchronisé avec le filtre Points
+        - crosshair axes X/Y/Z synchronisé avec les filtres Axe X/Y/Z
+        - crosshair suit la souris en mode création Vertex (preview placement)
+        - bouton X (fermeture) cliquable sur VertexOverlay et EdgeOverlay
+        - seuil de picking d'arête passé de 8 à 14 pixels
+        - backup/session-20260607 créé
+    18/06/2026:
+        - EntityListPanel (panneau latéral listant sommets/arêtes avec onglets, survol→glow 3D, clic→sélection)
+        - fond flou (BlurBackground) derrière les overlays, les menus et l'EntityListPanel
+        - croix X cliquable sur VertexOverlay et EdgeOverlay
+        - crosshair 3D suit la souris en mode création Vertex
+        - filtres Points/Axes X/Y/Z synchronisés avec glow et crosshair
+        - slider drag supprimé, boutons [-] [+] uniquement
+        - EntityListPanel abaissé à 58%, max 10 éléments visibles
+        - EntityListPanel pagination par flèches < > dans l'entête
+        - VertexOverlay : badges "Also:" multi-lignes (wrap si dépasse)
+        - VertexOverlay agrandi à 320px de haut
+        - toutes les fenêtres transparentes (BlurBackground.transparentUI, EditorUI.transparentBar)
+        - barre de menu transparente + boutons sans fond, mode actif coloré
+        - blur derrière le SiblingPicker
+        - correction tint blur 0.85-0.95 (gris visible au lieu de noir)
+[V1.1]
+    24/06/2026:
+        - système de configuration (ConfigParametres POJO + GetDonnee wrapper) + data/markershape/config/parametres.json
+        - ParametresUI avec nuancier couleur + champs éditables (EditableTextField FLOAT/HEX_COLOR avec validation)
+        - App : callbacks key/char, applyConfig, bgR/G/B pour glClearColor, setZoomSpeed/setOrbitSpeed
+        - couleurs menuR/G/B et texte adaptatif dans toute l'UI (BlurBackground, NewMenu, panneaux, overlays, GridRenderer)
+        - ShadowRenderer 2D pur + refactor EdgeHighlightRenderer + suppression GlowRenderer
+        - depth-aware picking (PickUtils findVisibleVertexAt/pickVisibleEdge, epsilon 0.002) et suppression DragAction du pipeline input
+        - fix PointRenderer : n'écrit plus dans le depth buffer (glDepthMask false), depth picking correct
+    28/07/2026:
+        - fix synchronisation clic/survol + correction timing depth buffer
+        - fix comportement paramètres : sauvegarder renvoie, saisie vide, clic valide
+    29/07/2026:
+        - fix couleur menu suit arrière-plan dans paramètres
+        - fix suppression du fond gris dans les paramètres (fond = couleur arrière-plan directe)
+        - dirty tracking + popup de confirmation avant de quitter les paramètres
+        - panneaux fenêtre derrière les catégories et sous-menus
+        - fix retrait de la sync abusive menu<-bg dans le color picker
+        - RVB 0-255 au lieu de 0-1 pour cohérence avec l'hex
+        - fix chargement des paramètres au démarrage (applyConfig dans init)
+        - redesign menu principal : panneau central, liste épurée, boutons alignés
+        - couleurs texte/référence configurables, contraste adaptatif, bouton Appliquer
+        - swatch + hex picker pour la couleur texte dans arrière-plan
+        - suppression du reference color picker (garde bg + text color pickers)
+        - réorganisation arrière-plan (swatch → modifiers par groupe de couleur)
+        - texte configuré brut partout, suppression du contraste adaptatif
+        - paramètres : layout dynamique + positions boutons fixes (Sauvegarder/Appliquer/Retour)
+    15/08/2026:
+        - fin de la migration vers le framework UI (UIContainer/UIElement/UIRenderer/UIButton/UIText)
+        - migration des overlays (vertex/edge/sibling), FilterPanel, EntityListPanel, ConfirmSavePopup, Editor
+        - suppression de Button.java (ancien système)
+        - fix : division entières dans EntityListPanel → panneau correctement rendu en bas à gauche
+        - lisibilité du texte de la liste (échelle alignée sur le reste de l'UI, labels ASCII "Aretes"/"->")
+        - bouton New : couleur alignée sur les autres boutons (plus de texte blanc)
+        - fix popups save confirm + revert settings + couleurs boutons

@@ -1,0 +1,44 @@
+Update futur — MarkerShape
+(prochaines features a faire / aiguillage)
+(mis a jour : 2026-08-15)
+
+------------------------------------------------------------
+A CORRIGER / FONCTIONNEL INCOMPLET
+------------------------------------------------------------
+- Drag de sommet : DragAction.java implemente mais jamais cable
+  (press/move/release souris sur sommet selectionne, profondeur verrouillee)
+- Drag des sliders du panneau Filtre (seuls les boutons [-]/[+] marchent)
+- gradlew run : ajouter le plugin application + mainClass = 'markershape.App'
+  dans build.gradle (l'app ne se lance qu'en IntelliJ)
+- EditorUI.syncFromConfig() vide (EditorUI.java) : implementer la resync
+  valeurs filtre/config ou retirer l'appel dans App.applyConfig()
+- shipTEST.json : supprimer ou renommer le fichier residuel (doublon de "ship")
+- ShapeIO.load() mort : aucun appelant (ShapeIO.java:30-47)
+- Ligne redondante if (filterResult == 3) setGridStep(...) dans ClickHandler.java:76
+
+------------------------------------------------------------
+NOUVELLES FONCTIONNALITES
+------------------------------------------------------------
+- Menu Symetrie
+  - Afficher/masquer le centre de symetrie
+  - Afficher/masquer l'axe central
+  - Selectionner un axe (X/Y/Z ou axe central) -> symetrie miroir des elements selectionnes
+  - Selectionner le centre -> symetrie centrale (point)
+- BluePrint (clone)
+  - Changement de curseur en main
+  - Clic sur sommet/arete + touche C -> entre en mode blueprint
+  - Le clone suit la souris (les sommets et aretes selectionnes)
+  - Le clone peut lui-meme subir les symetries
+  - Si une arete est selectionnee, ses deux sommets sont inclus dans le clone
+  - La source reste en place (copie, pas deplacement)
+- Option "keep shader" entre deux shapes
+- Panneau debug listant tous les elements
+- Fond ecran configurable (config.json / markershape.json)
+- Export OBJ / import : seul le JSON interne existe ; lwjgl-assimp present mais inutilise
+- Boutons Undo/Redo dans la barre (aujourd'hui clavier uniquement : Ctrl+Z / Ctrl+Shift+Z)
+- Indicateur "shape non sauvegardee" dans la barre (pastille)
+
+------------------------------------------------------------
+NETTOYAGE MINEUR
+------------------------------------------------------------
+- Shaders blur_Vertex/Fragment.glsl inutilises (supprimer ou cabler)
