@@ -9,6 +9,8 @@ import markershape.editor.ui.widgets.EditableTextField;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.glfw.GLFW.*;
+
 public class ParametresUI extends Panel {
     private int width, height;
     private static final int MENU_X = 440;
@@ -440,7 +442,11 @@ public class ParametresUI extends Panel {
     }
 
     public void handleKey(int key, int action) {
-        if (confirmVisible) return;
+        if (action != GLFW_PRESS) return;
+        if (confirmVisible) {
+            if (key == GLFW_KEY_ESCAPE) confirmVisible = false;
+            return;
+        }
         if (hexField.isEditing()) {
             hexField.keyAction(key, action);
         } else if (textHexField.isEditing()) {
@@ -448,6 +454,18 @@ public class ParametresUI extends Panel {
         } else if (floatField.isEditing()) {
             floatField.keyAction(key, action);
             if (!floatField.isEditing()) editingFloatKey = null;
+        } else if (key == GLFW_KEY_ESCAPE) {
+            if (currentMenu >= 0) {
+                currentMenu = -1;
+            } else {
+                ConfigParametres cfg = ConfigParametres.get();
+                if (cfg.hasChanges()) {
+                    showConfirmPopup(this::saveAndClose, this::rollbackAndClose);
+                } else {
+                    this.visible = false;
+                    if (onBack != null) onBack.run();
+                }
+            }
         }
     }
 

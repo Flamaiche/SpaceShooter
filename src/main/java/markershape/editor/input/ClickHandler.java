@@ -25,6 +25,19 @@ public class ClickHandler {
     }
 
     public void mouseClicked(float mx, float my) {
+        if (ctx.ui.isConfirmSaveVisible()) {
+            int cs = ctx.ui.clickConfirmSave(mx, my);
+            if (cs == 1) {
+                ctx.ui.closeConfirmSave();
+                Runnable action = ctx.ui.getConfirmSaveAction();
+                if (action != null) action.run();
+                else io.save();
+            } else if (cs == 2) {
+                ctx.ui.closeConfirmSave();
+                if (ctx.onGoToMenu != null) ctx.onGoToMenu.run();
+            }
+            return;
+        }
         if (ctx.ui.isOverUI(mx, my)) {
             handleUIClick(mx, my);
             return;
@@ -58,16 +71,7 @@ public class ClickHandler {
         else if (newResult == 1) { onNewEdge(); return; }
         else if (newResult == -2) return;
 
-        int filterResult = ctx.ui.clickFilter(mx, my);
-        if (filterResult >= 0) {
-            if (filterResult == 6) {
-                boolean[] fv = ctx.ui.getFilterValues();
-                ctx.renderer.setShowFaces(fv[0]); ctx.renderer.setShowEdges(fv[1]);
-                ctx.renderer.setShowPoints(fv[2]); ctx.renderer.setShowAxisX(fv[3]);
-                ctx.renderer.setShowAxisY(fv[4]); ctx.renderer.setShowAxisZ(fv[5]);
-            }
-            if (filterResult == 3) ctx.renderer.setGridStep(ctx.ui.getSliderValues()[3]);
-        }
+        ctx.ui.clickFilter(mx, my);
 
         int elResult = ctx.ui.clickEntityList(mx, my);
         if (elResult == -2) return;
@@ -78,19 +82,6 @@ public class ClickHandler {
                 ctx.selection.selectEdge(elResult);
             }
             return;
-        }
-
-        if (ctx.ui.isConfirmSaveVisible()) {
-            int cs = ctx.ui.clickConfirmSave(mx, my);
-            if (cs == 1) {
-                ctx.ui.closeConfirmSave();
-                Runnable action = ctx.ui.getConfirmSaveAction();
-                if (action != null) action.run();
-                else io.save();
-            } else if (cs == 2) {
-                ctx.ui.closeConfirmSave();
-                if (ctx.onGoToMenu != null) ctx.onGoToMenu.run();
-            }
         }
     }
 
@@ -153,15 +144,31 @@ public class ClickHandler {
     public void undo() {
         var cur = ctx.renderer.getShapeData();
         if (cur == null) return;
+        int sv = ctx.selection.selectedVertex, se = ctx.selection.selectedEdge;
         var prev = ctx.undoredo.undo(cur);
-        if (prev != null) io.loadShapeData(prev);
+        if (prev != null) {
+            io.loadShapeData(prev);
+            restoreSelection(sv, se);
+        }
     }
 
     public void redo() {
         var cur = ctx.renderer.getShapeData();
         if (cur == null) return;
+        int sv = ctx.selection.selectedVertex, se = ctx.selection.selectedEdge;
         var next = ctx.undoredo.redo(cur);
-        if (next != null) io.loadShapeData(next);
+        if (next != null) {
+            io.loadShapeData(next);
+            restoreSelection(sv, se);
+        }
+    }
+
+    private void restoreSelection(int sv, int se) {
+        if (sv >= 0 && ctx.renderer.getShapeData().vertices.containsKey(sv)) {
+            ctx.selection.selectVertex(sv);
+        } else if (se >= 0 && ctx.renderer.getShapeData().edges.containsKey(se)) {
+            ctx.selection.selectEdge(se);
+        }
     }
 
     private void onNewVertex() {
