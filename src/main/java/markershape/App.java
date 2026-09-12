@@ -4,6 +4,7 @@ import gamegl.gestion.texte.Text;
 
 import markershape.config.ConfigParametres;
 import markershape.editor.Editor;
+import markershape.editor.ui.UIResources;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.MenuUI;
 import markershape.editor.ui.menu.ParametresUI;
@@ -27,6 +28,7 @@ public class App {
     private boolean inMenu;
     private float mouseX, mouseY;
     private float bgR = 0.1f, bgG = 0.1f, bgB = 0.12f;
+    private UIResources uiResources;
     private final Set<Integer> pressedKeys = new HashSet<>();
 
     public static void main(String[] args) {
@@ -34,7 +36,7 @@ public class App {
     }
 
     private void start() {
-           init();
+        init();
         loop();
         cleanup();
     }
@@ -133,15 +135,17 @@ public class App {
 
         System.out.println("LWJGL " + Version.getVersion());
 
-        editor = new Editor(window, width, height);
+        uiResources = new UIResources();
+
+        editor = new Editor(window, width, height, uiResources);
         editor.camera.setSize(width, height);
         editor.ctx.onGoToMenu = () -> { editor.goToMenu(); inMenu = true; if (parametresUI != null) parametresUI.visible = false; };
 
-        parametresUI = new ParametresUI(() -> { parametresUI.visible = false; });
+        parametresUI = new ParametresUI(uiResources, () -> { parametresUI.visible = false; });
         parametresUI.setOnApply(this::applyConfig);
         parametresUI.setSize(width, height);
 
-        menuUI = new MenuUI(width, height, () -> glfwSetWindowShouldClose(window, true), () -> {
+        menuUI = new MenuUI(uiResources, width, height, () -> glfwSetWindowShouldClose(window, true), () -> {
             parametresUI.loadFromConfig();
             parametresUI.visible = true;
         });
@@ -224,6 +228,7 @@ public class App {
         if (editor != null) editor.cleanup();
         if (menuUI != null) menuUI.cleanup();
         if (parametresUI != null) parametresUI.cleanup();
+        if (uiResources != null) uiResources.cleanup();
         Text.cleanup();
         glfwDestroyWindow(window);
         glfwTerminate();
