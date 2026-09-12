@@ -170,44 +170,44 @@ public class ShapeRenderer {
 
         if (grid.anyVisible()) grid.render();
 
-        if (shape == null) {
-            shader.unbind();
-            return;
-        }
-
-        if (showFaces) {
-            shader.setUniform1f("uAlpha", faceAlpha);
-            faceRenderer.render(shader, shapeData);
-        }
-
-        if (showEdges && shapeData != null && !shapeData.edges.isEmpty()) {
-            edgeBatchRenderer.render(shader, shapeData);
-        }
-
-        if (showPoints && shapeData != null) {
-            pointRenderer.render(shader, shapeData);
-        }
-
-        // Edge highlights in 2D overlay
-        if (showEdges && shapeData != null) {
-            edgeHighlightRenderer.render2D(shapeData, view, projection, screenW, screenH);
-        }
-
-        // Hovered vertex glow in 2D overlay
-        if (showPoints && hoveredVertexId >= 0 && shapeData != null
-            && shapeData.vertices.containsKey(hoveredVertexId)) {
-            Vertex v = shapeData.vertices.get(hoveredVertexId);
-            Matrix4f mvp = new Matrix4f(projection);
-            mvp.mul(view);
-            Vector4f p = new Vector4f(v.x, v.y, v.z, 1f).mul(mvp);
-            if (p.w > 0) {
-                float sx = (p.x / p.w * 0.5f + 0.5f) * screenW;
-                float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * screenH;
-                shadow.drawPoint(sx, sy, 1f, 1f, 0.6f, 1f, pointSize);
+        if (shape != null) {
+            if (showFaces) {
+                shader.setUniform1f("uAlpha", faceAlpha);
+                faceRenderer.render(shader, shapeData);
             }
         }
 
-        crosshairRenderer.render(shader, shapeData);
+        if (shapeData != null) {
+            if (showEdges && !shapeData.edges.isEmpty()) {
+                edgeBatchRenderer.render(shader, shapeData);
+            }
+
+            if (showPoints) {
+                pointRenderer.render(shader, shapeData);
+            }
+
+            // Edge highlights in 2D overlay
+            if (showEdges) {
+                edgeHighlightRenderer.render2D(shapeData, view, projection, screenW, screenH);
+            }
+
+            // Hovered vertex glow in 2D overlay
+            if (showPoints && hoveredVertexId >= 0) {
+                Vertex v = shapeData.vertices.get(hoveredVertexId);
+                if (v != null) {
+                    Matrix4f mvp = new Matrix4f(projection);
+                    mvp.mul(view);
+                    Vector4f p = new Vector4f(v.x, v.y, v.z, 1f).mul(mvp);
+                    if (p.w > 0) {
+                        float sx = (p.x / p.w * 0.5f + 0.5f) * screenW;
+                        float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * screenH;
+                        shadow.drawPoint(sx, sy, 1f, 1f, 0.6f, 1f, pointSize);
+                    }
+                }
+            }
+
+            crosshairRenderer.render(shader, shapeData);
+        }
 
         shader.unbind();
     }
@@ -259,7 +259,7 @@ public class ShapeRenderer {
         grid.rebuild();
     }
 
-    public boolean hasShape() { return shape != null; }
+    public boolean hasShape() { return shapeData != null; }
 
     public void cleanup() {
         cleanupResources();

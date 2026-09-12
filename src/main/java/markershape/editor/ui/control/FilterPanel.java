@@ -11,7 +11,7 @@ public class FilterPanel extends Panel {
     public String[] filterLabels = {"Faces", "Arêtes", "Points", "Axe X", "Axe Y", "Axe Z", "Snap"};
     public boolean[] filterValues = {true, true, true, true, true, true, false};
 
-    public String[] sliderLabels = {"Taille pts", "Lignes", "Opacité", "Snap pas"};
+    public String[] sliderLabels = {"Taille points", "Epaisseur", "Opacite", "Pas de snap"};
     public float[] sliderValues = {5f, 3f, 1f, 1f};
     private float[] sliderMin = {1f, 1f, 0f, 0.1f};
     private float[] sliderMax = {20f, 10f, 1f, 5f};

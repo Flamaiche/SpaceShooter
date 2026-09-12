@@ -74,8 +74,10 @@ public class Editor {
         vertex = new VertexAction(ctx);
         del = new DeleteAction(ctx, faceUtils);
         hover = new HoverManager(ctx);
-        input = new InputManager(ctx, hover, vertex, edge, del, io);
+        input = new InputManager(ctx, hover, vertex, edge, del, io, camera);
 
+        vertexOverlay.setPreEditCallback(() -> ctx.undoredo.snapshot(renderer.getShapeData()));
+        edgeOverlay.setPreEditCallback(() -> ctx.undoredo.snapshot(renderer.getShapeData()));
         vertexOverlay.setEditCallback(() -> {
             renderer.rebuild();
             if (selection.selectedVertex >= 0) {
@@ -139,6 +141,7 @@ public class Editor {
         renderer.setPointSize(sv[0]);
         renderer.setLineWidth(sv[1]);
         renderer.setFaceAlpha(sv[2]);
+        renderer.setGridStep(sv[3]);
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
@@ -178,6 +181,14 @@ public class Editor {
 
     public void processInput(float mx, float my) {
         input.process(mx, my);
+    }
+
+    public void setKeyState(int key, int action) {
+        input.setKeyState(key, action);
+    }
+
+    public void processKeys() {
+        input.processFrameKeys();
     }
 
     public void onMouseButton(int btn, int action, float mx, float my) {

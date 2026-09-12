@@ -13,9 +13,6 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -29,7 +26,6 @@ public class App {
     private float mouseX, mouseY;
     private float bgR = 0.1f, bgG = 0.1f, bgB = 0.12f;
     private UIResources uiResources;
-    private final Set<Integer> pressedKeys = new HashSet<>();
 
     public static void main(String[] args) {
         new App().start();
@@ -69,8 +65,7 @@ public class App {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
-            if (action == GLFW_PRESS) pressedKeys.add(key);
-            else if (action == GLFW_RELEASE) pressedKeys.remove(key);
+            if (editor != null) editor.setKeyState(key, action);
             if (parametresUI != null && parametresUI.visible) {
                 parametresUI.handleKey(key, action);
             } else if (editor != null) {
@@ -141,7 +136,7 @@ public class App {
         editor.camera.setSize(width, height);
         editor.ctx.onGoToMenu = () -> { editor.goToMenu(); inMenu = true; if (parametresUI != null) parametresUI.visible = false; };
 
-        parametresUI = new ParametresUI(uiResources, () -> { parametresUI.visible = false; });
+        parametresUI = new ParametresUI(uiResources, () -> parametresUI.visible = false);
         parametresUI.setOnApply(this::applyConfig);
         parametresUI.setSize(width, height);
 
@@ -207,16 +202,7 @@ public class App {
                 projection.set(editor.camera.getProjection());
                 editor.render(view, projection);
                 editor.processInput(mouseX, mouseY);
-                for (int k : pressedKeys) {
-                    switch (k) {
-                        case GLFW_KEY_UP    -> editor.camera.rotate(0f, 1f);
-                        case GLFW_KEY_DOWN  -> editor.camera.rotate(0f, -1f);
-                        case GLFW_KEY_LEFT  -> editor.camera.rotate(1f, 0f);
-                        case GLFW_KEY_RIGHT -> editor.camera.rotate(-1f, 0f);
-                        case GLFW_KEY_O     -> editor.camera.zoom(1f);
-                        case GLFW_KEY_P     -> editor.camera.zoom(-1f);
-                    }
-                }
+                editor.processKeys();
             }
 
             glfwPollEvents();

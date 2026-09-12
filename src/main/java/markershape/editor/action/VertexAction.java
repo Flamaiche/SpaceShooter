@@ -22,8 +22,6 @@ public class VertexAction {
             : data.vertices.keySet().stream().max(Integer::compareTo).get() + 1;
         Vertex v = new Vertex(newId, pos.x, pos.y, pos.z, 1f, 1f, 1f);
         data.addVertex(v);
-        ctx.creatingVertex = false;
-        ctx.ui.setActiveMode(-1);
         ctx.selection.selectVertex(newId);
         ctx.renderer.rebuild();
         learngl.LogFile.logf("[MarkerShape] created vertex %d at (%.3f, %.3f, %.3f)", newId, pos.x, pos.y, pos.z);

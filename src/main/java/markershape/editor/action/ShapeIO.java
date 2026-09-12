@@ -44,5 +44,6 @@ public class ShapeIO {
         ctx.renderer.setPointSize(sv[0]);
         ctx.renderer.setLineWidth(sv[1]);
         ctx.renderer.setFaceAlpha(sv[2]);
+        ctx.renderer.setGridStep(sv[3]);
     }
 }
