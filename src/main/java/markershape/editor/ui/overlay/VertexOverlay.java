@@ -1,6 +1,5 @@
 package markershape.editor.ui.overlay;
 
-import gamegl.gestion.texte.Text;
 import markershape.config.ConfigParametres;
 import markershape.editor.ui.UIResources;
 import markershape.shape.Vertex;
@@ -57,7 +56,7 @@ public class VertexOverlay extends Overlay {
             for (int i = 0; i < siblingIds.length; i++) {
                 float sx = siblingBadgePos[i][0], sy = siblingBadgePos[i][1];
                 String label = "[#" + siblingIds[i] + "]";
-                float[] ext = Text.getTextExtent(label, 1.5f);
+                float[] ext = res.getTextExtent(label, 1.5f);
                 if (mx >= sx && mx <= sx + ext[0] && my >= sy && my <= sy + 22) {
                     if (switchCallback != null) switchCallback.accept(siblingIds[i]);
                     return 10;
@@ -153,7 +152,7 @@ public class VertexOverlay extends Overlay {
         res.drawText("Edges: " + edgeCount, x + 12, y + 186, 1.5f, dimR, dimG, dimB);
 
         if (siblingIds != null && siblingIds.length > 0) {
-            float[] labelExt = Text.getTextExtent("Also:", 1.5f);
+            float[] labelExt = res.getTextExtent("Also:", 1.5f);
             float baseY = y + 210;
             res.drawText("Also:", x + 12, baseY, 1.5f, dimR, dimG, dimB);
             float bx = x + 12 + labelExt[0] + 4;
@@ -163,7 +162,7 @@ public class VertexOverlay extends Overlay {
             siblingBadgePos = new float[siblingIds.length][2];
             for (int i = 0; i < siblingIds.length; i++) {
                 String label = "[#" + siblingIds[i] + "]";
-                float[] ext = Text.getTextExtent(label, 1.5f);
+                float[] ext = res.getTextExtent(label, 1.5f);
                 if (bx + ext[0] > maxX) {
                     bx = x + 12;
                     by = baseY + (++row) * 22;

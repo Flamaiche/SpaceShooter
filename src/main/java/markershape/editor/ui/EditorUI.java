@@ -202,7 +202,7 @@ public class EditorUI extends Panel {
 
     public int clickFilter(float mx, float my) {
         if (filterBtn.contains(mx, my)) { filterBtn.click(mx, my); newMenu.close(); return -2; }
-        return filter.clickFilter(mx, my, filterBtn.x);
+        return filter.clickFilter(mx, my);
     }
 
     public boolean isFilterOpen() { return filter.isOpen(); }
@@ -214,6 +214,4 @@ public class EditorUI extends Panel {
     public void setSnapStep(float v) { filter.setSnapStep(v); }
 
     public void setFilterCallback(Runnable cb) { filter.setFilterCallback(cb); }
-
-    public void cleanup() {}
 }

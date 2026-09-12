@@ -226,8 +226,6 @@ public class App {
 
     private void cleanup() {
         if (editor != null) editor.cleanup();
-        if (menuUI != null) menuUI.cleanup();
-        if (parametresUI != null) parametresUI.cleanup();
         if (uiResources != null) uiResources.cleanup();
         Text.cleanup();
         glfwDestroyWindow(window);

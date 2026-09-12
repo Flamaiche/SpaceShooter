@@ -1,6 +1,5 @@
 package markershape.editor.ui.menu;
 
-import gamegl.gestion.texte.Text;
 import markershape.config.ConfigParametres;
 import markershape.editor.ui.Panel;
 import markershape.editor.ui.UIResources;
@@ -8,12 +7,15 @@ import markershape.editor.ui.control.Button;
 import markershape.shape.ShapeLoader;
 
 public class MenuUI extends Panel {
-    private int width, height;
+    private int width;
     private String[] shapes;
     private static final int PANEL_W = 480;
     private static final int ITEM_H = 40;
     private static final int ITEM_GAP = 4;
     private static final int PANEL_Y = 140;
+    private static final float BTN_W = 180;
+    private static final float BTN_H = 38;
+    private static final float BTN_GAP = 20;
     private Button paramBtn, quitBtn;
     private Runnable onQuit, onParams;
 
@@ -23,6 +25,13 @@ public class MenuUI extends Panel {
         this.onParams = onParams;
         refresh();
         setSize(w, h);
+
+        paramBtn = new Button(res, "Parametres", 0, 0, BTN_W, BTN_H, onParams);
+        paramBtn.textScale = 2.2f;
+        quitBtn = new Button(res, "Quitter", 0, 0, BTN_W, BTN_H, onQuit);
+        quitBtn.textScale = 2.2f;
+        addChild(paramBtn);
+        addChild(quitBtn);
     }
 
     public void refresh() {
@@ -32,29 +41,32 @@ public class MenuUI extends Panel {
 
     public void setSize(int w, int h) {
         width = w;
-        height = h;
         res.setSize(w, h);
+    }
+
+    private float listH() {
+        return shapes.length * (ITEM_H + ITEM_GAP);
+    }
+
+    private float panelH() {
+        return listH() + 40;
     }
 
     @Override
     protected void drawBackground() {
-        float cx = width / 2f;
-        float px = cx - PANEL_W / 2f;
-        float listH = shapes.length * (ITEM_H + ITEM_GAP);
-        float panelH = listH + 40;
-        x = px;
+        x = width / 2f - PANEL_W / 2f;
         y = PANEL_Y;
         w = PANEL_W;
-        h = panelH;
+        h = panelH();
 
         float[] c = res.menuColor();
         float panelAlpha = BlurBackground.panelAlpha();
         float rowAlpha = BlurBackground.rowAlpha();
-        res.drawQuad(px, PANEL_Y, PANEL_W, panelH, c[0], c[1], c[2], panelAlpha);
+        res.drawQuad(x, y, PANEL_W, h, c[0], c[1], c[2], panelAlpha);
         for (int i = 0; i < shapes.length; i++) {
-            float yy = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
+            float yy = y + 20 + i * (ITEM_H + ITEM_GAP);
             float aOff = (i % 2 == 0 ? 0.03f : 0f);
-            res.drawQuad(px + 10, yy, PANEL_W - 20, ITEM_H, c[0] + aOff, c[1] + aOff, c[2] + aOff, rowAlpha);
+            res.drawQuad(x + 10, yy, PANEL_W - 20, ITEM_H, c[0] + aOff, c[1] + aOff, c[2] + aOff, rowAlpha);
         }
     }
 
@@ -63,40 +75,30 @@ public class MenuUI extends Panel {
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         float cx = width / 2f;
-        res.drawText("MarkerShape", cx - Text.getTextExtent("MarkerShape", 4f)[0] / 2f, 40, 4f, tR, tG, tB);
-        res.drawText("Editeur de modeles 3D",
-            cx - Text.getTextExtent("Editeur de modeles 3D", 1.8f)[0] / 2f, 85, 1.8f, tR, tG, tB);
+        res.drawTextCenteredX("MarkerShape", cx, 40, 4f, tR, tG, tB);
+        res.drawTextCenteredX("Editeur de modeles 3D", cx, 85, 1.8f, tR, tG, tB);
 
         for (int i = 0; i < shapes.length; i++) {
             String name = shapes[i].replace(".json", "");
-            float yy = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
-            res.drawText(name, cx - Text.getTextExtent(name, 2.2f)[0] / 2f, yy + 8, 2.2f, tR, tG, tB);
+            float yy = y + 20 + i * (ITEM_H + ITEM_GAP);
+            res.drawTextCenteredX(name, cx, yy + 8, 2.2f, tR, tG, tB);
         }
 
-        float by = PANEL_Y + (shapes.length * (ITEM_H + ITEM_GAP) + 40) + 16;
-        float btnW = 180;
-        float btnH = 38;
-        float gap = 20;
-        float totalW = btnW * 2 + gap;
-        float bx = cx - totalW / 2f;
+        positionButtons(tR, tG, tB);
+    }
 
-        if (paramBtn == null || paramBtn.x != bx || paramBtn.y != by) {
-            if (paramBtn != null) {
-                children.remove(paramBtn);
-                children.remove(quitBtn);
-            }
-            float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-            paramBtn = new Button(res, "Parametres", bx, by, btnW, btnH, onParams);
-            paramBtn.textScale = 2.2f;
-            paramBtn.bgR = mr + 0.05f; paramBtn.bgG = mg + 0.05f; paramBtn.bgB = mb + 0.1f;
-            addChild(paramBtn);
+    private void positionButtons(float tR, float tG, float tB) {
+        float by = y + panelH() + 16;
+        float totalW = BTN_W * 2 + BTN_GAP;
+        float bx = width / 2f - totalW / 2f;
+        paramBtn.x = bx;
+        paramBtn.y = by;
+        quitBtn.x = bx + BTN_W + BTN_GAP;
+        quitBtn.y = by;
 
-            quitBtn = new Button(res, "Quitter", bx + btnW + gap, by, btnW, btnH, onQuit);
-            quitBtn.textScale = 2.2f;
-            quitBtn.bgR = mr + 0.1f; quitBtn.bgG = mg + 0.02f; quitBtn.bgB = mb + 0.02f;
-            addChild(quitBtn);
-        }
-
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+        paramBtn.bgR = mr + 0.05f; paramBtn.bgG = mg + 0.05f; paramBtn.bgB = mb + 0.1f;
+        quitBtn.bgR = mr + 0.1f; quitBtn.bgG = mg + 0.02f; quitBtn.bgB = mb + 0.02f;
         float btnAlpha = BlurBackground.btnAlpha();
         paramBtn.bgA = btnAlpha;
         quitBtn.bgA = btnAlpha;
@@ -105,28 +107,23 @@ public class MenuUI extends Panel {
     }
 
     public String clickShape(float mx, float my) {
-        float cx = width / 2f;
-        float px = cx - PANEL_W / 2f;
-        float listH = shapes.length * (ITEM_H + ITEM_GAP);
-        float panelH = listH + 40;
+        float px = width / 2f - PANEL_W / 2f;
         if (mx < px + 10 || mx > px + PANEL_W - 10) return null;
-        if (my < PANEL_Y + 20 || my > PANEL_Y + panelH - 20) return null;
+        if (my < PANEL_Y + 20 || my > PANEL_Y + panelH() - 20) return null;
         for (int i = 0; i < shapes.length; i++) {
-            float y = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
-            if (my >= y && my <= y + ITEM_H) return shapes[i];
+            float yy = PANEL_Y + 20 + i * (ITEM_H + ITEM_GAP);
+            if (my >= yy && my <= yy + ITEM_H) return shapes[i];
         }
         return null;
     }
 
     public boolean isParametresClicked(float mx, float my) {
-        if (paramBtn != null && paramBtn.contains(mx, my)) { paramBtn.click(mx, my); return true; }
+        if (paramBtn.contains(mx, my)) { paramBtn.click(mx, my); return true; }
         return false;
     }
 
     public boolean isQuitterClicked(float mx, float my) {
-        if (quitBtn != null && quitBtn.contains(mx, my)) { quitBtn.click(mx, my); return true; }
+        if (quitBtn.contains(mx, my)) { quitBtn.click(mx, my); return true; }
         return false;
     }
-
-    public void cleanup() {}
 }

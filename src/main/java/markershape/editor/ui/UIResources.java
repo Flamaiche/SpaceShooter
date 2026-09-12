@@ -91,6 +91,16 @@ public class UIResources {
         drawText(text, x + (w - ext[0]) / 2f, y + (h - ext[1]) / 2f, scale, r, g, b);
     }
 
+    public void drawTextCenteredX(String text, float cx, float y, float scale,
+                                  float r, float g, float b) {
+        float[] ext = Text.getTextExtent(text, scale);
+        drawText(text, cx - ext[0] / 2f, y, scale, r, g, b);
+    }
+
+    public float[] getTextExtent(String text, float scale) {
+        return Text.getTextExtent(text, scale);
+    }
+
     public float[] menuColor() {
         return new float[]{ BlurBackground.menuR, BlurBackground.menuG, BlurBackground.menuB };
     }
@@ -99,10 +109,6 @@ public class UIResources {
         ConfigParametres cfg = ConfigParametres.get();
         return new float[]{ cfg.getFloat("textR") / 255f, cfg.getFloat("textG") / 255f, cfg.getFloat("textB") / 255f };
     }
-
-    public Shader uiShader() { return uiShader; }
-    public Shader textShader() { return textShader; }
-    public Matrix4f ortho() { return ortho; }
 
     public void cleanup() {
         uiShader.cleanup();

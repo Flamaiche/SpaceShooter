@@ -1,7 +1,6 @@
 package markershape.editor.ui.widgets;
 
-import gamegl.gestion.texte.Text;
-import learngl.Shader;
+import markershape.editor.ui.UIResources;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -55,20 +54,20 @@ public class EditableTextField {
         editing = false;
     }
 
-    public void render(Shader textShader) {
+    public void render(UIResources res) {
         if (editing) {
             String display = editBuffer.toString();
             long elapsed = System.currentTimeMillis() - editStart;
             if ((elapsed / 500) % 2 == 0) display += "|";
-            Text.drawText(textShader, display, x, y, scale, 1f, 1f, 0f);
+            res.drawText(display, x, y, scale, 1f, 1f, 0f);
         } else {
-            Text.drawText(textShader, text, x, y, scale, r, g, b);
+            res.drawText(text, x, y, scale, r, g, b);
         }
     }
 
-    public boolean click(float mx, float my) {
+    public boolean click(UIResources res, float mx, float my) {
         String display = editing ? editBuffer.toString() : text;
-        float[] ext = Text.getTextExtent(display, scale);
+        float[] ext = res.getTextExtent(display, scale);
         if (mx >= x && mx <= x + ext[0] && my >= y && my <= y + ext[1]) {
             if (!editing) {
                 editing = true;

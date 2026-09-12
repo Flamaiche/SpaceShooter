@@ -1,6 +1,5 @@
 package markershape.editor.ui.menu;
 
-import gamegl.gestion.texte.Text;
 import markershape.config.ConfigParametres;
 import markershape.editor.ui.Panel;
 import markershape.editor.ui.UIResources;
@@ -49,29 +48,35 @@ public class ConfirmSavePopup extends Panel {
 
     @Override
     protected void renderContent() {
-        float cx = x;
-        float cy = y;
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         res.drawText("Sauvegarder ?",
-            cx + CONFIRM_W / 2 - 50, cy + 18, 1.5f, tR, tG, tB);
+            x + CONFIRM_W / 2 - 50, y + 18, 1.5f, tR, tG, tB);
         res.drawText("[Oui]",
-            cx + 30, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, tR, tG, tB);
+            x + 30, btnY() + 2, 1.5f, tR, tG, tB);
         res.drawText("[Non]",
-            cx + CONFIRM_W - 70, cy + CONFIRM_H - CONFIRM_BTN_H - 10, 1.5f, tR, tG, tB);
+            x + CONFIRM_W - 70, btnY() + 2, 1.5f, tR, tG, tB);
+    }
+
+    private float btnY() {
+        return y + CONFIRM_H - CONFIRM_BTN_H - 12;
+    }
+
+    private float ouiX() {
+        return x + 20;
+    }
+
+    private float nonX() {
+        return x + CONFIRM_W - 20 - CONFIRM_BTN_W;
     }
 
     /** Returns 1=Oui, 2=Non, 0=click on popup (no btn), -1=not on popup. */
     public int clickBtn(float mx, float my) {
         if (!visible) return -1;
-        float cx = x;
-        float cy = y;
-        float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
-        float ouiX = cx + 20;
-        float nonX = cx + CONFIRM_W - 20 - CONFIRM_BTN_W;
-        if (my >= btnY && my <= btnY + CONFIRM_BTN_H) {
-            if (mx >= ouiX && mx <= ouiX + CONFIRM_BTN_W) return 1;
-            if (mx >= nonX && mx <= nonX + CONFIRM_BTN_W) return 2;
+        float by = btnY();
+        if (my >= by && my <= by + CONFIRM_BTN_H) {
+            if (mx >= ouiX() && mx <= ouiX() + CONFIRM_BTN_W) return 1;
+            if (mx >= nonX() && mx <= nonX() + CONFIRM_BTN_W) return 2;
         }
         return 0;
     }

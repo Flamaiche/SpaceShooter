@@ -35,7 +35,7 @@ public class ClickHandler {
             return;
         }
         if (ctx.selection.siblingPicker.isVisible()) {
-            int picked = ctx.selection.siblingPicker.click(mx, my);
+            int picked = ctx.selection.siblingPicker.clickItem(mx, my);
             if (picked >= 0) {
                 if (ctx.creatingEdge) edge.onVertexPicked(picked);
                 else ctx.selection.selectVertex(picked);

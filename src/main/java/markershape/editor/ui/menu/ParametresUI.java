@@ -1,6 +1,5 @@
 package markershape.editor.ui.menu;
 
-import gamegl.gestion.texte.Text;
 import markershape.config.ConfigParametres;
 import markershape.editor.ui.Panel;
 import markershape.editor.ui.UIResources;
@@ -99,7 +98,7 @@ public class ParametresUI extends Panel {
         float[] c = res.menuColor();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         res.drawText("Parametres",
-            width / 2f - Text.getTextExtent("Parametres", 3f)[0] / 2f, 50, 3f, tR, tG, tB);
+            width / 2f - res.getTextExtent("Parametres", 3f)[0] / 2f, 50, 3f, tR, tG, tB);
 
         float sy = 130;
         float contentH = visible.size() * (CAT_H + CAT_GAP);
@@ -128,7 +127,7 @@ public class ParametresUI extends Panel {
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
         res.drawText(cat.label,
-            width / 2f - Text.getTextExtent(cat.label, 3f)[0] / 2f, 50, 3f, tR, tG, tB);
+            width / 2f - res.getTextExtent(cat.label, 3f)[0] / 2f, 50, 3f, tR, tG, tB);
 
         float sy = 110;
         boolean isArriere = "arriereplan".equals(cat.id);
@@ -147,79 +146,24 @@ public class ParametresUI extends Panel {
 
         if (hasColorPicker(cat.id)) {
             if (isArriere) {
-                // --- BG color ---
                 float curY = sy;
-                float vr = cfg.getFloat("bgR"), vg = cfg.getFloat("bgG"), vb = cfg.getFloat("bgB");
-                res.drawQuad(MENU_X + 30, curY, MENU_W - 60, 70, vr / 255f, vg / 255f, vb / 255f, 1f);
-                String hex = String.format("#%02X%02X%02X", (int)vr, (int)vg, (int)vb);
-                float hx = width / 2f - Text.getTextExtent(hex, 2f)[0] / 2f;
-                hexField.setText(hex);
-                hexField.setPosition(hx, curY + 26);
-                hexField.setScale(2f);
-                hexField.setColor(vr / 255f, vg / 255f, vb / 255f);
-                hexField.setOnConfirm(newHex -> {
-                    int nr = Integer.parseInt(newHex.substring(1, 3), 16);
-                    int ng = Integer.parseInt(newHex.substring(3, 5), 16);
-                    int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-                    cfg.setFloat("bgR", nr); cfg.setFloat("bgG", ng); cfg.setFloat("bgB", nb);
-                    hexField.setText(hexField.getText());
-                });
-                hexField.render(res.textShader());
+                renderColorEditor(curY, hexField,
+                    (int) cfg.getFloat("bgR"), (int) cfg.getFloat("bgG"), (int) cfg.getFloat("bgB"), "bg");
 
                 curY += 80;
-                for (int idx : new int[]{0, 1, 2}) {
-                    ConfigParametres.Param p = cat.params.get(idx);
-                    drawFloatRow(curY, p, tR, tG, tB);
-                    if (p.key.equals(editingFloatKey) && !isArriere) renderFloatField(curY, p);
-                    curY += ROW_H + ROW_GAP;
-                    rendered++;
-                }
+                curY = renderFloatGroup(curY, cat.params, new int[]{0, 1, 2}, false);
+                rendered += 3;
                 curY += 8;
 
-                // --- Text color ---
-                float trV = cfg.getFloat("textR"), tgV = cfg.getFloat("textG"), tbV = cfg.getFloat("textB");
-                res.drawQuad(MENU_X + 30, curY, MENU_W - 60, 70, trV / 255f, tgV / 255f, tbV / 255f, 1f);
-                String textHex = String.format("#%02X%02X%02X", (int)trV, (int)tgV, (int)tbV);
-                float thx = width / 2f - Text.getTextExtent(textHex, 2f)[0] / 2f;
-                textHexField.setText(textHex);
-                textHexField.setPosition(thx, curY + 26);
-                textHexField.setScale(2f);
-                textHexField.setColor(trV / 255f, tgV / 255f, tbV / 255f);
-                textHexField.setOnConfirm(newHex -> {
-                    int nr = Integer.parseInt(newHex.substring(1, 3), 16);
-                    int ng = Integer.parseInt(newHex.substring(3, 5), 16);
-                    int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-                    cfg.setFloat("textR", nr); cfg.setFloat("textG", ng); cfg.setFloat("textB", nb);
-                    textHexField.setText(textHexField.getText());
-                });
-                textHexField.render(res.textShader());
+                renderColorEditor(curY, textHexField,
+                    (int) cfg.getFloat("textR"), (int) cfg.getFloat("textG"), (int) cfg.getFloat("textB"), "text");
 
                 curY += 80;
-                for (int idx : new int[]{3, 4, 5}) {
-                    ConfigParametres.Param p = cat.params.get(idx);
-                    drawFloatRow(curY, p, tR, tG, tB);
-                    if (p.key.equals(editingFloatKey)) renderFloatField(curY, p);
-                    curY += ROW_H + ROW_GAP;
-                    rendered++;
-                }
+                curY = renderFloatGroup(curY, cat.params, new int[]{3, 4, 5}, true);
+                rendered += 3;
             } else {
-                String prefix = "menu";
-                float vr = cfg.getFloat(prefix + "R"), vg = cfg.getFloat(prefix + "G"), vb = cfg.getFloat(prefix + "B");
-                res.drawQuad(MENU_X + 30, sy, MENU_W - 60, 70, vr / 255f, vg / 255f, vb / 255f, 1f);
-                String hex = String.format("#%02X%02X%02X", (int)vr, (int)vg, (int)vb);
-                float hx = width / 2f - Text.getTextExtent(hex, 2f)[0] / 2f;
-                hexField.setText(hex);
-                hexField.setPosition(hx, sy + 26);
-                hexField.setScale(2f);
-                hexField.setColor(vr / 255f, vg / 255f, vb / 255f);
-                hexField.setOnConfirm(newHex -> {
-                    int nr = Integer.parseInt(newHex.substring(1, 3), 16);
-                    int ng = Integer.parseInt(newHex.substring(3, 5), 16);
-                    int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-                    cfg.setFloat(prefix + "R", nr); cfg.setFloat(prefix + "G", ng); cfg.setFloat(prefix + "B", nb);
-                    hexField.setText(hexField.getText());
-                });
-                hexField.render(res.textShader());
+                renderColorEditor(sy, hexField,
+                    (int) cfg.getFloat("menuR"), (int) cfg.getFloat("menuG"), (int) cfg.getFloat("menuB"), "menu");
             }
         }
 
@@ -239,6 +183,71 @@ public class ParametresUI extends Panel {
         }
 
         setupButtons("Appliquer", "Retour", btnY, false, tR, tG, tB);
+    }
+
+    private void renderColorEditor(float y, EditableTextField field,
+                                   int r, int g, int b, String cfgPrefix) {
+        ConfigParametres cfg = ConfigParametres.get();
+        res.drawQuad(MENU_X + 30, y, MENU_W - 60, 70, r / 255f, g / 255f, b / 255f, 1f);
+        String hex = String.format("#%02X%02X%02X", r, g, b);
+        float hx = width / 2f - res.getTextExtent(hex, 2f)[0] / 2f;
+        field.setText(hex);
+        field.setPosition(hx, y + 26);
+        field.setScale(2f);
+        field.setColor(r / 255f, g / 255f, b / 255f);
+        field.setOnConfirm(newHex -> {
+            int nr = Integer.parseInt(newHex.substring(1, 3), 16);
+            int ng = Integer.parseInt(newHex.substring(3, 5), 16);
+            int nb = Integer.parseInt(newHex.substring(5, 7), 16);
+            cfg.setFloat(cfgPrefix + "R", nr); cfg.setFloat(cfgPrefix + "G", ng); cfg.setFloat(cfgPrefix + "B", nb);
+            field.setText(field.getText());
+        });
+        field.render(res);
+    }
+
+    private float renderFloatGroup(float curY, List<ConfigParametres.Param> params,
+                                   int[] indices, boolean showEditField) {
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        for (int idx : indices) {
+            ConfigParametres.Param p = params.get(idx);
+            drawFloatRow(curY, p, tR, tG, tB);
+            if (showEditField && p.key.equals(editingFloatKey)) renderFloatField(curY, p);
+            curY += ROW_H + ROW_GAP;
+        }
+        return curY;
+    }
+
+    private boolean clickFloatRow(float mx, float my, float y, ConfigParametres.Param p) {
+        ConfigParametres cfg = ConfigParametres.get();
+        float val = cfg.getFloat(p.key);
+        float vx = MENU_X + MENU_W / 2f + 20;
+        float[] ext = res.getTextExtent(fmtNum(val), 1.7f);
+        if (mx >= vx - 30 && mx <= vx - 6 && my >= y && my <= y + ROW_H) {
+            if (val > p.min) { cfg.setFloat(p.key, val - p.step); editingFloatKey = null; }
+            return true;
+        }
+        if (mx >= vx + ext[0] + 6 && mx <= vx + ext[0] + 30 && my >= y && my <= y + ROW_H) {
+            if (val < p.max) { cfg.setFloat(p.key, val + p.step); editingFloatKey = null; }
+            return true;
+        }
+        if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
+            if (mx >= vx && mx <= vx + ext[0] + 4 && my >= y && my <= y + ROW_H) {
+                editingFloatKey = p.key;
+                floatField.setText(fmtNum(val));
+                floatField.setPosition(vx + 2, y + 6);
+                floatField.setScale(1.7f);
+                floatField.setBounds(p.min, p.max);
+                floatField.setOnConfirm(newVal -> {
+                    try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
+                    catch (NumberFormatException ignored) {}
+                    editingFloatKey = null;
+                });
+                floatField.activate();
+                return true;
+            }
+        }
+        return false;
     }
 
     private void setupButtons(String primaryLabel, String backLabel, float btnY,
@@ -315,7 +324,7 @@ public class ParametresUI extends Panel {
             catch (NumberFormatException ignored) {}
             editingFloatKey = null;
         });
-        floatField.render(res.textShader());
+        floatField.render(res);
     }
 
     @Override
@@ -370,8 +379,8 @@ public class ParametresUI extends Panel {
         if (cat.params == null) return;
 
         if (hasColorPicker(cat.id)) {
-            if (hexField.click(mx, my)) return;
-            if ("arriereplan".equals(cat.id) && textHexField.click(mx, my)) return;
+            if (hexField.click(res, mx, my)) return;
+            if ("arriereplan".equals(cat.id) && textHexField.click(res, mx, my)) return;
         }
 
         float sy = 110;
@@ -383,66 +392,14 @@ public class ParametresUI extends Panel {
             float curY = sy + 80;
             for (int idx : new int[]{0, 1, 2}) {
                 ConfigParametres.Param p = cat.params.get(idx);
-                float val = cfg.getFloat(p.key);
-                if ("float".equals(p.type)) {
-                    float vx = MENU_X + MENU_W / 2f + 20;
-                    boolean onMinus = mx >= vx - 30 && mx <= vx - 6 && my >= curY && my <= curY + ROW_H;
-                    boolean onPlus = mx >= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 6
-                                 && mx <= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 30
-                                 && my >= curY && my <= curY + ROW_H;
-                    if (onMinus && val > p.min) { cfg.setFloat(p.key, val - p.step); editingFloatKey = null; return; }
-                    if (onPlus && val < p.max) { cfg.setFloat(p.key, val + p.step); editingFloatKey = null; return; }
-                    if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
-                        float[] ext = Text.getTextExtent(fmtNum(val), 1.7f);
-                        if (mx >= vx && mx <= vx + ext[0] + 4 && my >= curY && my <= curY + ROW_H) {
-                            editingFloatKey = p.key;
-                            floatField.setText(fmtNum(val));
-                            floatField.setPosition(vx + 2, curY + 6);
-                            floatField.setScale(1.7f);
-                            floatField.setBounds(p.min, p.max);
-                            floatField.setOnConfirm(newVal -> {
-                                try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
-                                catch (NumberFormatException ignored) {}
-                                editingFloatKey = null;
-                            });
-                            floatField.activate();
-                            return;
-                        }
-                    }
-                }
+                if ("float".equals(p.type) && clickFloatRow(mx, my, curY, p)) return;
                 curY += ROW_H + ROW_GAP;
                 rendered++;
             }
             curY = sy + 80 + 3 * (ROW_H + ROW_GAP) + 8 + 80;
             for (int idx : new int[]{3, 4, 5}) {
                 ConfigParametres.Param p = cat.params.get(idx);
-                float val = cfg.getFloat(p.key);
-                if ("float".equals(p.type)) {
-                    float vx = MENU_X + MENU_W / 2f + 20;
-                    boolean onMinus = mx >= vx - 30 && mx <= vx - 6 && my >= curY && my <= curY + ROW_H;
-                    boolean onPlus = mx >= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 6
-                                 && mx <= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 30
-                                 && my >= curY && my <= curY + ROW_H;
-                    if (onMinus && val > p.min) { cfg.setFloat(p.key, val - p.step); editingFloatKey = null; return; }
-                    if (onPlus && val < p.max) { cfg.setFloat(p.key, val + p.step); editingFloatKey = null; return; }
-                    if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
-                        float[] ext = Text.getTextExtent(fmtNum(val), 1.7f);
-                        if (mx >= vx && mx <= vx + ext[0] + 4 && my >= curY && my <= curY + ROW_H) {
-                            editingFloatKey = p.key;
-                            floatField.setText(fmtNum(val));
-                            floatField.setPosition(vx + 2, curY + 6);
-                            floatField.setScale(1.7f);
-                            floatField.setBounds(p.min, p.max);
-                            floatField.setOnConfirm(newVal -> {
-                                try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
-                                catch (NumberFormatException ignored) {}
-                                editingFloatKey = null;
-                            });
-                            floatField.activate();
-                            return;
-                        }
-                    }
-                }
+                if ("float".equals(p.type) && clickFloatRow(mx, my, curY, p)) return;
                 curY += ROW_H + ROW_GAP;
                 rendered++;
             }
@@ -457,42 +414,7 @@ public class ParametresUI extends Panel {
                         return;
                     }
                 } else {
-                    float val = cfg.getFloat(p.key);
-                    float vx = MENU_X + MENU_W / 2f + 20;
-
-                    boolean onMinus = mx >= vx - 30 && mx <= vx - 6 && my >= y && my <= y + ROW_H;
-                    boolean onPlus  = mx >= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 6
-                                   && mx <= vx + Text.getTextExtent(fmtNum(val), 1.7f)[0] + 30
-                                   && my >= y && my <= y + ROW_H;
-
-                    if (onMinus && val > p.min) {
-                        cfg.setFloat(p.key, val - p.step);
-                        editingFloatKey = null;
-                        return;
-                    }
-                    if (onPlus && val < p.max) {
-                        cfg.setFloat(p.key, val + p.step);
-                        editingFloatKey = null;
-                        return;
-                    }
-
-                    if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
-                        float[] ext = Text.getTextExtent(fmtNum(val), 1.7f);
-                        if (mx >= vx && mx <= vx + ext[0] + 4 && my >= y && my <= y + ROW_H) {
-                            editingFloatKey = p.key;
-                            floatField.setText(fmtNum(val));
-                            floatField.setPosition(vx + 2, y + 6);
-                            floatField.setScale(1.7f);
-                            floatField.setBounds(p.min, p.max);
-                            floatField.setOnConfirm(newVal -> {
-                                try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
-                                catch (NumberFormatException ignored) {}
-                                editingFloatKey = null;
-                            });
-                            floatField.activate();
-                            return;
-                        }
-                    }
+                    if (clickFloatRow(mx, my, y, p)) return;
                 }
                 rendered++;
             }
@@ -559,7 +481,7 @@ public class ParametresUI extends Panel {
         res.drawQuad(0, 0, width, height, c[0], c[1], c[2], BlurBackground.dimAlpha());
         res.drawQuad(cx, cy, CONFIRM_W, CONFIRM_H, c[0], c[1], c[2], BlurBackground.boxAlpha());
         res.drawText("Sauvegarder ?",
-            cx + CONFIRM_W / 2 - Text.getTextExtent("Sauvegarder ?", 1.5f)[0] / 2f, cy + 18, 1.5f, tR, tG, tB);
+            cx + CONFIRM_W / 2 - res.getTextExtent("Sauvegarder ?", 1.5f)[0] / 2f, cy + 18, 1.5f, tR, tG, tB);
         float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
         res.drawText("Oui", cx + 30, btnY + 2, 1.5f, tR, tG, tB);
         res.drawText("Non", cx + CONFIRM_W - 60, btnY + 2, 1.5f, tR, tG, tB);
@@ -604,7 +526,7 @@ public class ParametresUI extends Panel {
         res.drawText("[-]", vx - 26, y + 6, 1.7f,
             val > p.min ? tr : tr * 0.3f, val > p.min ? tg : tg * 0.3f, val > p.min ? tb : tb * 0.3f);
         res.drawText(fmtNum(val), vx + 2, y + 6, 1.7f, tr, tg, tb);
-        float[] ext = Text.getTextExtent(fmtNum(val), 1.7f);
+        float[] ext = res.getTextExtent(fmtNum(val), 1.7f);
         res.drawText("[+]", vx + ext[0] + 8, y + 6, 1.7f,
             val < p.max ? tr : tr * 0.3f, val < p.max ? tg : tg * 0.3f, val < p.max ? tb : tb * 0.3f);
     }
@@ -613,6 +535,4 @@ public class ParametresUI extends Panel {
         if (v == Math.floor(v) && !Float.isInfinite(v)) return String.valueOf((int) v);
         return String.format("%.2f", v).replace(',', '.');
     }
-
-    public void cleanup() {}
 }

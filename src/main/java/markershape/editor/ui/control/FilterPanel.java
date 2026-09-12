@@ -6,7 +6,6 @@ import markershape.editor.ui.UIResources;
 import markershape.editor.ui.menu.BlurBackground;
 
 public class FilterPanel extends Panel {
-    private int width, height;
     private boolean filterOpen;
 
     public String[] filterLabels = {"Faces", "Arêtes", "Points", "Axe X", "Axe Y", "Axe Z", "Snap"};
@@ -38,8 +37,6 @@ public class FilterPanel extends Panel {
     }
 
     public void setSize(int w, int h) {
-        width = w;
-        height = h;
         res.setSize(w, h);
     }
 
@@ -126,10 +123,8 @@ public class FilterPanel extends Panel {
         }
     }
 
-    public int clickFilter(float mx, float my, float btnX) {
+    public int clickFilter(float mx, float my) {
         if (!visible) return -1;
-        x = btnX + (130 - PANEL_W) / 2;
-        y = 36;
 
         for (int i = 0; i < sliderLabels.length; i++) {
             float iy = sliderItemY(i);

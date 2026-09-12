@@ -190,8 +190,6 @@ public class Editor {
 
     public void cleanup() {
         renderer.cleanup();
-        editorUI.cleanup();
-        if (menuUI != null) menuUI.cleanup();
         gamegl.gestion.texte.Text.cleanup();
     }
 }
