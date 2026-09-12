@@ -1,19 +1,11 @@
 package markershape.editor.ui.overlay;
 
 import gamegl.gestion.texte.Text;
-import learngl.Shader;
 import markershape.config.ConfigParametres;
-import markershape.editor.ui.menu.BlurBackground;
+import markershape.editor.ui.UIResources;
 import markershape.shape.Vertex;
-import org.joml.Matrix4f;
 
-import java.nio.FloatBuffer;
 import java.util.function.Consumer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public class VertexOverlay extends Overlay {
     private Vertex vertex;
@@ -34,8 +26,8 @@ public class VertexOverlay extends Overlay {
 
     private Consumer<Integer> switchCallback;
 
-    public VertexOverlay() {
-        super(280, 320);
+    public VertexOverlay(UIResources res) {
+        super(res, 280, 320);
     }
 
     public void setSwitchCallback(Consumer<Integer> cb) { switchCallback = cb; }
@@ -59,7 +51,7 @@ public class VertexOverlay extends Overlay {
 
         if (isCloseClicked(mx, my)) { hide(); return -1; }
 
-        if (deleteBtn.isClicked(mx, my)) { deleteBtn.click(); return 20; }
+        if (deleteBtn.contains(mx, my)) { deleteBtn.click(mx, my); return 20; }
 
         if (siblingIds != null && siblingBadgePos != null && siblingIds.length > 0) {
             for (int i = 0; i < siblingIds.length; i++) {
@@ -126,32 +118,25 @@ public class VertexOverlay extends Overlay {
     }
 
     @Override
-    protected void renderContent(Shader uiShader, Shader textShader, Matrix4f ortho,
-                                 FloatBuffer buf, int vao, int vbo) {
+    protected void renderContent() {
         if (selectedField >= 0) {
             float sy = py + fieldYOff[selectedField];
-            drawHighlightRect(buf, px + VAL_X, sy, VAL_W, 20);
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            res.drawQuad(px + VAL_X, sy, VAL_W, 20, 0.3f, 0.5f, 0.9f, 0.3f);
         }
 
         float sepY = py + fieldYOff[0] - 4;
-        float mr = BlurBackground.menuR;
-        float mg = BlurBackground.menuG;
-        float mb = BlurBackground.menuB;
-        drawLine(buf, px + 10, sepY, px + pw - 10, sepY, mr + 0.15f, mg + 0.15f, mb + 0.2f, 0.9f);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_LINES, 0, 2);
+        float[] c = res.menuColor();
+        res.drawLine(px + 10, sepY, px + pw - 10, sepY, c[0] + 0.15f, c[1] + 0.15f, c[2] + 0.2f, 0.9f);
     }
 
     @Override
-    protected void renderText(Shader textShader) {
+    protected void renderText() {
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         float dimR = tR * 0.7f, dimG = tG * 0.7f, dimB = tB * 0.7f;
         float dim2R = tR * 0.5f, dim2G = tG * 0.5f, dim2B = tB * 0.5f;
 
-        Text.drawText(textShader, "Vertex #" + vertex.id, px + 12, py + 10, 1.5f, tR, tG, tB);
+        res.drawText("Vertex #" + vertex.id, px + 12, py + 10, 1.5f, tR, tG, tB);
 
         for (int i = 0; i < fieldYOff.length; i++) {
             float fy = py + fieldYOff[i];
@@ -159,18 +144,18 @@ public class VertexOverlay extends Overlay {
             String fmt = i <= 2 ? "%.3f" : "%.2f";
             boolean sel = (i == selectedField);
 
-            Text.drawText(textShader, fieldLabels[i], px + 12, fy, 1.5f, tR, tG, tB);
-            Text.drawText(textShader, String.format(fmt, val), px + VAL_X, fy, 1.5f, sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB);
-            Text.drawText(textShader, "[-]", px + MINUS_X, fy + 1, 1.5f, tR, tG, tB);
-            Text.drawText(textShader, "[+]", px + PLUS_X, fy + 1, 1.5f, tR, tG, tB);
+            res.drawText(fieldLabels[i], px + 12, fy, 1.5f, tR, tG, tB);
+            res.drawText(String.format(fmt, val), px + VAL_X, fy, 1.5f, sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB);
+            res.drawText("[-]", px + MINUS_X, fy + 1, 1.5f, tR, tG, tB);
+            res.drawText("[+]", px + PLUS_X, fy + 1, 1.5f, tR, tG, tB);
         }
 
-        Text.drawText(textShader, "Edges: " + edgeCount, px + 12, py + 186, 1.5f, dimR, dimG, dimB);
+        res.drawText("Edges: " + edgeCount, px + 12, py + 186, 1.5f, dimR, dimG, dimB);
 
         if (siblingIds != null && siblingIds.length > 0) {
             float[] labelExt = Text.getTextExtent("Also:", 1.5f);
             float baseY = py + 210;
-            Text.drawText(textShader, "Also:", px + 12, baseY, 1.5f, dimR, dimG, dimB);
+            res.drawText("Also:", px + 12, baseY, 1.5f, dimR, dimG, dimB);
             float bx = px + 12 + labelExt[0] + 4;
             float by = baseY;
             float maxX = px + pw - 12;
@@ -185,7 +170,7 @@ public class VertexOverlay extends Overlay {
                 }
                 siblingBadgePos[i][0] = bx;
                 siblingBadgePos[i][1] = by;
-                Text.drawText(textShader, label, bx, by, 1.5f, dim2R, dim2G, dim2B);
+                res.drawText(label, bx, by, 1.5f, dim2R, dim2G, dim2B);
                 bx += ext[0] + 4;
             }
         }

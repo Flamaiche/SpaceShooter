@@ -7,6 +7,7 @@ import markershape.editor.input.*;
 import markershape.shape.*;
 import markershape.shape.render.ShapeRenderer;
 import markershape.editor.ui.EditorUI;
+import markershape.editor.ui.UIResources;
 import markershape.editor.ui.menu.MenuUI;
 import markershape.editor.ui.overlay.EdgeOverlay;
 import markershape.editor.ui.overlay.SiblingPicker;
@@ -31,11 +32,13 @@ public class Editor {
     public int width, height;
     public long window;
     public String currentFile;
+    private final UIResources uiResources;
 
-    public Editor(long window, int w, int h) {
+    public Editor(long window, int w, int h, UIResources uiResources) {
         this.window = window;
         this.width = w;
         this.height = h;
+        this.uiResources = uiResources;
 
         camera = new EditorCamera();
         renderer = new ShapeRenderer();
@@ -45,9 +48,9 @@ public class Editor {
         pick.setCamera(camera);
         pick.setSize(w, h);
 
-        VertexOverlay vertexOverlay = new VertexOverlay();
-        EdgeOverlay edgeOverlay = new EdgeOverlay();
-        SiblingPicker siblingPicker = new SiblingPicker();
+        VertexOverlay vertexOverlay = new VertexOverlay(uiResources);
+        EdgeOverlay edgeOverlay = new EdgeOverlay(uiResources);
+        SiblingPicker siblingPicker = new SiblingPicker(uiResources);
         SelectionManager selection = new SelectionManager(vertexOverlay, edgeOverlay, siblingPicker);
         selection.setRenderer(renderer);
 
@@ -60,7 +63,7 @@ public class Editor {
 
         io = new ShapeIO(ctx);
 
-        editorUI = new EditorUI(w, h,
+        editorUI = new EditorUI(uiResources, w, h,
             () -> io.save(),
             () -> org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose(window, true),
             () -> { ctx.creatingEdge = true; ctx.creatingVertex = false; ctx.edgeFirstVertex = -1; editorUI.setActiveMode(1); editorUI.closeNewMenu(); selection.hideOverlays(); selection.selectedVertex = -1; selection.selectedEdge = -1; },
@@ -147,18 +150,15 @@ public class Editor {
         editorUI.render(currentFile);
 
         if (ctx.selection.vertexOverlay.isVisible()) {
-            ctx.selection.vertexOverlay.render(editorUI.shader(), editorUI.textShader(),
-                editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+            ctx.selection.vertexOverlay.render();
         }
 
         if (ctx.selection.edgeOverlay.isVisible()) {
-            ctx.selection.edgeOverlay.render(editorUI.shader(), editorUI.textShader(),
-                editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+            ctx.selection.edgeOverlay.render();
         }
 
         if (ctx.selection.siblingPicker.isVisible()) {
-            ctx.selection.siblingPicker.render(editorUI.shader(), editorUI.textShader(),
-                editorUI.ortho(), editorUI.buf(), editorUI.vao(), editorUI.vbo());
+            ctx.selection.siblingPicker.render();
         }
 
         editorUI.renderEntityList(width, height);

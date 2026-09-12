@@ -1,32 +1,21 @@
 package markershape.editor.ui;
 
-import gamegl.gestion.texte.Text;
-import learngl.Shader;
+import markershape.config.ConfigParametres;
 import markershape.editor.ui.control.Button;
 import markershape.editor.ui.control.EntityListPanel;
 import markershape.editor.ui.util.TextColor;
 import markershape.editor.ui.control.FilterPanel;
-import markershape.config.ConfigParametres;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.ConfirmSavePopup;
 import markershape.editor.ui.menu.NewMenu;
 
-import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
-
-public class EditorUI {
+public class EditorUI extends Panel {
     private int width, height;
-    private Shader shader, textShader;
-    private int vao, vbo;
-
     public static final int BAR_H = 36;
     public static final int BTN_W = 130;
     private Button saveBtn, quitBtn, filterBtn, newBtn;
     private Runnable onSave, onQuit, onNewEdge, onNewVertex;
+    private String currentFile;
 
     public boolean transparentBar = true;
 
@@ -37,31 +26,41 @@ public class EditorUI {
     private float lastMenuR = -1f, lastMenuG = -1f, lastMenuB = -1f;
     private boolean lastTransparentUI;
 
-    public EditorUI(int w, int h, Runnable onSave, Runnable onQuit, Runnable onNewEdge, Runnable onNewVertex) {
+    public EditorUI(UIResources res, int w, int h,
+                    Runnable onSave, Runnable onQuit, Runnable onNewEdge, Runnable onNewVertex) {
+        super(res);
         this.onSave = onSave;
         this.onQuit = onQuit;
         this.onNewEdge = onNewEdge;
         this.onNewVertex = onNewVertex;
 
-        shader = new Shader("shaders/markershape/ui_Vertex.glsl",
-                            "shaders/markershape/ui_Fragment.glsl");
-        textShader = new Shader("shaders/TextVertex.glsl", "shaders/TextFragment.glsl");
+        filter = new FilterPanel(res);
+        newMenu = new NewMenu(res);
+        confirmSave = new ConfirmSavePopup(res);
+        entityList = new EntityListPanel(res);
 
-        vao = glGenVertexArrays();
-        vbo = glGenBuffers();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 6 * 4, 0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 4, GL_FLOAT, false, 6 * 4, 2 * 4);
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        saveBtn = new Button(res, "Sauvegarder", 0, 0, BTN_W, BAR_H, onSave);
+        saveBtn.textScale = 1.5f;
+        quitBtn = new Button(res, "Quitter", 0, 0, BTN_W, BAR_H, onQuit);
+        quitBtn.textScale = 1.5f;
+        newBtn = new Button(res, "New", 0, 0, BTN_W, BAR_H, () -> {
+            newMenu.toggle();
+            filter.setOpen(false);
+        });
+        newBtn.textScale = 1.5f;
+        filterBtn = new Button(res, "Filtre", 0, 0, BTN_W, BAR_H, () -> {
+            filter.toggle();
+            newMenu.close();
+        });
+        filterBtn.textScale = 1.5f;
 
-        filter = new FilterPanel(shader, textShader, vao, vbo);
-        newMenu = new NewMenu(shader, textShader, vao, vbo);
-        confirmSave = new ConfirmSavePopup(textShader);
-        entityList = new EntityListPanel(shader, textShader, vao, vbo);
+        addChild(saveBtn);
+        addChild(quitBtn);
+        addChild(newBtn);
+        addChild(filterBtn);
+        addChild(newMenu);
+        addChild(filter);
+        addChild(confirmSave);
 
         setSize(w, h);
     }
@@ -69,32 +68,24 @@ public class EditorUI {
     public void setSize(int w, int h) {
         width = w;
         height = h;
+        res.setSize(w, h);
+        x = 0;
+        y = 0;
+        this.w = w;
+        this.h = BAR_H;
         filter.setSize(w, h);
         confirmSave.setSize(w, h);
         newMenu.setSize(w, h);
         entityList.setSize(w, h);
 
-        saveBtn = new Button("Sauvegarder", width - BTN_W * 2 - 10, 0, BTN_W, BAR_H, onSave);
-        saveBtn.textScale = 1.5f;
-        saveBtn.showBackground = !transparentBar;
-
-        quitBtn = new Button("Quitter", width - BTN_W - 5, 0, BTN_W, BAR_H, onQuit);
-        quitBtn.textScale = 1.5f;
-        quitBtn.showBackground = !transparentBar;
-
-        newBtn = new Button("New", width - BTN_W * 4 - 25, 0, BTN_W, BAR_H, () -> {
-            newMenu.toggle();
-            filter.setOpen(false);
-        });
-        newBtn.textScale = 1.5f;
-        newBtn.showBackground = !transparentBar;
-
-        filterBtn = new Button("Filtre", width - BTN_W * 3 - 20, 0, BTN_W, BAR_H, () -> {
-            filter.toggle();
-            newMenu.close();
-        });
-        filterBtn.textScale = 1.5f;
-        filterBtn.showBackground = !transparentBar;
+        saveBtn.x = width - BTN_W * 2 - 10;
+        saveBtn.y = 0;
+        quitBtn.x = width - BTN_W - 5;
+        quitBtn.y = 0;
+        newBtn.x = width - BTN_W * 4 - 25;
+        newBtn.y = 0;
+        filterBtn.x = width - BTN_W * 3 - 20;
+        filterBtn.y = 0;
         syncFromConfig();
     }
 
@@ -133,84 +124,24 @@ public class EditorUI {
             lastTransparentUI = BlurBackground.transparentUI;
             syncFromConfig();
         }
+        this.currentFile = currentFile;
+        render();
+    }
 
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    @Override
+    protected void drawBackground() {
+        float[] c = res.menuColor();
+        res.drawQuad(0, 0, width, BAR_H, c[0], c[1], c[2], BlurBackground.panelAlpha());
+    }
 
-        float barAlpha = BlurBackground.panelAlpha();
-        FloatBuffer b = buf();
-        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-        b.put(new float[]{
-            0f, 0f, mr, mg, mb, barAlpha,
-            (float)width, 0f, mr, mg, mb, barAlpha,
-            (float)width, (float)BAR_H, mr, mg, mb, barAlpha,
-            0f, 0f, mr, mg, mb, barAlpha,
-            (float)width, (float)BAR_H, mr, mg, mb, barAlpha,
-            0f, (float)BAR_H, mr, mg, mb, barAlpha,
-        }).flip();
-        shader.bind();
-        shader.setUniformMat4f("projection", ortho());
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        shader.unbind();
-        saveBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
-        quitBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
-        newBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
-        filterBtn.render(shader, textShader, ortho(), buf(), vao, vbo);
+    @Override
+    protected void renderContent() {
+        String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
+        float[] t = res.textColor();
+        res.drawText("MarkerShape - " + label, 10, 10, 1.5f, t[0], t[1], t[2]);
 
         newMenu.setBtnPos(newBtn.x, newBtn.y);
-        newMenu.render();
-
-        filter.render(filterBtn.x, BAR_H);
-
-        String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
-        ConfigParametres cfg = ConfigParametres.get();
-        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
-        Text.drawText(textShader, "MarkerShape - " + label, 10, 10, 1.5f, tR, tG, tB);
-
-        if (confirmSave.isVisible()) {
-            float cx = (width - ConfirmSavePopup.CONFIRM_W) / 2;
-            float cy = (36 + (height - 36) / 2) - ConfirmSavePopup.CONFIRM_H / 2;
-            float dimA = BlurBackground.dimAlpha();
-            float boxA = BlurBackground.boxAlpha();
-            b.clear();
-            b.put(new float[]{
-                0f, 0f, mr, mg, mb, dimA,
-                (float)width, 0f, mr, mg, mb, dimA,
-                (float)width, (float)height, mr, mg, mb, dimA,
-                0f, 0f, mr, mg, mb, dimA,
-                (float)width, (float)height, mr, mg, mb, dimA,
-                0f, (float)height, mr, mg, mb, dimA,
-            }).flip();
-            shader.bind();
-            shader.setUniformMat4f("projection", ortho());
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-
-            b.clear();
-            b.put(new float[]{
-                cx, cy, mr, mg, mb, boxA,
-                cx+ConfirmSavePopup.CONFIRM_W, cy, mr, mg, mb, boxA,
-                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-                cx, cy, mr, mg, mb, boxA,
-                cx+ConfirmSavePopup.CONFIRM_W, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-                cx, cy+ConfirmSavePopup.CONFIRM_H, mr, mg, mb, boxA,
-            }).flip();
-            glBufferData(GL_ARRAY_BUFFER, b, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            shader.unbind();
-        }
-
-        confirmSave.render();
+        filter.setPosition(filterBtn.x, BAR_H);
     }
 
     public void renderEntityList(int w, int h) {
@@ -227,23 +158,23 @@ public class EditorUI {
     }
 
     public boolean isSaveClicked(float mx, float my) {
-        return saveBtn.isClicked(mx, my);
+        return saveBtn.contains(mx, my);
     }
 
     public boolean isQuitClicked(float mx, float my) {
-        return quitBtn.isClicked(mx, my);
+        return quitBtn.contains(mx, my);
     }
 
     public int clickNew(float mx, float my) {
-        if (newBtn.isClicked(mx, my)) {
-            newBtn.click();
+        if (newBtn.contains(mx, my)) {
+            newBtn.click(mx, my);
             return -2;
         }
-        return newMenu.click(mx, my);
+        return newMenu.clickItem(mx, my);
     }
 
     public int clickEntityList(float mx, float my) {
-        return entityList.click(mx, my);
+        return entityList.clickList(mx, my);
     }
 
     public void setActiveMode(int mode) {
@@ -272,10 +203,10 @@ public class EditorUI {
     public boolean isConfirmSaveVisible() { return confirmSave.isVisible(); }
     public void setConfirmSaveAction(Runnable r) { confirmSave.setConfirmAction(r); }
     public Runnable getConfirmSaveAction() { return confirmSave.getConfirmAction(); }
-    public int clickConfirmSave(float mx, float my) { return confirmSave.click(mx, my); }
+    public int clickConfirmSave(float mx, float my) { return confirmSave.clickBtn(mx, my); }
 
     public int clickFilter(float mx, float my) {
-        if (filterBtn.isClicked(mx, my)) { filterBtn.click(); newMenu.close(); return -2; }
+        if (filterBtn.contains(mx, my)) { filterBtn.click(mx, my); newMenu.close(); return -2; }
         return filter.clickFilter(mx, my, filterBtn.x);
     }
 
@@ -289,24 +220,5 @@ public class EditorUI {
 
     public void setFilterCallback(Runnable cb) { filter.setFilterCallback(cb); }
 
-    private final org.joml.Matrix4f _ortho = new org.joml.Matrix4f();
-    public org.joml.Matrix4f ortho() {
-        _ortho.setOrtho2D(0, width, height, 0);
-        return _ortho;
-    }
-
-    private final java.nio.FloatBuffer _buf = org.lwjgl.BufferUtils.createFloatBuffer(6 * 6);
-    public java.nio.FloatBuffer buf() { _buf.clear(); return _buf; }
-
-    public Shader shader() { return shader; }
-    public Shader textShader() { return textShader; }
-    public int vao() { return vao; }
-    public int vbo() { return vbo; }
-
-    public void cleanup() {
-        shader.cleanup();
-        textShader.cleanup();
-        glDeleteBuffers(vbo);
-        glDeleteVertexArrays(vao);
-    }
+    public void cleanup() {}
 }

@@ -1,23 +1,13 @@
 package markershape.editor.ui.control;
 
-import gamegl.gestion.texte.Text;
-import learngl.Shader;
 import markershape.config.ConfigParametres;
+import markershape.editor.ui.Panel;
+import markershape.editor.ui.UIResources;
 import markershape.editor.ui.menu.BlurBackground;
-import org.joml.Matrix4f;
-import org.lwjgl.BufferUtils;
 
-import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
-
-public class FilterPanel {
+public class FilterPanel extends Panel {
     private int width, height;
     private boolean filterOpen;
-    private float filterX, filterY;
 
     public String[] filterLabels = {"Faces", "Arêtes", "Points", "Axe X", "Axe Y", "Axe Z", "Snap"};
     public boolean[] filterValues = {true, true, true, true, true, true, false};
@@ -41,24 +31,21 @@ public class FilterPanel {
     public static final int SLIDER_DECIMALS = 1;
 
     private Runnable filterCallback;
-    private Shader shader;
-    private Shader textShader;
-    private int vao, vbo;
-    private final Matrix4f ortho = new Matrix4f();
-    private final FloatBuffer buf = BufferUtils.createFloatBuffer(6 * 6);
 
-    public FilterPanel(Shader shader, Shader textShader, int vao, int vbo) {
-        this.shader = shader;
-        this.textShader = textShader;
-        this.vao = vao;
-        this.vbo = vbo;
+    public FilterPanel(UIResources res) {
+        super(res);
+        visible = false;
     }
 
-    public void setSize(int w, int h) { width = w; height = h; ortho.setOrtho2D(0, w, h, 0); }
+    public void setSize(int w, int h) {
+        width = w;
+        height = h;
+        res.setSize(w, h);
+    }
 
     public boolean isOpen() { return filterOpen; }
-    public void setOpen(boolean v) { filterOpen = v; }
-    public void toggle() { filterOpen = !filterOpen; }
+    public void setOpen(boolean v) { filterOpen = v; visible = v; }
+    public void toggle() { filterOpen = !filterOpen; visible = filterOpen; }
 
     public void setFilterCallback(Runnable cb) { filterCallback = cb; }
 
@@ -67,139 +54,92 @@ public class FilterPanel {
     }
 
     public float sliderItemY(int i) {
-        return filterY + filterLabels.length * CHECKBOX_H + PANEL_GAP + i * SLIDER_H;
+        return y + filterLabels.length * CHECKBOX_H + PANEL_GAP + i * SLIDER_H;
     }
 
+    @Override
     public boolean contains(float mx, float my) {
-        return filterOpen && my >= filterY && my <= filterY + panelHeight()
-            && mx >= filterX && mx <= filterX + PANEL_W;
+        return visible && mx >= x && mx <= x + PANEL_W
+            && my >= y && my <= y + panelHeight();
     }
 
-    public void render(float btnX, float btnY) {
-        if (!filterOpen) return;
+    public void setPosition(float btnX, float btnY) {
+        x = btnX + (130 - PANEL_W) / 2;
+        y = btnY;
+        w = PANEL_W;
+        h = panelHeight();
+    }
 
-        filterX = btnX + (130 - PANEL_W) / 2;
-        filterY = btnY;
-
-        float ph = panelHeight();
-
-        float panelAlpha = BlurBackground.panelAlpha();
-        shader.bind();
-        shader.setUniformMat4f("projection", ortho);
-        buf.clear();
+    @Override
+    protected void renderContent() {
         float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-        buf.put(new float[]{
-            filterX, filterY, mr, mg, mb, panelAlpha,
-            filterX+PANEL_W, filterY, mr, mg, mb, panelAlpha,
-            filterX+PANEL_W, filterY+ph, mr, mg, mb, panelAlpha,
-            filterX, filterY, mr, mg, mb, panelAlpha,
-            filterX+PANEL_W, filterY+ph, mr, mg, mb, panelAlpha,
-            filterX, filterY+ph, mr, mg, mb, panelAlpha,
-        }).flip();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        shader.unbind();
-
-        ConfigParametres cfg = ConfigParametres.get();
-        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
-
-        shader.bind();
-        shader.setUniformMat4f("projection", ortho);
-
-        for (int i = 0; i < filterLabels.length; i++) {
-            float iy = filterY + i * CHECKBOX_H;
-            String prefix = filterValues[i] ? "[x] " : "[ ] ";
-            float brightness = filterValues[i] ? 1f : 0.6f;
-            Text.drawText(textShader, prefix + filterLabels[i],
-                filterX + 8, iy + 4, 1.5f, tR * brightness, tG * brightness, tB * brightness);
-        }
 
         for (int i = 0; i < sliderLabels.length; i++) {
             float iy = sliderItemY(i);
             float trackY = iy + (SLIDER_H - 8) * 0.5f + 4;
-            float trackX = filterX + TRACK_X;
+            float trackX = x + TRACK_X;
             float val = sliderValues[i];
             float frac = (val - sliderMin[i]) / (sliderMax[i] - sliderMin[i]);
-
-            String valStr = String.format("%." + SLIDER_DECIMALS + "f", sliderValues[i]);
-            Text.drawText(textShader, sliderLabels[i] + ":",
-                filterX + 8, iy + 2, 1.5f, tR, tG, tB);
-            Text.drawText(textShader, valStr,
-                filterX + VAL_X, iy + 2, 1.5f, tR, tG, tB);
-            Text.drawText(textShader, "[-]",
-                filterX + MINUS_X, iy + 2, 1.5f, tR, tG, tB);
-            Text.drawText(textShader, "[+]",
-                filterX + PLUS_X, iy + 2, 1.5f, tR, tG, tB);
 
             float trackA = BlurBackground.transparentUI ? 0.6f : 1f;
             float trackR = Math.min(1f, mr * 0.75f), trackG = Math.min(1f, mg * 0.75f), trackB = Math.min(1f, mb * 0.75f);
             float fillR = Math.min(1f, mr + 0.35f), fillG = Math.min(1f, mg + 0.35f), fillB = Math.min(1f, mb + 0.45f);
             float thumbR = Math.min(1f, mr + 0.6f), thumbG = Math.min(1f, mg + 0.6f), thumbB = Math.min(1f, mb + 0.6f);
 
-            buf.clear();
             float tx = trackX, ty = trackY, tw = TRACK_W, th = 6;
-            buf.put(new float[]{
-                tx, ty, trackR, trackG, trackB, trackA,
-                tx+tw, ty, trackR, trackG, trackB, trackA,
-                tx+tw, ty+th, trackR, trackG, trackB, trackA,
-                tx, ty, trackR, trackG, trackB, trackA,
-                tx+tw, ty+th, trackR, trackG, trackB, trackA,
-                tx, ty+th, trackR, trackG, trackB, trackA,
-            }).flip();
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            res.drawQuad(tx, ty, tw, th, trackR, trackG, trackB, trackA);
 
             float fw = Math.max(2, frac * tw);
-            buf.clear();
-            buf.put(new float[]{
-                tx, ty, fillR, fillG, fillB, 1f,
-                tx+fw, ty, fillR, fillG, fillB, 1f,
-                tx+fw, ty+th, fillR, fillG, fillB, 1f,
-                tx, ty, fillR, fillG, fillB, 1f,
-                tx+fw, ty+th, fillR, fillG, fillB, 1f,
-                tx, ty+th, fillR, fillG, fillB, 1f,
-            }).flip();
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            res.drawQuad(tx, ty, fw, th, fillR, fillG, fillB, 1f);
 
             float thumbX = tx + frac * tw - 3;
             float thumbY = ty - 1;
-            buf.clear();
-            buf.put(new float[]{
-                thumbX, thumbY, thumbR, thumbG, thumbB, 1f,
-                thumbX+6, thumbY, thumbR, thumbG, thumbB, 1f,
-                thumbX+6, thumbY+8, thumbR, thumbG, thumbB, 1f,
-                thumbX, thumbY, thumbR, thumbG, thumbB, 1f,
-                thumbX+6, thumbY+8, thumbR, thumbG, thumbB, 1f,
-                thumbX, thumbY+8, thumbR, thumbG, thumbB, 1f,
-            }).flip();
-            glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            res.drawQuad(thumbX, thumbY, 6, 8, thumbR, thumbG, thumbB, 1f);
+        }
+    }
+
+    @Override
+    protected void renderText() {
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+
+        for (int i = 0; i < filterLabels.length; i++) {
+            float iy = y + i * CHECKBOX_H;
+            String prefix = filterValues[i] ? "[x] " : "[ ] ";
+            float brightness = filterValues[i] ? 1f : 0.6f;
+            res.drawText(prefix + filterLabels[i],
+                x + 8, iy + 4, 1.5f, tR * brightness, tG * brightness, tB * brightness);
         }
 
-        shader.unbind();
+        for (int i = 0; i < sliderLabels.length; i++) {
+            float iy = sliderItemY(i);
+
+            String valStr = String.format("%." + SLIDER_DECIMALS + "f", sliderValues[i]);
+            res.drawText(sliderLabels[i] + ":",
+                x + 8, iy + 2, 1.5f, tR, tG, tB);
+            res.drawText(valStr,
+                x + VAL_X, iy + 2, 1.5f, tR, tG, tB);
+            res.drawText("[-]",
+                x + MINUS_X, iy + 2, 1.5f, tR, tG, tB);
+            res.drawText("[+]",
+                x + PLUS_X, iy + 2, 1.5f, tR, tG, tB);
+        }
     }
 
     public int clickFilter(float mx, float my, float btnX) {
-        if (!filterOpen) return -1;
-        filterX = btnX + (130 - PANEL_W) / 2;
-        filterY = 36;
+        if (!visible) return -1;
+        x = btnX + (130 - PANEL_W) / 2;
+        y = 36;
 
         for (int i = 0; i < sliderLabels.length; i++) {
             float iy = sliderItemY(i);
             if (my >= iy && my <= iy + SLIDER_H) {
-                if (mx >= filterX + MINUS_X && mx <= filterX + MINUS_X + BTN_SM_W) {
+                if (mx >= x + MINUS_X && mx <= x + MINUS_X + BTN_SM_W) {
                     sliderValues[i] = Math.max(sliderMin[i], sliderValues[i] - sliderStep[i]);
                     fireCallback();
                     return 3 + i;
                 }
-                if (mx >= filterX + PLUS_X && mx <= filterX + PLUS_X + BTN_SM_W) {
+                if (mx >= x + PLUS_X && mx <= x + PLUS_X + BTN_SM_W) {
                     sliderValues[i] = Math.min(sliderMax[i], sliderValues[i] + sliderStep[i]);
                     fireCallback();
                     return 3 + i;
@@ -209,8 +149,8 @@ public class FilterPanel {
         }
 
         for (int i = 0; i < filterLabels.length; i++) {
-            float iy = filterY + i * CHECKBOX_H;
-            if (mx >= filterX && mx <= filterX + PANEL_W
+            float iy = y + i * CHECKBOX_H;
+            if (mx >= x && mx <= x + PANEL_W
                 && my >= iy && my <= iy + CHECKBOX_H) {
                 filterValues[i] = !filterValues[i];
                 fireCallback();
