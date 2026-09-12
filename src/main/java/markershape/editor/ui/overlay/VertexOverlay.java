@@ -66,10 +66,10 @@ public class VertexOverlay extends Overlay {
         }
 
         for (int i = 0; i < fieldYOff.length; i++) {
-            float by = py + fieldYOff[i];
+            float by = y + fieldYOff[i];
             if (my < by || my > by + 20) continue;
 
-            if (mx >= px + MINUS_X && mx <= px + MINUS_X + BTN_W) {
+            if (mx >= x + MINUS_X && mx <= x + MINUS_X + BTN_W) {
                 if (preEditCallback != null) preEditCallback.run();
                 float step = i <= 2 ? 0.1f : 0.05f;
                 setFieldValue(i, getFieldValue(i) - step);
@@ -77,7 +77,7 @@ public class VertexOverlay extends Overlay {
                 if (editCallback != null) editCallback.run();
                 return i;
             }
-            if (mx >= px + PLUS_X && mx <= px + PLUS_X + BTN_W) {
+            if (mx >= x + PLUS_X && mx <= x + PLUS_X + BTN_W) {
                 if (preEditCallback != null) preEditCallback.run();
                 float step = i <= 2 ? 0.1f : 0.05f;
                 setFieldValue(i, getFieldValue(i) + step);
@@ -85,7 +85,7 @@ public class VertexOverlay extends Overlay {
                 if (editCallback != null) editCallback.run();
                 return i;
             }
-            if (mx >= px + VAL_X && mx <= px + VAL_X + VAL_W) {
+            if (mx >= x + VAL_X && mx <= x + VAL_X + VAL_W) {
                 selectedField = (selectedField == i) ? -1 : i;
                 return i;
             }
@@ -120,13 +120,13 @@ public class VertexOverlay extends Overlay {
     @Override
     protected void renderContent() {
         if (selectedField >= 0) {
-            float sy = py + fieldYOff[selectedField];
-            res.drawQuad(px + VAL_X, sy, VAL_W, 20, 0.3f, 0.5f, 0.9f, 0.3f);
+            float sy = y + fieldYOff[selectedField];
+            res.drawQuad(x + VAL_X, sy, VAL_W, 20, 0.3f, 0.5f, 0.9f, 0.3f);
         }
 
-        float sepY = py + fieldYOff[0] - 4;
+        float sepY = y + fieldYOff[0] - 4;
         float[] c = res.menuColor();
-        res.drawLine(px + 10, sepY, px + pw - 10, sepY, c[0] + 0.15f, c[1] + 0.15f, c[2] + 0.2f, 0.9f);
+        res.drawLine(x + 10, sepY, x + w - 10, sepY, c[0] + 0.15f, c[1] + 0.15f, c[2] + 0.2f, 0.9f);
     }
 
     @Override
@@ -136,36 +136,36 @@ public class VertexOverlay extends Overlay {
         float dimR = tR * 0.7f, dimG = tG * 0.7f, dimB = tB * 0.7f;
         float dim2R = tR * 0.5f, dim2G = tG * 0.5f, dim2B = tB * 0.5f;
 
-        res.drawText("Vertex #" + vertex.id, px + 12, py + 10, 1.5f, tR, tG, tB);
+        res.drawText("Vertex #" + vertex.id, x + 12, y + 10, 1.5f, tR, tG, tB);
 
         for (int i = 0; i < fieldYOff.length; i++) {
-            float fy = py + fieldYOff[i];
+            float fy = y + fieldYOff[i];
             float val = getFieldValue(i);
             String fmt = i <= 2 ? "%.3f" : "%.2f";
             boolean sel = (i == selectedField);
 
-            res.drawText(fieldLabels[i], px + 12, fy, 1.5f, tR, tG, tB);
-            res.drawText(String.format(fmt, val), px + VAL_X, fy, 1.5f, sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB);
-            res.drawText("[-]", px + MINUS_X, fy + 1, 1.5f, tR, tG, tB);
-            res.drawText("[+]", px + PLUS_X, fy + 1, 1.5f, tR, tG, tB);
+            res.drawText(fieldLabels[i], x + 12, fy, 1.5f, tR, tG, tB);
+            res.drawText(String.format(fmt, val), x + VAL_X, fy, 1.5f, sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB);
+            res.drawText("[-]", x + MINUS_X, fy + 1, 1.5f, tR, tG, tB);
+            res.drawText("[+]", x + PLUS_X, fy + 1, 1.5f, tR, tG, tB);
         }
 
-        res.drawText("Edges: " + edgeCount, px + 12, py + 186, 1.5f, dimR, dimG, dimB);
+        res.drawText("Edges: " + edgeCount, x + 12, y + 186, 1.5f, dimR, dimG, dimB);
 
         if (siblingIds != null && siblingIds.length > 0) {
             float[] labelExt = Text.getTextExtent("Also:", 1.5f);
-            float baseY = py + 210;
-            res.drawText("Also:", px + 12, baseY, 1.5f, dimR, dimG, dimB);
-            float bx = px + 12 + labelExt[0] + 4;
+            float baseY = y + 210;
+            res.drawText("Also:", x + 12, baseY, 1.5f, dimR, dimG, dimB);
+            float bx = x + 12 + labelExt[0] + 4;
             float by = baseY;
-            float maxX = px + pw - 12;
+            float maxX = x + w - 12;
             int row = 0;
             siblingBadgePos = new float[siblingIds.length][2];
             for (int i = 0; i < siblingIds.length; i++) {
                 String label = "[#" + siblingIds[i] + "]";
                 float[] ext = Text.getTextExtent(label, 1.5f);
                 if (bx + ext[0] > maxX) {
-                    bx = px + 12;
+                    bx = x + 12;
                     by = baseY + (++row) * 22;
                 }
                 siblingBadgePos[i][0] = bx;

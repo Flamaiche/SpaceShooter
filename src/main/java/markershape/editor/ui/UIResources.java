@@ -103,9 +103,6 @@ public class UIResources {
     public Shader uiShader() { return uiShader; }
     public Shader textShader() { return textShader; }
     public Matrix4f ortho() { return ortho; }
-    public FloatBuffer buf() { return buf; }
-    public int vao() { return vao; }
-    public int vbo() { return vbo; }
 
     public void cleanup() {
         uiShader.cleanup();

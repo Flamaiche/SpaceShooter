@@ -14,7 +14,6 @@ public class EditorUI extends Panel {
     public static final int BAR_H = 36;
     public static final int BTN_W = 130;
     private Button saveBtn, quitBtn, filterBtn, newBtn;
-    private Runnable onSave, onQuit, onNewEdge, onNewVertex;
     private String currentFile;
 
     public boolean transparentBar = true;
@@ -27,12 +26,8 @@ public class EditorUI extends Panel {
     private boolean lastTransparentUI;
 
     public EditorUI(UIResources res, int w, int h,
-                    Runnable onSave, Runnable onQuit, Runnable onNewEdge, Runnable onNewVertex) {
+                    Runnable onSave, Runnable onQuit) {
         super(res);
-        this.onSave = onSave;
-        this.onQuit = onQuit;
-        this.onNewEdge = onNewEdge;
-        this.onNewVertex = onNewVertex;
 
         filter = new FilterPanel(res);
         newMenu = new NewMenu(res);
@@ -144,8 +139,8 @@ public class EditorUI extends Panel {
         filter.setPosition(filterBtn.x, BAR_H);
     }
 
-    public void renderEntityList(int w, int h) {
-        entityList.render(w, h);
+    public void renderEntityList() {
+        entityList.render();
     }
 
     public boolean isOverUI(float mx, float my) {
