@@ -65,9 +65,7 @@ public class Editor {
 
         editorUI = new EditorUI(uiResources, w, h,
             () -> io.save(),
-            () -> org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose(window, true),
-            () -> { ctx.creatingEdge = true; ctx.creatingVertex = false; ctx.edgeFirstVertex = -1; editorUI.setActiveMode(1); editorUI.closeNewMenu(); selection.hideOverlays(); selection.selectedVertex = -1; selection.selectedEdge = -1; },
-            () -> { ctx.creatingVertex = true; ctx.creatingEdge = false; ctx.edgeFirstVertex = -1; editorUI.setActiveMode(0); editorUI.closeNewMenu(); selection.hideOverlays(); selection.selectedVertex = -1; selection.selectedEdge = -1; });
+            () -> org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose(window, true));
         editorUI.setFilterCallback(this::applyFilterSettings);
         ctx.ui = editorUI;
 
@@ -161,7 +159,7 @@ public class Editor {
             ctx.selection.siblingPicker.render();
         }
 
-        editorUI.renderEntityList(width, height);
+        editorUI.renderEntityList();
     }
 
     public void goToMenu() {
