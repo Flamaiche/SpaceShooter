@@ -5,7 +5,6 @@
 - [x] `src/main/java/markershape/` — package dédié
 - [x] `data/markershape/shapes/` — dossier des fichiers shape
 - [x] `data/markershape/shaders/` — dossier des shaders
-- [ ] `data/markershape/config.json` — config fond d'écran
 - [x] `AjoutVersion(SpaceShooter).txt` — changelog à jour
 
 ## Data model
@@ -107,5 +106,4 @@
 
 ## Plus tard
 - [ ] Option "keep shader" entre deux shapes
-- [ ] Panneau debug listant tous les éléments
-- [ ] Fond écran configurable (markershape.json)
+- [x] Panneau debug listant tous les éléments (EntityListPanel)
