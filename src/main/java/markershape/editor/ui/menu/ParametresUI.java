@@ -271,12 +271,7 @@ public class ParametresUI extends Panel {
             if (hasChanges) {
                 saveBtn.show();
                 saveBtn.action = () -> showConfirmPopup(
-                    () -> {
-                        ConfigParametres.sauvegarder();
-                        if (onApply != null) onApply.run();
-                        this.visible = false;
-                        if (onBack != null) onBack.run();
-                    },
+                    this::saveAndClose,
                     () -> {});
             } else {
                 saveBtn.hide();
@@ -284,18 +279,9 @@ public class ParametresUI extends Panel {
             backBtn.action = () -> {
                 if (hasChanges) {
                     showConfirmPopup(
-                        () -> {
-                            ConfigParametres.sauvegarder();
-                            if (onApply != null) onApply.run();
-                            this.visible = false;
-                            if (onBack != null) onBack.run();
-                        },
-                        () -> {
-                            this.visible = false;
-                            if (onBack != null) onBack.run();
-                        });
+                        this::saveAndClose,
+                        this::rollbackAndClose);
                 } else {
-                    if (onApply != null) onApply.run();
                     this.visible = false;
                     if (onBack != null) onBack.run();
                 }
@@ -306,6 +292,20 @@ public class ParametresUI extends Panel {
             };
             backBtn.action = () -> { currentMenu = -1; };
         }
+    }
+
+    private void saveAndClose() {
+        ConfigParametres.sauvegarder();
+        if (onApply != null) onApply.run();
+        this.visible = false;
+        if (onBack != null) onBack.run();
+    }
+
+    private void rollbackAndClose() {
+        ConfigParametres.recharger();
+        if (onApply != null) onApply.run();
+        this.visible = false;
+        if (onBack != null) onBack.run();
     }
 
     private void renderFloatField(float y, ConfigParametres.Param p) {
