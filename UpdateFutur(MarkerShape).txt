@@ -1,20 +1,68 @@
 Update futur — MarkerShape
 (prochaines features a faire / aiguillage)
-(mis a jour : 2026-08-15)
+(mis a jour : 2026-09-13)
+
+============================================================
+PRIORITE 2026-09-13 : RENDRE L'EDITEUR MALLÉABLE
+============================================================
+Sujet : l'app est un modeleur 3D pour le jeu SpaceShooter mais bouger/placer
+est complique (pas d'orbite souris, drag de sommet jamais cable, saisies
+en [-]/[+] uniquement). Voici le programme detaille, dans le TODO.md sous
+"Éditeur — PRIORITÉ". Reutiliser le moteur `learngl` au maximum :
+OrbitController / AxesCalculator / Camera / CameraPhysics / GestionnaireVue /
+Shader / Text (memes usages que gamegl dans PlayingState).
 
 ------------------------------------------------------------
 A CORRIGER / FONCTIONNEL INCOMPLET
 ------------------------------------------------------------
-- Drag de sommet : DragAction.java implemente mais jamais cable
-  (press/move/release souris sur sommet selectionne, profondeur verrouillee)
-- Drag des sliders du panneau Filtre (seuls les boutons [-]/[+] marchent)
+- [FAIT 13/09] ShapeIO.load() mort : aucun appelant (ShapeIO.java) —
+  Editor.loadShape() fait le chargement ; ShapeIO.load() a retire
+- [FAIT 13/09] Ligne redondante if (filterResult == 3) setGridStep(...)
+  dans ClickHandler.java : supprimee (la grille suit le slider direct)
+- [FAIT 11/09] EditorUI.syncFromConfig() vide : implementee (resync boutons
+  transparent/opaque, texte, mode actif) dans EditorUI.java
+- Drag des sliders du panneau Filtre (seuls les boutons [-]/[+] marchent) :
+  P3/Saisie numerique (voir priorite) — cliquer-glisser sur la piste du slider
+  ajuste la valeur, pas seulement [-]/[+]
 - gradlew run : ajouter le plugin application + mainClass = 'markershape.App'
   dans build.gradle (l'app ne se lance qu'en IntelliJ)
-- EditorUI.syncFromConfig() vide (EditorUI.java) : implementer la resync
-  valeurs filtre/config ou retirer l'appel dans App.applyConfig()
 - shipTEST.json : supprimer ou renommer le fichier residuel (doublon de "ship")
-- ShapeIO.load() mort : aucun appelant (ShapeIO.java:30-47)
-- Ligne redondante if (filterResult == 3) setGridStep(...) dans ClickHandler.java:76
+
+------------------------------------------------------------
+PRIORITE 1 : NAVIGATION SOURIS (bouger la vue)
+------------------------------------------------------------
+- Orbite souris : clic droit maintenu = rotate(dyaw, dpitch) ; clic gauche
+  reste outil (selection/placement) ; fleches clavier conservees
+- Pan caméra : MAJ + clic droit (ou molette appuyee) = deplacer le target
+  dans le plan de vue (right/up via AxesCalculator)
+- Zoom vers le curseur (molette) : garder le point sous la souris fixe
+- Recentrage auto au chargement : target = centre de bbox, radius = taille
+- RESET DE VUE + DIRECTION "AVANT" :
+  - touche F = capturer la direction caméra actuelle comme "avant" de la shape
+  - touche R = reset : la caméra se remet devant cet avant (le reset suit
+    la direction fixe du modeleur)
+  - sauvegarde dans parametres.json (frontYaw/frontPitch), fleche visuelle 3D
+- EditorCamera rebase sur learngl.camera.OrbitController (target mobile)
+
+------------------------------------------------------------
+PRIORITE 2 : BOUGER LES ELEMENTS (drag + axes + saisie)
+------------------------------------------------------------
+- Cabler DragAction.java (implemente mais jamais cable) :
+  press/move/release sur sommet, profondeur verrouillee (dragNdcZ),
+  snap actif pendant le drag, seuil px pour clic vs drag
+- Contraintes d'axe pendant le drag : X/Y/Z maintenues = verrouille l'axe
+- Saisie numerique dans les overlays : clic sur valeur (X/Y/Z,R/G/B,
+  epaisseur) -> EditableTextField -> Entree valide / Echap annule
+
+------------------------------------------------------------
+PRIORITE 3 : PLACER PROPREMENT (chaines + aimantation + ghost)
+------------------------------------------------------------
+- Mode chaine/polyline : Vertex = chaque clic pose un sommet + clic sur
+  sommet existant cree l'arete ; Edge = enchaine sans sortir ; Echap stoppe
+- Aimantation magnetique : ghost s'accroche aux sommets proches (rayon px
+  configurable) quand le snap est actif
+- Ghost de placement : faux sommet semi-transparent a la taille reelle
+  des points en plus du crosshair
 
 ------------------------------------------------------------
 NOUVELLES FONCTIONNALITES
@@ -37,6 +85,16 @@ NOUVELLES FONCTIONNALITES
 - Export OBJ / import : seul le JSON interne existe ; lwjgl-assimp present mais inutilise
 - Boutons Undo/Redo dans la barre (aujourd'hui clavier uniquement : Ctrl+Z / Ctrl+Shift+Z)
 - Indicateur "shape non sauvegardee" dans la barre (pastille)
+
+------------------------------------------------------------
+AFFICHAGES & DIAGNOSTICS (long terme, reutiliser le moteur)
+------------------------------------------------------------
+- Afficher taille de la shape (L/H/P de la bbox) dans la barre ou un HUD
+- Afficher le centre (marqueur au centre de la bbox)
+- Afficher les vecteurs (triad position, normales des faces, bbox wireframe)
+- Vue "premiere personne" : previsualiser la shape comme vue du joueur
+  via lerang.Camera + CameraPhysics + GestionnaireVue (ZQSD + souris libre)
+- Aide outils : touche H = raccourcis, touches.txt a jour
 
 ------------------------------------------------------------
 NETTOYAGE MINEUR
