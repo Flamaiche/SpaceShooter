@@ -35,6 +35,7 @@ public class ShapeRenderer {
     private final CrosshairRenderer crosshairRenderer = new CrosshairRenderer();
     private final GhostPointRenderer ghostPointRenderer = new GhostPointRenderer();
     private final FrontArrowRenderer frontArrowRenderer = new FrontArrowRenderer();
+    private final OrbitPivotRenderer orbitPivotRenderer = new OrbitPivotRenderer();
     public final ShadowRenderer shadow = new ShadowRenderer();
     private final GridRenderer grid = new GridRenderer();
 
@@ -143,6 +144,7 @@ public class ShapeRenderer {
         crosshairRenderer.cleanup();
         ghostPointRenderer.cleanup();
         frontArrowRenderer.cleanup();
+        orbitPivotRenderer.cleanup();
     }
 
     public void setHoveredVertex(int id) {
@@ -169,12 +171,29 @@ public class ShapeRenderer {
         ghostPointRenderer.setVisible(false);
         frontArrowRenderer.setVisible(false);
         crosshairRenderer.setVisible(false);
+        orbitPivotRenderer.setVisible(false);
     }
 
     public void setFrontArrow(boolean visible, org.joml.Vector3f center, org.joml.Vector3f dir, float length) {
         frontArrowRenderer.setVisible(visible);
         if (!visible) return;
         frontArrowRenderer.setArrow(center.x, center.y, center.z, dir, length);
+    }
+
+    /**
+     * Shows/hides the orbit pivot "+" marker. When visible, draws a fixed
+     * billboard cross at the pivot point (kept for the whole orbit gesture).
+     */
+    public void setOrbitPivotMarker(boolean visible, org.joml.Vector3f pos, float halfLen) {
+        orbitPivotRenderer.setVisible(visible);
+        if (!visible) return;
+        if (pos != null) orbitPivotRenderer.setPosition(pos.x, pos.y, pos.z);
+        orbitPivotRenderer.setHalfLength(halfLen);
+    }
+
+    /** Updates the pivot marker billboard orientation to the camera axes. */
+    public void setOrbitPivotMarkerAxes(float rx, float ry, float rz, float ux, float uy, float uz) {
+        orbitPivotRenderer.setAxes(rx, ry, rz, ux, uy, uz);
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
@@ -233,6 +252,7 @@ public class ShapeRenderer {
             crosshairRenderer.render(shader, shapeData);
             ghostPointRenderer.render(shader, shapeData);
             frontArrowRenderer.render(shader, shapeData);
+            orbitPivotRenderer.render(shader, shapeData);
         }
 
         shader.unbind();

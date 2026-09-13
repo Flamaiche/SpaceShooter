@@ -1,0 +1,151 @@
+Commandes de l'editeur MarkerShape
+=================================
+
+Table des matieres
+------------------
+1.  Navigation camera (souris + clavier)
+2.  Zoom
+3.  Selection des elements
+4.  Deplacement d'un sommet (drag)
+5.  Creation de sommets / aretes
+6.  Saisie numerique dans les overlays
+7.  Edition des valeurs (boutons [-]/[+] et frappe directe)
+8.  Annuler / refaire / sauvegarder
+9.  Panneaux de l'interface (menu du haut, filtre, liste)
+10. Parametres de configuration (parametres.json)
+
+
+1. Navigation camera (souris + clavier)
+----------------------------------------
+- Clic droit maintenu + bouger la souris : orbite autour du point sous le
+  curseur (pivot capter au debut du geste). Un "+" orange fixe affiche ce
+  pivot ; il disparait des que l'on relache le bouton.
+      - Le pivot est le point de la geometrie sous la souris (face/sommet),
+        sinon le point situe a la profondeur du centre de la shape.
+      - Une fois relache, la camera continue d'orbiter autour de ce pivot
+        pour le prochain geste.
+- Molette enfoncee (bouton du milieu) + bouger la souris : pan
+  (translation du point de vue, la scene suit le curseur).
+- MAJ + clic droit maintenu + bouger la souris : pan egalement.
+- Touche R : retourner voir la shape "de face" (cadrage automatique sur
+  la bounding box dans la direction front enregistree).
+- Touche F : enregistrer la direction camera actuelle comme "front" de la
+  shape (persistee dans parametres.json : frontYaw / frontPitch).
+- Fleches du clavier (haut/bas/gauche/droite) : orbite par pas clavier,
+  autour du centre de la forme.
+- Le pan est prioritaire sur l'orbite : des qu'un geste de pan est actif
+  (molette ou MAJ+clic droit), il reste en pan jusqu'a la fin du geste,
+  meme si le bouton de pan est relache avant le bouton d'orbite.
+
+
+2. Zoom
+-------
+- Molette vers le haut : zoom avant vers le point situe sous le curseur
+  (le point du monde sous la souris reste sous la souris pendant le zoom).
+- Molette vers le bas : zoom arriere.
+- Touches O / P : zoom avant / arriere depuis le clavier.
+- Sur molette, un cran = 1 unite (sur macOS, GLFW renvoie 120/cran, la
+  valeur est normalisee par 120). Distance limitee a [0.5, 50] unites.
+
+
+3. Selection des elements
+-------------------------
+- Clic gauche sur un sommet visible : selectionne le sommet (fenetre
+  VertexOverlay).
+- Clic gauche sur une arete visible : selectionne l'arete (fenetre
+  EdgeOverlay).
+- Clic gauche sur la position du crosshair (sommets a la meme position) :
+  selectionne le sommet correspondant.
+- Liste d'entites (bas a gauche) : clic pour selectionner sommet / arete,
+  molette pour page precedente / suivante.
+
+
+4. Deplacement d'un sommet (drag)
+---------------------------------
+- Clic gauche maintenu sur un sommet visible puis deplacement superieur
+  a 5 px : le sommet suit la souris (a profondeur fixe, snap de grille
+  applique si actif).
+- Pendant le drag :
+      X : verrouille le deplacement selon l'axe X
+      Y : verrouille le deplacement selon l'axe Y
+      Z : verrouille le deplacement selon l'axe Z
+      G : libere le mouvement (aucun verrou d'axe)
+      ESC : libere le mouvement (aucun verrou d'axe)
+- Relacher le clic gauche termine le drag et met a jour le rendu.
+
+
+5. Creation de sommets / aretes
+-------------------------------
+- Bouton "New" (barre du haut) -> mode Vertex : chaque clic gauche dans la
+  vue 3D pose un sommet (blanc). Un ghost orange semi-transparent montre
+  ou le sommet va atterrir avant le clic.
+      Mode chaine : cliquer sur un sommet EXISTANT cree une arete avec le
+      dernier sommet pose, et enchain (la pose continue sans sortir du mode).
+- Bouton "New" -> mode Edge : selectionnez 2 sommets existants pour creer
+  l'arete. Le mode reste actif apres chaque arete pour enchainer.
+- ESC : quitte le mode de creation en cours.
+- Aimantation magnetique : activez la case "Magnet" du panneau Filtre.
+  Le point pose / le crosshair se colle au sommet le plus proche du curseur
+  (rayon reglable : magnetRadius, defaut 14 px).
+
+
+6. Saisie numerique dans les overlays
+-------------------------------------
+- Clic gauche sur une valeur (par ex. le champ X dans la fenetre sommet,
+  ou le champ epaisseur dans la fenetre arete) : un curseur clignotant
+  apparait et la valeur passe en mode edition.
+- Entree (Return) : valide la valeur tapee.
+- ESC : annule la frappe (retour a l'ancienne valeur).
+- Backspace : efface le dernier caractere.
+- Seuls les caracteres chiffres, '.' et '-' sont acceptes pendant la frappe.
+
+
+7. Edition des valeurs (boutons [-]/[+] et frappe directe)
+----------------------------------------------------------
+- Fenetre sommet : champs X / Y / Z / R / G / B.
+      Boutons [-]/[+] : increment / decrement.
+      Clic sur le champ + frappe directe : saisie exacte (voir section 6).
+- Fenetre arete : champs epaisseur et mode (move / stun).
+- Toute modification des champs passe par le systeme annuler/refaire.
+
+
+8. Annuler / refaire / sauvegarder
+----------------------------------
+- Ctrl+Z : annuler la derniere operation (undo).
+- Ctrl+W : alias AZERTY pour annuler (identique a Ctrl+Z).
+- Ctrl+MAJ+Z ou Ctrl+MAJ+W : refaire (redo).
+- Ctrl+S : sauvegarder la shape dans le fichier courant.
+- Bouton "Sauvegarder" (barre du haut) : sauvegarde.
+- Bouton "Quitter" : popup de confirmation + sauvegarde avant de retourner
+  au menu.
+- Suppr / Backspace : supprime le sommet ou l'arete selectionne(e)
+  (cascade aretes -> faces, nettoyage automatique des faces orphelines).
+
+
+9. Panneaux de l'interface (menu du haut, filtre, liste)
+--------------------------------------------------------
+- Barre du haut : titre de la shape + boutons New / Filtre / Sauvegarder /
+  Quitter.
+- Bouton "New" : menu de creation de sommet (mode Vertex) ou arete
+  (mode Edge).
+- Bouton "Filtre" : panneau d'affichage :
+      cases a cocher : Faces / Aretes / Points / Axes X / Y / Z / Grille /
+      Magnet
+      curseurs : taille des points, largeur des lignes, opacite des faces,
+      pas de grille
+- Liste d'entites bas a gauche : toutes les references (sommets / aretes),
+  clic pour selectionner, molette pour paginer.
+- Tout clic sur l'interface (hors vue 3D) n'interagit qu'avec l'UI,
+  jamais avec la scene.
+
+
+10. Parametres de configuration (parametres.json)
+-------------------------------------------------
+Fichier : data/markershape/config/parametres.json
+- frontYaw / frontPitch : angles de la direction "front" (touche F).
+- zoomSpeed : sensibilite du zoom molette.
+- orbitSpeed : sensibilite de l'orbite.
+- snapEnabled / snapStep : magnetisme de grille pendant le drag.
+- magnetEnabled / magnetRadius : aimantation aux sommets (px).
+- pointSize / lineWidth / faceAlpha : rendu global.
+- gridVisible / axisX / axisY / axisZ : affichage du plan de travail.

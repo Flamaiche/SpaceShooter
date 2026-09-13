@@ -90,6 +90,8 @@ public class EditorCamera {
     /**
      * Zooms toward the point under the cursor: the world point that was under
      * the mouse before zooming stays under the mouse afterwards.
+     * Dolly toward the pivot point along the view ray, then re-anchor the
+     * target and the camera together by the screen-space offset of the pivot.
      *
      * @param amount the zoom delta (positive = zoom in)
      * @param mx     cursor x in pixels
@@ -102,20 +104,27 @@ public class EditorCamera {
         Vector3f pivot = unprojectAtPoint(mx, my);
         Vector3f viewDir = new Vector3f(target).sub(position).normalize();
 
-        // Move the camera along its view direction by the radius delta, keeping
-        // the same yaw/pitch, then re-anchor the target so the cursor point
-        // still lies on the view ray at the new distance.
-        position.x += viewDir.x * (newRadius - radius);
-        position.y += viewDir.y * (newRadius - radius);
-        position.z += viewDir.z * (newRadius - radius);
-        Vector3f camToPivot = new Vector3f(pivot).sub(position);
-        if (camToPivot.lengthSquared() > 1e-6f) camToPivot.normalize();
-        float nx = position.x + camToPivot.x * newRadius;
-        float ny = position.y + camToPivot.y * newRadius;
-        float nz = position.z + camToPivot.z * newRadius;
-        target.set(nx, ny, nz);
-
+        // Move the camera along its view direction so the distance to the
+        // target becomes the new radius (positive delta = zoom in).
+        float delta = radius - newRadius;
+        position.x += viewDir.x * delta;
+        position.y += viewDir.y * delta;
+        position.z += viewDir.z * delta;
         radius = newRadius;
+
+        // Re-anchor: translate target and camera together so the pivot point
+        // stays exactly under the cursor. Measure at the pivot's depth.
+        float depth = ndcDepth(pivot);
+        float[] pix = projectPixel(pivot);
+        Vector3f atNow = unprojectAtDepth(pix[0], pix[1], depth);
+        Vector3f atCursor = unprojectAtDepth(mx, my, depth);
+        target.x += atCursor.x - atNow.x;
+        target.y += atCursor.y - atNow.y;
+        target.z += atCursor.z - atNow.z;
+        position.x += atCursor.x - atNow.x;
+        position.y += atCursor.y - atNow.y;
+        position.z += atCursor.z - atNow.z;
+
         orbit.init(position, target);
         updateAxes();
         LogFile.logf("[Camera] zoomToward: radius=%.2f target=(%.2f,%.2f,%.2f)",
@@ -144,6 +153,20 @@ public class EditorCamera {
     /** Moves the camera target to a new point (keeps the current orientation). */
     public void setTarget(Vector3f newTarget) {
         target.set(newTarget);
+        orbit.init(position, target);
+        updateAxes();
+    }
+
+    /**
+     * Re-anchors the orbit around a pivot point (e.g. the world point under the
+     * cursor at the start of an orbit gesture). Keeps the current orientation
+     * (yaw/pitch) and adapts the radius to the distance to the new pivot.
+     *
+     * @param pivot the new orbit center
+     */
+    public void setOrbitPivot(Vector3f pivot) {
+        target.set(pivot);
+        radius = Math.max(0.5f, Math.min(50f, new Vector3f(position).sub(pivot).length()));
         orbit.init(position, target);
         updateAxes();
     }
@@ -291,7 +314,29 @@ public class EditorCamera {
         Vector4f t = new Vector4f(target.x, target.y, target.z, 1f).mul(pv);
         float ndcZ = 1f;
         if (t.w != 0f) ndcZ = t.z / t.w;
+        return unprojectAtDepth(mx, my, ndcZ);
+    }
 
+    /** Returns the NDC depth of a world point under the current view. */
+    private float ndcDepth(Vector3f world) {
+        Matrix4f pv = new Matrix4f(getProjection()).mul(getViewMatrix());
+        Vector4f t = new Vector4f(world.x, world.y, world.z, 1f).mul(pv);
+        return (t.w != 0f) ? t.z / t.w : 0f;
+    }
+
+    /** Projects a world point back to screen pixels (origin top-left). */
+    private float[] projectPixel(Vector3f world) {
+        Matrix4f pv = new Matrix4f(getProjection()).mul(getViewMatrix());
+        Vector4f t = new Vector4f(world.x, world.y, world.z, 1f).mul(pv);
+        if (t.w != 0f) t.div(t.w);
+        float sx = (t.x * 0.5f + 0.5f) * width;
+        float sy = (1f - (t.y * 0.5f + 0.5f)) * height;
+        return new float[]{sx, sy};
+    }
+
+    /** Unprojects a screen point at the given NDC depth back to world space. */
+    private Vector3f unprojectAtDepth(float mx, float my, float ndcZ) {
+        Matrix4f pv = new Matrix4f(getProjection()).mul(getViewMatrix());
         Matrix4f inv = new Matrix4f(pv).invert();
         float ndcX = (2f * mx) / width - 1f;
         float ndcY = 1f - (2f * my) / height;

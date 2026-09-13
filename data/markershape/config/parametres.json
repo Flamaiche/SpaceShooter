@@ -30,8 +30,8 @@
         "refBgB": 0,
         "magnetEnabled": false,
         "magnetRadius": 14.0,
-        "frontYaw": 0.0,
-        "frontPitch": -30.0
+        "frontYaw": -84.64103,
+        "frontPitch": 1.0743257
       },
       "categories": [
         {
