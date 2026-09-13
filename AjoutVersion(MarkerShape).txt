@@ -116,3 +116,20 @@ Version : (A:Alpha)
                 - UIElement/Panel/UIResources centralisés (shaders, VAO/VBO, rendu et clics) sur toute l'UI (EditorUI, Overlays, FilterPanel, EntityListPanel, NewMenu, ParametresUI, ConfirmSavePopup, SiblingPicker, Button)
                 - retrait de la géométrie dupliquée et du code mort des composants UI
                 - fin de centralisation : texte via UIResources, hiérarchie UIElement étendue (drawBackground/renderContent/renderText)
+[V1.3]
+    13/09/2026:
+        - session navigation & placement (branche editor-ux-dev), réutilisation du moteur learngl
+            - EditorCamera réécrit sur learngl.camera.OrbitController (orbite/pan moteur) + AxesCalculator pour les axes du pan
+            - orbite souris (clic droit maintenu, mouvements X/Y → camera.rotate), flèches clavier conservées
+            - pan caméra (MAJ + clic droit ou molette enfoncée → déplace le target le long du plan de vue)
+            - zoom molette vers le curseur (le point sous la souris reste sous la souris) via zoomToward
+            - recentrage auto sur la shape au chargement (centre bbox + taille max → cadrage)
+            - direction fixe "avant" (touche F capture la direction caméra) + reset R devant l'avant
+            - flèche 3D du sens de l'avant (FrontArrowRenderer, lignes orange) + frontYaw/frontPitch persistés dans parametres.json
+            - DragAction enfin câblé : press sur sommet visible → drag à profondeur verrouillée (seuil 5px pour distinguer clic sélection / drag déplacement), snap actif
+            - contraintes d'axe pendant le drag (X/Y/Z verrouillent le sens, G ou Esc revient libre)
+            - saisie numérique directe dans les overlays : clic sur X/Y/Z/R/G/B (vertex) ou épaisseur (arête) → frappe (Entrée valide, Esc annule, curseur clignotant)
+            - mode chaîne/polyline : en mode Vertex, un clic sur un sommet existant crée l'arête avec le dernier posé ; en mode Edge, l'enchaînement continue après chaque paire
+            - aimantation magnétique : checkbox Magnet + rayon configurable (magnetRadius) → le ghost/crosshair s'aimante aux sommets proches du curseur
+            - ghost de placement : faux sommet orange semi-transparent à la taille réelle des points (GhostPointRenderer) en mode création de sommet
+            - clic droit/molette/maj filtrés pour ne pas casser la sélection gauche ; ESC pendant la saisie annule la frappe (pas de sortie de mode)

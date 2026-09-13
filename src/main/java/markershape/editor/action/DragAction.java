@@ -12,6 +12,11 @@ public class DragAction {
     public double dragStartMX, dragStartMY;
     public final org.joml.Vector3f dragOrigPos = new org.joml.Vector3f();
     public float dragNdcZ;
+    /**
+     * Movement constraint while dragging, projected onto the screen plane:
+     * 0 = free, 1 = X axis only, 2 = Y axis only, 3 = Z axis only.
+     */
+    public int axis = 0;
 
     public DragAction(Context ctx) { this.ctx = ctx; }
     public boolean isDragging() { return dragVertexId >= 0; }
@@ -26,6 +31,7 @@ public class DragAction {
         dragStartMX = mx;
         dragStartMY = my;
         dragOrigPos.set(v.x, v.y, v.z);
+        axis = 0;
         ctx.selection.crosshairPos.set(v.x, v.y, v.z);
         ctx.selection.crosshairValid = true;
         Vector4f clip = new Vector4f(v.x, v.y, v.z, 1f)
@@ -41,9 +47,19 @@ public class DragAction {
 
         org.joml.Vector3f startWorld = ctx.pick.unprojectAtDepth((float) dragStartMX, (float) dragStartMY, dragNdcZ);
         org.joml.Vector3f curWorld = ctx.pick.unprojectAtDepth(mx, my, dragNdcZ);
-        v.x = dragOrigPos.x + (curWorld.x - startWorld.x);
-        v.y = dragOrigPos.y + (curWorld.y - startWorld.y);
-        v.z = dragOrigPos.z + (curWorld.z - startWorld.z);
+        float dx = curWorld.x - startWorld.x;
+        float dy = curWorld.y - startWorld.y;
+        float dz = curWorld.z - startWorld.z;
+        if (axis >= 1 && axis <= 3) {
+            float ax = axis == 1 ? 1f : 0f;
+            float ay = axis == 2 ? 1f : 0f;
+            float az = axis == 3 ? 1f : 0f;
+            float proj = dx * ax + dy * ay + dz * az;
+            dx = proj * ax; dy = proj * ay; dz = proj * az;
+        }
+        v.x = dragOrigPos.x + dx;
+        v.y = dragOrigPos.y + dy;
+        v.z = dragOrigPos.z + dz;
         org.joml.Vector3f snapped = new org.joml.Vector3f(v.x, v.y, v.z);
         ctx.snapIfEnabled(snapped);
         v.x = snapped.x; v.y = snapped.y; v.z = snapped.z;

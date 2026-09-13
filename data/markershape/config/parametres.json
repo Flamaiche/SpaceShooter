@@ -27,7 +27,11 @@
         "textB": 15,
         "refBgR": 255,
         "refBgG": 255,
-        "refBgB": 0
+        "refBgB": 0,
+        "magnetEnabled": false,
+        "magnetRadius": 14.0,
+        "frontYaw": 0.0,
+        "frontPitch": -30.0
       },
       "categories": [
         {

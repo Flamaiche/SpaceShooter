@@ -53,8 +53,10 @@ public class HoverManager {
                 }
                 ctx.hoveredPositionIds = ids;
             }
+            ctx.renderer.setPlacementGhost(false, null);
         } else {
             ctx.hoveredPositionIds = new HashSet<>();
+            if (!ctx.creatingVertex) ctx.renderer.setPlacementGhost(false, null);
         }
         ctx.renderer.setHoveredVertex(vertId);
         ctx.renderer.setHoveredEdge(edgeId);
@@ -66,10 +68,16 @@ public class HoverManager {
                 data.vertices.get(vertId).z);
             ctx.selection.crosshairValid = true;
         } else if (ctx.creatingVertex) {
-            Vector3f pos = ctx.pick.getClickWorldPos(mx, my);
-            ctx.snapIfEnabled(pos);
-            ctx.selection.crosshairPos.set(pos);
-            ctx.selection.crosshairValid = true;
+            if (ctx.ui.isOverUI(mx, my) || ctx.selection.isOverOverlay(mx, my)) {
+                ctx.renderer.setPlacementGhost(false, null);
+            } else {
+                Vector3f pos = ctx.pick.getClickWorldPos(mx, my);
+                ctx.magnetIfEnabled(pos, mx, my);
+                ctx.snapIfEnabled(pos);
+                ctx.selection.crosshairPos.set(pos);
+                ctx.selection.crosshairValid = true;
+                ctx.renderer.setPlacementGhost(true, pos);
+            }
         } else if (!ctx.selection.crosshairValid && ctx.selection.selectedVertex >= 0) {
             Vertex sv = data.vertices.get(ctx.selection.selectedVertex);
             if (sv != null) ctx.selection.crosshairPos.set(sv.x, sv.y, sv.z);

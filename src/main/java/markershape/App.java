@@ -75,6 +75,8 @@ public class App {
         glfwSetCharCallback(window, (w, codepoint) -> {
             if (parametresUI != null && parametresUI.visible) {
                 parametresUI.handleChar(codepoint);
+            } else if (editor != null) {
+                editor.handleChar(codepoint);
             }
         });
         glfwSetFramebufferSizeCallback(window, (w, w2, h2) -> {
@@ -92,7 +94,7 @@ public class App {
                     if (yo < 0) editor.editorUI.entityList.pageNext();
                     else editor.editorUI.entityList.pagePrev();
                 } else {
-                    editor.camera.zoom((float) yo);
+                    editor.camera.zoomToward((float) yo, mouseX, mouseY);
                 }
             }
         });
@@ -103,27 +105,32 @@ public class App {
         });
 
         glfwSetMouseButtonCallback(window, (w, btn, action, mods) -> {
-            if (btn != GLFW_MOUSE_BUTTON_LEFT) return;
-            if (action != GLFW_PRESS) return;
             if (parametresUI != null && parametresUI.visible) {
-                parametresUI.click(mouseX, mouseY);
-            } else if (inMenu) {
-                String clicked = menuUI.clickShape(mouseX, mouseY);
-                if (clicked != null) {
-                    editor.currentFile = clicked;
-                    editor.loadShape(clicked);
-                    applyConfig();
-                    editor.setSize(width, height);
-                    editor.camera.setSize(width, height);
-                    inMenu = false;
-                    return;
+                if (btn == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+                    parametresUI.click(mouseX, mouseY);
+                return;
+            }
+            if (inMenu) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+                    String clicked = menuUI.clickShape(mouseX, mouseY);
+                    if (clicked != null) {
+                        editor.currentFile = clicked;
+                        editor.loadShape(clicked);
+                        applyConfig();
+                        editor.setSize(width, height);
+                        editor.camera.setSize(width, height);
+                        inMenu = false;
+                        return;
+                    }
+                    if (menuUI.isParametresClicked(mouseX, mouseY)) return;
+                    if (menuUI.isQuitterClicked(mouseX, mouseY)) {
+                        glfwSetWindowShouldClose(window, true);
+                        return;
+                    }
                 }
-                if (menuUI.isParametresClicked(mouseX, mouseY)) return;
-                if (menuUI.isQuitterClicked(mouseX, mouseY)) {
-                    glfwSetWindowShouldClose(window, true);
-                    return;
-                }
-            } else if (editor != null) {
+                return;
+            }
+            if (editor != null) {
                 editor.onMouseButton(btn, action, mouseX, mouseY);
             }
         });
@@ -167,9 +174,12 @@ public class App {
 
             editor.camera.setZoomSpeed(cfg.getFloat("zoomSpeed"));
             editor.camera.setOrbitSpeed(cfg.getFloat("orbitSpeed"));
+            editor.camera.setFront(cfg.getFloat("frontYaw"), cfg.getFloat("frontPitch"));
 
             editor.editorUI.setSnapEnabled(cfg.getBool("snapEnabled"));
             editor.editorUI.setSnapStep(cfg.getFloat("snapStep"));
+            editor.editorUI.setMagnetEnabled(cfg.getBool("magnetEnabled"));
+            editor.editorUI.setMagnetRadius(cfg.getFloat("magnetRadius"));
         }
 
         BlurBackground.transparentUI = cfg.getBool("transparentUI");
@@ -189,6 +199,7 @@ public class App {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             if (parametresUI != null && parametresUI.visible || inMenu) {
+                editor.renderer.hideTransientOverlays();
                 view.set(editor.camera.getViewMatrix());
                 projection.set(editor.camera.getProjection());
                 editor.renderer.render(view, projection);

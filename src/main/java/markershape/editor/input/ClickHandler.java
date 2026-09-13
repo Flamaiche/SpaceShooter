@@ -87,12 +87,29 @@ public class ClickHandler {
 
     private void handleViewClick(float mx, float my) {
         if (ctx.renderer.getShapeData() == null) return;
-        if (ctx.creatingVertex) { vertex.create(mx, my); return; }
+
+        int vertId = -1;
+        if (ctx.creatingVertex) {
+            vertId = ctx.pick.findVisibleVertexAt(mx, my);
+            if (vertId >= 0) {
+                if (ctx.edgeFirstVertex >= 0 && ctx.edgeFirstVertex != vertId) {
+                    edge.create(ctx.edgeFirstVertex, vertId);
+                    ctx.edgeFirstVertex = vertId;
+                } else if (ctx.edgeFirstVertex < 0) {
+                    ctx.edgeFirstVertex = vertId;
+                    ctx.selection.selectVertex(vertId);
+                }
+                return;
+            }
+            vertex.create(mx, my);
+            ctx.edgeFirstVertex = ctx.selection.selectedVertex;
+            return;
+        }
 
         // 1. Pick visible vertex (depth-checked)
-        int vertId = ctx.pick.findVisibleVertexAt(mx, my);
-        if (vertId >= 0) {
-            vertex.handleClick(mx, my, vertId, picked -> {
+        int vertId2 = ctx.pick.findVisibleVertexAt(mx, my);
+        if (vertId2 >= 0) {
+            vertex.handleClick(mx, my, vertId2, picked -> {
                 if (ctx.creatingEdge) edge.onVertexPicked(picked);
                 else ctx.selection.selectVertex(picked);
             });

@@ -17,6 +17,7 @@ public class VertexAction {
         if (data == null) return;
         ctx.undoredo.snapshot(data);
         Vector3f pos = ctx.pick.getClickWorldPos(mx, my);
+        ctx.magnetIfEnabled(pos, mx, my);
         ctx.snapIfEnabled(pos);
         int newId = data.vertices.isEmpty() ? 0
             : data.vertices.keySet().stream().max(Integer::compareTo).get() + 1;

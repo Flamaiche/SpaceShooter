@@ -115,11 +115,15 @@ public class ConfigParametres {
         cp.valeurs.addProperty("gridVisible", true);
         cp.valeurs.addProperty("snapEnabled", false);
         cp.valeurs.addProperty("snapStep", 1.0);
+        cp.valeurs.addProperty("magnetEnabled", false);
+        cp.valeurs.addProperty("magnetRadius", 14f);
         cp.valeurs.addProperty("axisX", true);
         cp.valeurs.addProperty("axisY", true);
         cp.valeurs.addProperty("axisZ", true);
         cp.valeurs.addProperty("zoomSpeed", 0.5);
         cp.valeurs.addProperty("orbitSpeed", 2.0);
+        cp.valeurs.addProperty("frontYaw", 0f);
+        cp.valeurs.addProperty("frontPitch", -30f);
         cp.categories = defaultCategories();
         return cp;
     }
@@ -167,6 +171,8 @@ public class ConfigParametres {
         grille.params.add(param("gridVisible", "Grille visible", "bool", 0, 0, 0));
         grille.params.add(param("snapEnabled", "Accrochage actif", "bool", 0, 0, 0));
         grille.params.add(param("snapStep", "Pas de snap", "float", 0.1f, 5, 0.1f));
+        grille.params.add(param("magnetEnabled", "Aimantation actif", "bool", 0, 0, 0));
+        grille.params.add(param("magnetRadius", "Rayon aimantation", "float", 1f, 60f, 1f));
         grille.params.add(param("axisX", "Axe X", "bool", 0, 0, 0));
         grille.params.add(param("axisY", "Axe Y", "bool", 0, 0, 0));
         grille.params.add(param("axisZ", "Axe Z", "bool", 0, 0, 0));

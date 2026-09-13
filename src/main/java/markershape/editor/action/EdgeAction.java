@@ -41,9 +41,13 @@ public class EdgeAction {
             ctx.edgeFirstVertex = vertexId;
         } else {
             create(ctx.edgeFirstVertex, vertexId);
-            ctx.edgeFirstVertex = -1;
-            ctx.creatingEdge = false;
-            ctx.ui.setActiveMode(-1);
+            if (ctx.edgeFirstVertex != vertexId) {
+                ctx.edgeFirstVertex = vertexId;
+            } else {
+                ctx.edgeFirstVertex = -1;
+                ctx.creatingEdge = false;
+                ctx.ui.setActiveMode(-1);
+            }
         }
     }
 }
