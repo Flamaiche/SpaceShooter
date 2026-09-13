@@ -14,15 +14,22 @@ public class ClickHandler {
     private final EdgeAction edge;
     private final DeleteAction del;
     private final ShapeIO io;
+    private final ShapeTools tools;
 
     public ClickHandler(Context ctx, HoverManager hover, VertexAction vertex,
                         EdgeAction edge, DeleteAction del, ShapeIO io) {
+        this(ctx, hover, vertex, edge, del, io, null);
+    }
+
+    public ClickHandler(Context ctx, HoverManager hover, VertexAction vertex,
+                        EdgeAction edge, DeleteAction del, ShapeIO io, ShapeTools tools) {
         this.ctx = ctx;
         this.hover = hover;
         this.vertex = vertex;
         this.edge = edge;
         this.del = del;
         this.io = io;
+        this.tools = tools;
     }
 
     private boolean isCtrlDown() {
@@ -83,6 +90,10 @@ public class ClickHandler {
         else if (newResult == -2) return;
 
         ctx.ui.clickFilter(mx, my);
+
+        int toolResult = ctx.ui.clickTools(mx, my);
+        if (toolResult == -2) return;
+        if (toolResult >= 0) { handleTool(toolResult); return; }
 
         int elResult = ctx.ui.clickEntityList(mx, my);
         if (elResult == -2) return;
@@ -190,6 +201,7 @@ public class ClickHandler {
         if (ctx.ui.isConfirmSaveVisible()) { ctx.ui.closeConfirmSave(); return; }
         if (ctx.help != null && ctx.help.isVisible()) { ctx.help.hide(); return; }
         if (ctx.ui.newMenu.isOpen()) { ctx.ui.newMenu.close(); return; }
+        if (ctx.ui.isToolsOpen()) { ctx.ui.closeToolsPal(); return; }
         if (ctx.ui.filter.isOpen()) { ctx.ui.filter.setOpen(false); return; }
         if (ctx.creatingVertex || ctx.creatingEdge) { ctx.exitModes(); ctx.ui.setActiveMode(-1); return; }
         if (ctx.selection.selectedVertex >= 0 || ctx.selection.selectedEdge >= 0) {
@@ -246,5 +258,45 @@ public class ClickHandler {
         ctx.edgeFirstVertex = -1; ctx.creatingVertex = false;
         ctx.ui.closeNewMenu(); ctx.selection.hideOverlays();
         ctx.selection.reset();
+    }
+
+    private boolean hasVertexSelection() {
+        return ctx.selection.selectedVertex >= 0 || !ctx.selection.multiVertices.isEmpty();
+    }
+
+    private boolean hasEdgeSelection() {
+        return ctx.selection.selectedEdge >= 0 || !ctx.selection.multiEdges.isEmpty();
+    }
+
+    /** Dispatches a tool palette row to the corresponding action. */
+    private void handleTool(int tool) {
+        if (ctx.renderer.getShapeData() == null) return;
+        switch (tool) {
+            case markershape.editor.ui.menu.ToolPalette.TOOL_SELECT -> {
+                ctx.exitModes();
+                ctx.ui.setActiveMode(-1);
+                ctx.ui.closeNewMenu();
+            }
+            case markershape.editor.ui.menu.ToolPalette.TOOL_VERTEX -> onNewVertex();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_EDGE -> onNewEdge();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_SPLIT -> {
+                if (hasEdgeSelection()) {
+                    tools.splitEdge(ctx.selection.selectedEdge >= 0
+                        ? ctx.selection.selectedEdge : ctx.selection.multiEdges.first());
+                } else {
+                    System.out.println("[MarkerShape] Subdiviser demande une arete selectionnee");
+                }
+            }
+            case markershape.editor.ui.menu.ToolPalette.TOOL_EXTRUDE -> tools.extrudeSelectedEdge();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_FILL -> tools.fillSelection();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_WELD -> tools.weldSelected();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_DUPLICATE -> tools.duplicateSelected();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_COPY -> tools.copySelected();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_PASTE -> tools.pasteSelected();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_CLEAN ->
+                System.out.println("[MarkerShape] " + tools.cleanupShape());
+            case markershape.editor.ui.menu.ToolPalette.TOOL_HELP -> ctx.help.toggle();
+            default -> { }
+        }
     }
 }

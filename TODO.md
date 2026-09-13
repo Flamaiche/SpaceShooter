@@ -208,8 +208,10 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
       avec undo/redo (snapshot avant nettoyage)
 
 #### P4e. Nouveaux outils & meilleur choix de touches
-- [ ] Palette d'outils dans l'UI (barre d'outils dédiée) : Sélection, Vertex, Arête,
-      Tracé (face), Rubber-band, Extrude, Clean — mode actif mis en évidence
+- [x] Palette d'outils dans l'UI (bouton "Outils" + ToolPalette) : Sélection,
+      Vertex, Arête, Subdiviser, Extruder, Remplir, Fusionner, Dupliquer,
+      Copier, Coller, Nettoyer, Aide — mode actif mis en évidence (> en marge),
+      ouverture/fermeture croisées New/Outils/Filtre + Échap
 - [x] Mapping des touches révisé et documenté :
       - [x] `Ctrl+C` presse-papier (coleur Ctrl+D distinct) — `C` réservé clone MT
       - [x] `S` subdivise / `E` extrude / `F` fill (aretes selec) sinon front /
