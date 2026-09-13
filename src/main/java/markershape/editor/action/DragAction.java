@@ -4,8 +4,13 @@ import markershape.editor.Context;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
+/** Dragging: moves a vertex — or the whole multi-selection group — on the screen plane. */
 public class DragAction {
     private final Context ctx;
     public int dragVertexId = -1;
@@ -18,6 +23,9 @@ public class DragAction {
      */
     public int axis = 0;
 
+    private final ArrayList<Integer> group = new ArrayList<>();
+    private final HashMap<Integer, Vector3f> origins = new HashMap<>();
+
     public DragAction(Context ctx) { this.ctx = ctx; }
     public boolean isDragging() { return dragVertexId >= 0; }
 
@@ -27,6 +35,20 @@ public class DragAction {
         ctx.undoredo.snapshot(data);
         Vertex v = data.vertices.get(id);
         if (v == null) return;
+
+        group.clear();
+        origins.clear();
+        if (ctx.selection.multiVertices.contains(id)) {
+            group.addAll(ctx.selection.multiVertices);
+        } else {
+            group.add(id);
+        }
+        for (int gid : new ArrayList<>(group)) {
+            Vertex gv = data.vertices.get(gid);
+            if (gv == null) { group.remove((Integer) gid); continue; }
+            origins.put(gid, new Vector3f(gv.x, gv.y, gv.z));
+        }
+
         dragVertexId = id;
         dragStartMX = mx;
         dragStartMY = my;
@@ -42,8 +64,6 @@ public class DragAction {
     public void update(float mx, float my) {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null || dragVertexId < 0) return;
-        Vertex v = data.vertices.get(dragVertexId);
-        if (v == null) return;
 
         org.joml.Vector3f startWorld = ctx.pick.unprojectAtDepth((float) dragStartMX, (float) dragStartMY, dragNdcZ);
         org.joml.Vector3f curWorld = ctx.pick.unprojectAtDepth(mx, my, dragNdcZ);
@@ -57,18 +77,25 @@ public class DragAction {
             float proj = dx * ax + dy * ay + dz * az;
             dx = proj * ax; dy = proj * ay; dz = proj * az;
         }
-        v.x = dragOrigPos.x + dx;
-        v.y = dragOrigPos.y + dy;
-        v.z = dragOrigPos.z + dz;
-        org.joml.Vector3f snapped = new org.joml.Vector3f(v.x, v.y, v.z);
-        ctx.snapIfEnabled(snapped);
-        v.x = snapped.x; v.y = snapped.y; v.z = snapped.z;
-        ctx.selection.crosshairPos.set(v.x, v.y, v.z);
+        for (int gid : group) {
+            Vertex gv = data.vertices.get(gid);
+            if (gv == null) continue;
+            Vector3f o = origins.get(gid);
+            if (o == null) continue;
+            org.joml.Vector3f p = new org.joml.Vector3f(o.x + dx, o.y + dy, o.z + dz);
+            ctx.snapIfEnabled(p);
+            gv.x = p.x; gv.y = p.y; gv.z = p.z;
+        }
+        Vertex v = data.vertices.get(dragVertexId);
+        if (v != null) ctx.selection.crosshairPos.set(v.x, v.y, v.z);
     }
 
     public void end() {
         dragVertexId = -1;
         ctx.selection.crosshairValid = false;
+        group.clear();
+        origins.clear();
         ctx.renderer.rebuild();
+        ctx.selection.refreshSelectionVisual();
     }
 }

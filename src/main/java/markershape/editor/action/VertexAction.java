@@ -21,11 +21,30 @@ public class VertexAction {
         ctx.snapIfEnabled(pos);
         int newId = data.vertices.isEmpty() ? 0
             : data.vertices.keySet().stream().max(Integer::compareTo).get() + 1;
-        Vertex v = new Vertex(newId, pos.x, pos.y, pos.z, 1f, 1f, 1f);
+        markershape.config.ConfigParametres cfg = markershape.config.ConfigParametres.get();
+        Vertex v = new Vertex(newId, pos.x, pos.y, pos.z,
+            cfg.getFloat("defaultVertexColorR"), cfg.getFloat("defaultVertexColorG"), cfg.getFloat("defaultVertexColorB"));
         data.addVertex(v);
         ctx.selection.selectVertex(newId);
         ctx.renderer.rebuild();
         learngl.LogFile.logf("[MarkerShape] created vertex %d at (%.3f, %.3f, %.3f)", newId, pos.x, pos.y, pos.z);
+    }
+
+    /** Creates a co-located sibling vertex at the same position as an existing one. */
+    public void createSiblingAt(int sourceId) {
+        ShapeData data = ctx.renderer.getShapeData();
+        if (data == null) return;
+        Vertex src = data.vertices.get(sourceId);
+        if (src == null) return;
+        ctx.undoredo.snapshot(data);
+        int newId = data.vertices.isEmpty() ? 0
+            : data.vertices.keySet().stream().max(Integer::compareTo).get() + 1;
+        Vertex v = new Vertex(newId, src.x, src.y, src.z, src.r, src.g, src.b);
+        data.addVertex(v);
+        ctx.selection.selectVertex(newId);
+        ctx.renderer.rebuild();
+        learngl.LogFile.logf("[MarkerShape] created sibling vertex %d at (%.3f, %.3f, %.3f)",
+            newId, src.x, src.y, src.z);
     }
 
     public void handleClick(float mx, float my, int vertexId, IntConsumer onPicked) {

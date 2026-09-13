@@ -152,22 +152,21 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
 #### P4a. Sommets (création gestuelle)
 - [ ] Créer un sommet en cliquant-glissant (drag depuis le vide → posé au release,
       avec ghost + snap + aimantation déjà en place)
-- [ ] Ajouter un sommet PARMI un point déjà mis : en mode Vertex, cliquer sur un
-      sommet existant avec un modificateur (ex. MAJ+clic) → pose un sommet frère
-      co-localisé à la même position (badge "Also", SiblingPicker déjà en place)
-- [ ] Subdivision d'arête : sélectionner une arête → touche S (ou outil) → nouveau
-      sommet au milieu, l'arête est remplacée par deux arêtes (faces mises à jour)
-- [ ] Choisir la couleur au moment de la création (couleur courante via l'overlay
-      ou valeurs par défaut dans parametres.json, ex. `defaultVertexColor`)
-- [ ] Ctrl+D : dupliquer le(s) sommet(s) sélectionné(s) offsetés (copie + sélection
+- [x] Ajouter un sommet PARMI un point déjà mis : en mode Vertex, MAJ+clic sur un
+      sommet existant → pose un sommet frère co-localisé à la même position
+- [x] Subdivision d'arête : sélectionner une arête → touche S → nouveau
+      sommet au milieu, l'arête est remplacée par deux arêtes (faces subdivisées)
+- [x] Choisir la couleur au moment de la création (`defaultVertexColorR/G/B`
+      dans parametres.json, appliquée aux sommets posés au clic)
+- [x] Ctrl+D : dupliquer le(s) sommet(s) sélectionné(s) offsetés (copie + sélection
       de la copie)
-- [ ] Weld/fusion : sélection de 2+ sommets (voir sélection multiple) → fusion en
-      une position (moyenne ou position du premier) avec réunion des arêtes
+- [x] Weld/fusion : sélection de 2+ sommets → touche M → fusion en position
+      moyenne (couleur moyennée) avec réunion des arêtes / retrait des loops
 - [ ] Snap/déplacement en chaque point du drag : afficher les coordonnées live dans
       l'overlay pendant le drag (pas seulement au release)
 
 #### P4b. Arêtes & Faces (tracé multidés)
-- [ ] Création d'arêtes à la volée pendant le placement de points : garder le mode
+- [x] Création d'arêtes à la volée pendant le placement de points : garder le mode
       Vertex actif et relier les points posés (chaîne existante) avec GHOST visible
 - [ ] Création de face à partir de points que l'on place : cliquer N points (mode
       "Tracé") → la face se ferme au clic sur le premier point (ou touche Entrée) →
@@ -177,44 +176,47 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
 - [ ] Création d'arêtes par rubber-band : clic-gauche maintenu sur un sommet,
       survoler le sommet cible → prévisualisation de l'arête (ghost), relâcher =
       création
-- [ ] Extrude : sélectionner une arête → touche E → clic pour poser les 2 sommets
-      dupliqués décalés → arêtes + faces créées automatiquement
-- [ ] Fill : sélectionner 3+ arêtes formant un contour → touche F (ou corbeille
-      "Fill") → crée les faces internes (triangulation fan/ear-clip)
+- [x] Extrude : sélectionner une arête → touche E → les 2 sommets sont dupliqués
+      et décalés (normal de face si possible), arêtes + faces créées automatiquement
+- [x] Fill : sélectionner 3+ arêtes formant un contour fermé → touche F → crée les
+      faces internes (triangulation fan)
 
 #### P4c. Modification plus facile de TOUT le reste
-- [ ] Sélection multiple : Ctrl+clic pour ajouter/retirer un élément, clic-drag pour
-      le marquee/boîte de sélection (cadre 2D → prend les sommets/arêtes inclus)
-- [ ] Déplacement groupé : drag d'un sommet sélectionné → tout le groupe suit
+- [x] Sélection multiple : Ctrl+clic pour ajouter/retirer un élément, clic sur un
+      membre = le rend primaire, Ctrl+clic vide / clic vide = tout désélectionner,
+      Ctrl+A = tout sélectionner
+- [ ] Marquee/boîte de sélection (cadre 2D → prend les sommets inclus), reste à faire
+- [x] Déplacement groupé : drag d'un sommet sélectionné → tout le groupe suit
       (tous les sommets de la sélection, axes X/Y/Z toujours valables)
-- [ ] Suppression groupée (Suppr/Backspace sur la sélection multiple)
+- [x] Suppression groupée (Suppr/Backspace sur la sélection multiple)
 - [ ] Panel de sélection multi (liste en bas à gauche) : liste toutes les entités
       sélectionnées avec cocheboks, choix couleurs/modes en masse
-- [ ] Copy/paste : Ctrl+C copie la sélection, Ctrl+V recolle au même offset
-      à la position du curseur (clone via presse-papier interne)
+- [x] Copy/paste : Ctrl+C copie la sélection, Ctrl+V recolle offseté
+      (clone via presse-papier interne de l'éditeur)
 - [ ] Pipette couleur : clic droit sur un sommet coloré → sa couleur devient la
       couleur courante (application aux prochaines créations/sélections)
-- [ ] Raccourcis clavier centralisés et documentés (voir `CommandesEditeur.txt`),
-      touche H = aide en jeu
+- [x] Raccourcis clavier centralisés et documentés (voir `CommandesEditeur.txt`),
+      touche H = aide en jeu (HelpOverlay)
 
 #### P4d. Outil Clean (nettoyage automatique)
-- [ ] Bouton/touche Clean (ex. `K`) : supprime tout ce qui ne sert à rien
-      - [ ] Sommets orphelins (aucune arête ne les référence)
-      - [ ] Arêtes isolées/noires (aucune face ne les utilise déjà) selon le mode
-      - [ ] Faces invalides (indices inexistants, arêtes manquantes → cleanupFaces)
-      - [ ] Sommets frères en double à la même position (fusion, optionnel)
-- [ ] Afficher un compte-rendu avant suppression (ex. "3 sommets, 1 arête retirés")
+- [x] Touche `K` : supprime tout ce qui ne sert à rien
+      - [x] Sommets orphelins (aucune arête ne les référence)
+      - [x] Arêtes isolées (les 2 extrémités ne portent que cette arête)
+      - [x] Faces invalides (indices inexistants, arêtes manquantes → cleanupFaces)
+      - [ ] Sommets frères en double à la même position (fusion, optionnel — rapporté)
+- [x] Compte-rendu après suppression ("N sommets, M arêtes, X faces" + doublons)
       avec undo/redo (snapshot avant nettoyage)
 
 #### P4e. Nouveaux outils & meilleur choix de touches
 - [ ] Palette d'outils dans l'UI (barre d'outils dédiée) : Sélection, Vertex, Arête,
       Tracé (face), Rubber-band, Extrude, Clean — mode actif mis en évidence
-- [ ] Revoir le mapping des touches (cohérence entre outils et modifiers) :
-      - [ ] `C` copier ("Clone" décrit en moyen terme) vs `Ctrl+C` presse-papier
-      - [ ] `E` extrude vs `S` subdivision vs `F` fill vs `F` front (conflit !)
+- [x] Mapping des touches révisé et documenté :
+      - [x] `Ctrl+C` presse-papier (coleur Ctrl+D distinct) — `C` réservé clone MT
+      - [x] `S` subdivise / `E` extrude / `F` fill (aretes selec) sinon front /
+            `M` weld — conflits résolus (F double rôle + Ctrl+F front forcé)
       - [ ] `G` move (grab) avec axes X/Y/Z comme Blender vs drag direct actuel
-      - [ ] `H` aide + tous les raccourcis affichables en jeu
-- [ ] Undo/redo par outil (chaque action d'outil fait un snapshot atomique)
+      - [x] `H` aide + tous les raccourcis affichables en jeu (HelpOverlay)
+- [x] Undo/redo par outil (chaque action d'outil fait un snapshot atomique)
 
 ### P5. Vecteur « avant » = caméra par défaut / 1ère personne (RFC 13/09)
 Vision : le vecteur avant actuel (touche F / `frontYaw`/`frontPitch`) devient la

@@ -26,6 +26,7 @@ public class Editor {
     public final VertexAction vertex;
     public final DeleteAction del;
     public final ShapeIO io;
+    public final ShapeTools tools;
     public final HoverManager hover;
     public final InputManager input;
 
@@ -73,8 +74,10 @@ public class Editor {
         edge = new EdgeAction(ctx, faceUtils);
         vertex = new VertexAction(ctx);
         del = new DeleteAction(ctx, faceUtils);
+        tools = new ShapeTools(ctx, faceUtils);
         hover = new HoverManager(ctx);
-        input = new InputManager(ctx, hover, vertex, edge, del, io, camera);
+        ctx.help = new markershape.editor.ui.overlay.HelpOverlay(uiResources);
+        input = new InputManager(ctx, hover, vertex, edge, del, io, tools, camera);
 
         vertexOverlay.setPreEditCallback(() -> ctx.undoredo.snapshot(renderer.getShapeData()));
         edgeOverlay.setPreEditCallback(() -> ctx.undoredo.snapshot(renderer.getShapeData()));
@@ -203,6 +206,10 @@ private float[] bounds(markershape.shape.ShapeData data) {
             ctx.selection.siblingPicker.render();
         }
 
+        if (ctx.help != null && ctx.help.isVisible()) {
+            ctx.help.render();
+        }
+
         editorUI.renderEntityList();
     }
 
@@ -217,6 +224,7 @@ private float[] bounds(markershape.shape.ShapeData data) {
         ctx.ui.closeNewMenu();
         ctx.ui.closeConfirmSave();
         ctx.ui.setActiveMode(-1);
+        if (ctx.help != null) ctx.help.hide();
         if (menuUI != null) menuUI.refresh();
     }
 
