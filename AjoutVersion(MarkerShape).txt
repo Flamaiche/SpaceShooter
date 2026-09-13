@@ -16,6 +16,7 @@ Version : (A:Alpha)
         - EdgeOverlay + hover line 2D sur les arêtes
         - points invisibles par défaut, apparition au survol (comme les arêtes)
         - filtre popup (Faces/Arêtes/Points + sliders taille pts/largeur lignes/alpha faces)
+        - TODOs filtres ajoutés
         - VertexOverlay éditable (X/Y/Z/R/G/B) avec boutons [-]/[+]
         - EdgeOverlay éditable (mode toggle, épaisseur [+]/[-])
         - Edge VBO reconstruit chaque frame pour refléter les couleurs des sommets
@@ -50,7 +51,7 @@ Version : (A:Alpha)
         - crosshair suit la souris en mode création Vertex (preview placement)
         - bouton X (fermeture) cliquable sur VertexOverlay et EdgeOverlay
         - seuil de picking d'arête passé de 8 à 14 pixels
-        - backup/session-20260607 créé
+        - backup/dev supprimé, backup/session-20260607 créé
     18/06/2026:
         - EntityListPanel (panneau latéral listant sommets/arêtes avec onglets, survol→glow 3D, clic→sélection)
         - fond flou (BlurBackground) derrière les overlays, les menus et l'EntityListPanel
@@ -101,3 +102,14 @@ Version : (A:Alpha)
         - lisibilité du texte de la liste (échelle alignée sur le reste de l'UI, labels ASCII "Aretes"/"->")
         - bouton New : couleur alignée sur les autres boutons (plus de texte blanc)
         - fix popups save confirm + revert settings + couleurs boutons
+[V1.2]
+    13/09/2026:
+        - session de validation + corrections de bugs
+            - rendu sans faces (points/arêtes dessinés tant que ShapeData existe, même sans shape construite)
+            - undo/redo clavier centralisé (Ctrl+Z, alias Ctrl+W pour AZERTY) + restauration de la sélection après undo/redo
+            - popup "Confirmer la sauvegarde ?" strictement modale (les clics n'atteignent plus l'éditeur)
+            - pose continue des vertices sans sortir du mode création
+            - Esc dans Paramètres : fermeture sans modification / retour sous-menu / popup confirm + "Non" → rollback
+            - ouverture/fermeture propre du panneau filtre
+            - pas de grille appliqué au chargement d'une shape
+            - fusion com-d → dev : suppression de la migration ui/framework, garde de la refacto UIElement/Panel/UIResources
