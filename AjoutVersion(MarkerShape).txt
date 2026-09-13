@@ -113,3 +113,6 @@ Version : (A:Alpha)
             - ouverture/fermeture propre du panneau filtre
             - pas de grille appliqué au chargement d'une shape
             - fusion com-d → dev : suppression de la migration ui/framework, garde de la refacto UIElement/Panel/UIResources
+                - UIElement/Panel/UIResources centralisés (shaders, VAO/VBO, rendu et clics) sur toute l'UI (EditorUI, Overlays, FilterPanel, EntityListPanel, NewMenu, ParametresUI, ConfirmSavePopup, SiblingPicker, Button)
+                - retrait de la géométrie dupliquée et du code mort des composants UI
+                - fin de centralisation : texte via UIResources, hiérarchie UIElement étendue (drawBackground/renderContent/renderText)
