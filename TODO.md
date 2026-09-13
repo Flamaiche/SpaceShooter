@@ -164,18 +164,21 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
       moyenne (couleur moyennée) avec réunion des arêtes / retrait des loops
 - [ ] Snap/déplacement en chaque point du drag : afficher les coordonnées live dans
       l'overlay pendant le drag (pas seulement au release)
+- [x] Coordonnées live dans l'overlay PENDANT le drag (rendu temps réel) + G grab
+      (la sélection suit le curseur, axes X/Y/Z, LMB=valider, ESC=annuler)
 
 #### P4b. Arêtes & Faces (tracé multidés)
 - [x] Création d'arêtes à la volée pendant le placement de points : garder le mode
       Vertex actif et relier les points posés (chaîne existante) avec GHOST visible
-- [ ] Création de face à partir de points que l'on place : cliquer N points (mode
+- [x] Création de face à partir de points que l'on place : cliquer N points (mode
       "Tracé") → la face se ferme au clic sur le premier point (ou touche Entrée) →
       triangulation automatique (fan/ear-clip) + détection faces existantes
-- [ ] Prévisualiser la face potentielle pendant le tracé (contour triangulé apparaît
-      avant validation comme les arêtes ghost)
-- [ ] Création d'arêtes par rubber-band : clic-gauche maintenu sur un sommet,
-      survoler le sommet cible → prévisualisation de l'arête (ghost), relâcher =
-      création
+      (touche T / palette Outils → Tracé, contour orange prévisualisé)
+- [x] Prévisualiser la face potentielle pendant le tracé (contour apparaît avant
+      validation : polyline du loop + fermeture vers le curseur)
+- [x] Création d'arêtes par rubber-band : MAJ + clic-gauche maintenu sur un sommet,
+      survoler le sommet cible → prévisualisation de l'arête (ligne cyan), relâcher =
+      création (le drag simple continue de déplacer)
 - [x] Extrude : sélectionner une arête → touche E → les 2 sommets sont dupliqués
       et décalés (normal de face si possible), arêtes + faces créées automatiquement
 - [x] Fill : sélectionner 3+ arêtes formant un contour fermé → touche F → crée les
@@ -185,7 +188,7 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
 - [x] Sélection multiple : Ctrl+clic pour ajouter/retirer un élément, clic sur un
       membre = le rend primaire, Ctrl+clic vide / clic vide = tout désélectionner,
       Ctrl+A = tout sélectionner
-- [ ] Marquee/boîte de sélection (cadre 2D → prend les sommets inclus), reste à faire
+- [x] Marquee/boîte de sélection (cadre 2D → prend les sommets inclus à la vue)
 - [x] Déplacement groupé : drag d'un sommet sélectionné → tout le groupe suit
       (tous les sommets de la sélection, axes X/Y/Z toujours valables)
 - [x] Suppression groupée (Suppr/Backspace sur la sélection multiple)
@@ -193,8 +196,8 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
       sélectionnées avec cocheboks, choix couleurs/modes en masse
 - [x] Copy/paste : Ctrl+C copie la sélection, Ctrl+V recolle offseté
       (clone via presse-papier interne de l'éditeur)
-- [ ] Pipette couleur : clic droit sur un sommet coloré → sa couleur devient la
-      couleur courante (application aux prochaines créations/sélections)
+- [x] Pipette couleur : clic droit (tap) sur un sommet coloré → sa couleur devient la
+      couleur courante (application aux prochaines créations)
 - [x] Raccourcis clavier centralisés et documentés (voir `CommandesEditeur.txt`),
       touche H = aide en jeu (HelpOverlay)
 
@@ -217,6 +220,8 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
       - [x] `S` subdivise / `E` extrude / `F` fill (aretes selec) sinon front /
             `M` weld — conflits résolus (F double rôle + Ctrl+F front forcé)
       - [ ] `G` move (grab) avec axes X/Y/Z comme Blender vs drag direct actuel
+      - [x] `G` grab (sélection suit le curseur, axes X/Y/Z, LMB=valider, ESC=cancel)
+            + `T` mode Tracé (face)
       - [x] `H` aide + tous les raccourcis affichables en jeu (HelpOverlay)
 - [x] Undo/redo par outil (chaque action d'outil fait un snapshot atomique)
 

@@ -24,7 +24,10 @@ public class Context {
 
     public boolean creatingVertex;
     public boolean creatingEdge;
+    public boolean creatingFace;
     public int edgeFirstVertex = -1;
+    /** Vertex ids placed during a "Tracé (face)" session, in placement order. */
+    public final java.util.ArrayList<Integer> traceVertices = new java.util.ArrayList<>();
 
     public Runnable onGoToMenu;
 
@@ -40,7 +43,9 @@ public class Context {
     public void exitModes() {
         creatingVertex = false;
         creatingEdge = false;
+        creatingFace = false;
         edgeFirstVertex = -1;
+        traceVertices.clear();
     }
 
     public boolean isInMode() { return creatingVertex || creatingEdge; }

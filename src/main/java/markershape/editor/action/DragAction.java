@@ -98,4 +98,20 @@ public class DragAction {
         ctx.renderer.rebuild();
         ctx.selection.refreshSelectionVisual();
     }
+
+    /** Cancels the drag, restoring every vertex to its pre-drag position. */
+    public void cancel() {
+        if (dragVertexId < 0) return;
+        ShapeData data = ctx.renderer.getShapeData();
+        if (data != null) {
+            for (var e : origins.entrySet()) {
+                Vertex v = data.vertices.get(e.getKey());
+                if (v != null) {
+                    Vector3f o = e.getValue();
+                    v.x = o.x; v.y = o.y; v.z = o.z;
+                }
+            }
+        }
+        end();
+    }
 }
