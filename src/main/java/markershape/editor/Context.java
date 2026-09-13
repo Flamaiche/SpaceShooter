@@ -2,11 +2,13 @@ package markershape.editor;
 
 import markershape.shape.render.ShapeRenderer;
 import markershape.editor.ui.EditorUI;
+import markershape.editor.ui.overlay.HelpOverlay;
 import org.joml.Vector3f;
 
 public class Context {
     public final ShapeRenderer renderer;
     public EditorUI ui;
+    public HelpOverlay help;
     public final UndoRedo undoredo;
     public final SelectionManager selection;
     public final PickUtils pick;

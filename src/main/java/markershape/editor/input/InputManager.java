@@ -16,6 +16,7 @@ public class InputManager {
     private final HoverManager hover;
     private final ClickHandler clicks;
     private final DragAction drag;
+    private final ShapeTools tools;
     private final EditorCamera camera;
     private final Set<Integer> pressedKeys = new HashSet<>();
     private boolean escDown, prevMouseLeft, mouseLeftDown;
@@ -29,10 +30,12 @@ public class InputManager {
     private int navMode = NAV_NONE;
 
     public InputManager(Context ctx, HoverManager hover, VertexAction vertex,
-                        EdgeAction edge, DeleteAction del, ShapeIO io, EditorCamera camera) {
+                        EdgeAction edge, DeleteAction del, ShapeIO io,
+                        ShapeTools tools, EditorCamera camera) {
         this.ctx = ctx;
         this.hover = hover;
         this.camera = camera;
+        this.tools = tools;
         this.drag = new DragAction(ctx);
         this.clicks = new ClickHandler(ctx, hover, vertex, edge, del, io);
     }
@@ -131,11 +134,13 @@ public class InputManager {
                 clicks.mouseClicked(mx, my);
                 return;
             }
-            int vert = ctx.pick.findVisibleVertexAt(mx, my);
-            if (vert >= 0 && !ctx.creatingVertex && !ctx.creatingEdge) {
-                pendingDragVertex = vert;
-                pressX = mx;
-                pressY = my;
+            if (!ctx.creatingVertex && !ctx.creatingEdge) {
+                int vert = ctx.pick.findVisibleVertexAt(mx, my);
+                if (vert >= 0) {
+                    pendingDragVertex = vert;
+                    pressX = mx;
+                    pressY = my;
+                }
             }
             clicks.mouseClicked(mx, my);
         } else {
@@ -150,7 +155,8 @@ public class InputManager {
             return;
         }
         if (pendingDragVertex < 0) return;
-        if (ctx.selection.selectedVertex != pendingDragVertex) { endDrag(); return; }
+        if (ctx.selection.selectedVertex != pendingDragVertex
+            && !ctx.selection.multiVertices.contains(pendingDragVertex)) { endDrag(); return; }
         if (ctx.selection.siblingPicker.isVisible()) { endDrag(); return; }
         float ddx = mx - pressX, ddy = my - pressY;
         if (ddx * ddx + ddy * ddy >= DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) {
@@ -189,17 +195,74 @@ public class InputManager {
         }
     }
 
+    private boolean hasVertexSelection() {
+        return ctx.selection.selectedVertex >= 0 || !ctx.selection.multiVertices.isEmpty();
+    }
+
+    private boolean hasEdgeSelection() {
+        return ctx.selection.selectedEdge >= 0 || !ctx.selection.multiEdges.isEmpty();
+    }
+
     public void handleKey(int key, int scancode, int action, int mods) {
         if (action != GLFW.GLFW_PRESS) return;
-        if ((mods & GLFW.GLFW_MOD_CONTROL) != 0) {
+        boolean ctrl = (mods & GLFW.GLFW_MOD_CONTROL) != 0;
+        boolean alt = (mods & GLFW.GLFW_MOD_ALT) != 0;
+        boolean shift = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
+
+        if (ctrl) {
             if (key == GLFW.GLFW_KEY_Z || key == GLFW.GLFW_KEY_W) {
-                if ((mods & GLFW.GLFW_MOD_SHIFT) != 0) clicks.redo();
+                if (shift) clicks.redo();
                 else clicks.undo();
                 return;
             }
+            if (key == GLFW.GLFW_KEY_Y) { clicks.redo(); return; }
             if (key == GLFW.GLFW_KEY_S) { clicks.save(); return; }
+            if (key == GLFW.GLFW_KEY_D) { tools.duplicateSelected(); return; }
+            if (key == GLFW.GLFW_KEY_C) { tools.copySelected(); return; }
+            if (key == GLFW.GLFW_KEY_V) { tools.pasteSelected(); return; }
+            if (key == GLFW.GLFW_KEY_A) { tools.selectAll(); return; }
+            if (key == GLFW.GLFW_KEY_F) {
+                camera.captureFront();
+                saveFrontToConfig();
+                System.out.printf("[MarkerShape] front capturé : yaw=%.1f pitch=%.1f%n",
+                    camera.getFrontYaw(), camera.getFrontPitch());
+                return;
+            }
         }
-        if ((key == GLFW.GLFW_KEY_F) && !drag.isDragging()) {
+
+        if (key == GLFW.GLFW_KEY_H) {
+            ctx.help.toggle();
+            return;
+        }
+
+        if (drag.isDragging()) {
+            if (key == GLFW.GLFW_KEY_X) { drag.axis = 1; return; }
+            if (key == GLFW.GLFW_KEY_Y) { drag.axis = 2; return; }
+            if (key == GLFW.GLFW_KEY_Z) { drag.axis = 3; return; }
+            if (key == GLFW.GLFW_KEY_G || key == GLFW.GLFW_KEY_ESCAPE) { drag.axis = 0; return; }
+        }
+
+        if (key == GLFW.GLFW_KEY_K) {
+            System.out.println("[MarkerShape] " + tools.cleanupShape());
+            return;
+        }
+        if (key == GLFW.GLFW_KEY_S && hasEdgeSelection()) {
+            tools.splitEdge(ctx.selection.selectedEdge >= 0 ? ctx.selection.selectedEdge : ctx.selection.multiEdges.first());
+            return;
+        }
+        if (key == GLFW.GLFW_KEY_E && hasEdgeSelection()) {
+            tools.extrudeSelectedEdge();
+            return;
+        }
+        if (key == GLFW.GLFW_KEY_M && hasVertexSelection()) {
+            tools.weldSelected();
+            return;
+        }
+        if (key == GLFW.GLFW_KEY_F) {
+            if (hasEdgeSelection() || alt) {
+                tools.fillSelection();
+                return;
+            }
             camera.captureFront();
             saveFrontToConfig();
             System.out.printf("[MarkerShape] front capturé : yaw=%.1f pitch=%.1f%n",
@@ -210,14 +273,8 @@ public class InputManager {
             resetViewToFront();
             return;
         }
-        if (drag.isDragging()) {
-            if (key == GLFW.GLFW_KEY_X) { drag.axis = 1; return; }
-            if (key == GLFW.GLFW_KEY_Y) { drag.axis = 2; return; }
-            if (key == GLFW.GLFW_KEY_Z) { drag.axis = 3; return; }
-            if (key == GLFW.GLFW_KEY_G || key == GLFW.GLFW_KEY_ESCAPE) { drag.axis = 0; return; }
-        }
         if ((key == GLFW.GLFW_KEY_DELETE || key == GLFW.GLFW_KEY_BACKSPACE)
-            && (ctx.selection.selectedVertex >= 0 || ctx.selection.selectedEdge >= 0))
+            && (hasVertexSelection() || hasEdgeSelection()))
             clicks.deleteSelected();
     }
 

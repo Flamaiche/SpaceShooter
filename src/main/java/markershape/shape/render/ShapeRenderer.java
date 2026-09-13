@@ -40,6 +40,10 @@ public class ShapeRenderer {
     private final GridRenderer grid = new GridRenderer();
 
     private int hoveredVertexId = -1;
+    private int selectedVertexId = -1;
+    private int selectedEdgeId = -1;
+    private final Set<Integer> multiVertexHighlight = new TreeSet<>();
+    private final Set<Integer> multiEdgeHighlight = new TreeSet<>();
     private boolean showFaces = true, showEdges = true, showPoints = true;
     private float pointSize = 5f, lineWidth = 3f, faceAlpha = 1f;
     private int screenW = 1280, screenH = 720;
@@ -152,8 +156,22 @@ public class ShapeRenderer {
         edgeHighlightRenderer.setHoveredVertex(id);
     }
     public void setHoveredEdge(int id) { edgeHighlightRenderer.setHoveredEdge(id); }
-    public void setSelectedEdge(int id) { edgeHighlightRenderer.setSelectedEdge(id); }
-    public void setSelectedVertex(int id) { edgeHighlightRenderer.setSelectedVertex(id); }
+    public void setSelectedEdge(int id) {
+        selectedEdgeId = id;
+        edgeHighlightRenderer.setSelectedEdge(id);
+    }
+    public void setSelectedVertex(int id) {
+        selectedVertexId = id;
+        edgeHighlightRenderer.setSelectedVertex(id);
+    }
+    public void setMultiVertexHighlight(Set<Integer> ids) {
+        multiVertexHighlight.clear();
+        if (ids != null) multiVertexHighlight.addAll(ids);
+    }
+    public void setMultiEdgeHighlight(Set<Integer> ids) {
+        multiEdgeHighlight.clear();
+        if (ids != null) multiEdgeHighlight.addAll(ids);
+    }
     public void setHoveredPositionIds(Set<Integer> ids) { edgeHighlightRenderer.setHoveredPositionIds(ids); }
     public void setCrosshair(boolean visible, org.joml.Vector3f pos) {
         crosshairRenderer.setVisible(visible);
@@ -234,18 +252,51 @@ public class ShapeRenderer {
                 edgeHighlightRenderer.render2D(shapeData, view, projection, screenW, screenH);
             }
 
+            // Multi-selected edges / vertices in 2D overlay (distinct cyan tint)
+            Matrix4f mvp = new Matrix4f(projection);
+            mvp.mul(view);
+            if (showEdges) {
+                for (int id : multiEdgeHighlight) {
+                    if (id == selectedEdgeId) continue;
+                    Edge me = shapeData.edges.get(id);
+                    if (me == null) continue;
+                    Vertex mva = shapeData.vertices.get(me.a);
+                    Vertex mvb = shapeData.vertices.get(me.b);
+                    if (mva == null || mvb == null) continue;
+                    Vector4f pa = new Vector4f(mva.x, mva.y, mva.z, 1f).mul(mvp);
+                    Vector4f pb = new Vector4f(mvb.x, mvb.y, mvb.z, 1f).mul(mvp);
+                    if (pa.w <= 0 || pb.w <= 0) continue;
+                    float ax = (pa.x / pa.w * 0.5f + 0.5f) * screenW;
+                    float ay = (1f - (pa.y / pa.w * 0.5f + 0.5f)) * screenH;
+                    float bx = (pb.x / pb.w * 0.5f + 0.5f) * screenW;
+                    float by = (1f - (pb.y / pb.w * 0.5f + 0.5f)) * screenH;
+                    shadow.drawEdge(ax, ay, bx, by, 0.55f, 0.9f, 1f, 0.9f, 3f);
+                }
+            }
+
             // Hovered vertex glow in 2D overlay
             if (showPoints && hoveredVertexId >= 0) {
                 Vertex v = shapeData.vertices.get(hoveredVertexId);
                 if (v != null) {
-                    Matrix4f mvp = new Matrix4f(projection);
-                    mvp.mul(view);
                     Vector4f p = new Vector4f(v.x, v.y, v.z, 1f).mul(mvp);
                     if (p.w > 0) {
                         float sx = (p.x / p.w * 0.5f + 0.5f) * screenW;
                         float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * screenH;
                         shadow.drawPoint(sx, sy, 1f, 1f, 0.6f, 1f, pointSize);
                     }
+                }
+            }
+
+            // Multi-selected vertex glows in 2D overlay
+            if (showPoints) {
+                for (int id : multiVertexHighlight) {
+                    Vertex v = shapeData.vertices.get(id);
+                    if (v == null) continue;
+                    Vector4f p = new Vector4f(v.x, v.y, v.z, 1f).mul(mvp);
+                    if (p.w <= 0) continue;
+                    float sx = (p.x / p.w * 0.5f + 0.5f) * screenW;
+                    float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * screenH;
+                    shadow.drawPoint(sx, sy, 0.55f, 0.9f, 1f, 1f, pointSize);
                 }
             }
 

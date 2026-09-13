@@ -16,21 +16,17 @@ public class DeleteAction {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
         ctx.undoredo.snapshot(data);
-        if (ctx.selection.selectedVertex >= 0) {
-            data.removeVertex(ctx.selection.selectedVertex);
-            faceUtils.cleanupFaces(data);
-            ctx.selection.selectedVertex = -1;
-            ctx.selection.vertexOverlay.hide();
-            ctx.renderer.rebuild();
-            learngl.LogFile.logf("[MarkerShape] deleted vertex (cascade)");
-        } else if (ctx.selection.selectedEdge >= 0) {
-            data.removeEdge(ctx.selection.selectedEdge);
-            faceUtils.cleanupFaces(data);
-            ctx.selection.selectedEdge = -1;
-            ctx.selection.edgeOverlay.hide();
-            ctx.renderer.rebuild();
-            learngl.LogFile.logf("[MarkerShape] deleted edge (cascade)");
-        }
+        java.util.TreeSet<Integer> vv = new java.util.TreeSet<>(ctx.selection.multiVertices);
+        if (vv.isEmpty() && ctx.selection.selectedVertex >= 0) vv.add(ctx.selection.selectedVertex);
+        java.util.TreeSet<Integer> ee = new java.util.TreeSet<>(ctx.selection.multiEdges);
+        if (ee.isEmpty() && ctx.selection.selectedEdge >= 0) ee.add(ctx.selection.selectedEdge);
+        if (vv.isEmpty() && ee.isEmpty()) return;
+        for (int id : vv) data.removeVertex(id);
+        for (int id : ee) data.removeEdge(id);
+        faceUtils.cleanupFaces(data);
+        ctx.selection.reset();
+        ctx.renderer.rebuild();
+        learngl.LogFile.logf("[MarkerShape] deleted %d vertices, %d edges (cascade)", vv.size(), ee.size());
     }
 
     public void deleteVertexFromOverlay() {
@@ -40,8 +36,7 @@ public class DeleteAction {
         if (ctx.selection.selectedVertex >= 0) {
             data.removeVertex(ctx.selection.selectedVertex);
             faceUtils.cleanupFaces(data);
-            ctx.selection.selectedVertex = -1;
-            ctx.selection.vertexOverlay.hide();
+            ctx.selection.reset();
             ctx.renderer.rebuild();
         }
     }
@@ -53,8 +48,7 @@ public class DeleteAction {
         if (ctx.selection.selectedEdge >= 0) {
             data.removeEdge(ctx.selection.selectedEdge);
             faceUtils.cleanupFaces(data);
-            ctx.selection.selectedEdge = -1;
-            ctx.selection.edgeOverlay.hide();
+            ctx.selection.reset();
             ctx.renderer.rebuild();
         }
     }

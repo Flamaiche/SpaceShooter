@@ -5,6 +5,7 @@ import markershape.editor.action.*;
 import markershape.editor.ui.control.EntityListPanel;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
+import org.lwjgl.glfw.GLFW;
 
 public class ClickHandler {
     private final Context ctx;
@@ -22,6 +23,16 @@ public class ClickHandler {
         this.edge = edge;
         this.del = del;
         this.io = io;
+    }
+
+    private boolean isCtrlDown() {
+        return GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
+            || GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
+    }
+
+    private boolean isShiftDown() {
+        return GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
+            || GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
     }
 
     public void mouseClicked(float mx, float my) {
@@ -92,6 +103,11 @@ public class ClickHandler {
         if (ctx.creatingVertex) {
             vertId = ctx.pick.findVisibleVertexAt(mx, my);
             if (vertId >= 0) {
+                if (isShiftDown()) {
+                    vertex.createSiblingAt(vertId);
+                    ctx.edgeFirstVertex = ctx.selection.selectedVertex;
+                    return;
+                }
                 if (ctx.edgeFirstVertex >= 0 && ctx.edgeFirstVertex != vertId) {
                     edge.create(ctx.edgeFirstVertex, vertId);
                     ctx.edgeFirstVertex = vertId;
@@ -109,22 +125,39 @@ public class ClickHandler {
         // 1. Pick visible vertex (depth-checked)
         int vertId2 = ctx.pick.findVisibleVertexAt(mx, my);
         if (vertId2 >= 0) {
-            vertex.handleClick(mx, my, vertId2, picked -> {
-                if (ctx.creatingEdge) edge.onVertexPicked(picked);
-                else ctx.selection.selectVertex(picked);
-            });
+            if (ctx.creatingEdge) {
+                vertex.handleClick(mx, my, vertId2, picked -> edge.onVertexPicked(picked));
+                return;
+            }
+            if (isCtrlDown()) {
+                ctx.selection.toggleVertexMulti(vertId2);
+                return;
+            }
+            if (ctx.selection.multiVertices.contains(vertId2)) {
+                vertex.handleClick(mx, my, vertId2, picked -> ctx.selection.makePrimaryVertex(picked));
+                return;
+            }
+            vertex.handleClick(mx, my, vertId2, picked -> ctx.selection.selectVertex(picked));
             return;
         }
 
         // 2. Pick visible edge (depth-checked)
         int edgeId = ctx.pick.pickVisibleEdge(mx, my);
         if (edgeId >= 0) {
+            if (isCtrlDown()) {
+                ctx.selection.toggleEdgeMulti(edgeId);
+                return;
+            }
+            if (ctx.selection.multiEdges.contains(edgeId)) {
+                ctx.selection.makePrimaryEdge(edgeId);
+                return;
+            }
             ctx.selection.selectEdge(edgeId);
             return;
         }
 
         // 3. Click near crosshair → select vertex at that position
-        if (ctx.selection.crosshairValid) {
+        if (ctx.selection.crosshairValid && !isCtrlDown()) {
             ShapeData data = ctx.renderer.getShapeData();
             if (data != null) {
                 for (Vertex v : data.vertices.values()) {
@@ -133,16 +166,29 @@ public class ClickHandler {
                         && v.z == ctx.selection.crosshairPos.z) {
                         if (ctx.pick.isNearCrosshair(mx, my, ctx.selection.crosshairPos, 40f)) {
                             ctx.selection.selectVertex(v.id);
+                            return;
                         }
                         break;
                     }
                 }
             }
         }
+
+        // 4. Empty space: clear the selection
+        if (isCtrlDown()) {
+            ctx.selection.multiVertices.clear();
+            ctx.selection.multiEdges.clear();
+            ctx.selection.selectedVertex = -1;
+            ctx.selection.selectedEdge = -1;
+            ctx.selection.refreshSelectionVisual();
+        } else {
+            ctx.selection.reset();
+        }
     }
 
     public void handleEscape() {
         if (ctx.ui.isConfirmSaveVisible()) { ctx.ui.closeConfirmSave(); return; }
+        if (ctx.help != null && ctx.help.isVisible()) { ctx.help.hide(); return; }
         if (ctx.ui.newMenu.isOpen()) { ctx.ui.newMenu.close(); return; }
         if (ctx.ui.filter.isOpen()) { ctx.ui.filter.setOpen(false); return; }
         if (ctx.creatingVertex || ctx.creatingEdge) { ctx.exitModes(); ctx.ui.setActiveMode(-1); return; }
