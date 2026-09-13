@@ -4,6 +4,7 @@ import gamegl.gestion.texte.Text;
 
 import markershape.config.ConfigParametres;
 import markershape.editor.Editor;
+import markershape.editor.ui.UIResources;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.MenuUI;
 import markershape.editor.ui.menu.ParametresUI;
@@ -11,9 +12,6 @@ import org.joml.Matrix4f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -27,14 +25,14 @@ public class App {
     private boolean inMenu;
     private float mouseX, mouseY;
     private float bgR = 0.1f, bgG = 0.1f, bgB = 0.12f;
-    private final Set<Integer> pressedKeys = new HashSet<>();
+    private UIResources uiResources;
 
     public static void main(String[] args) {
         new App().start();
     }
 
     private void start() {
-           init();
+        init();
         loop();
         cleanup();
     }
@@ -67,8 +65,7 @@ public class App {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
-            if (action == GLFW_PRESS) pressedKeys.add(key);
-            else if (action == GLFW_RELEASE) pressedKeys.remove(key);
+            if (editor != null) editor.setKeyState(key, action);
             if (parametresUI != null && parametresUI.visible) {
                 parametresUI.handleKey(key, action);
             } else if (editor != null) {
@@ -133,15 +130,17 @@ public class App {
 
         System.out.println("LWJGL " + Version.getVersion());
 
-        editor = new Editor(window, width, height);
+        uiResources = new UIResources();
+
+        editor = new Editor(window, width, height, uiResources);
         editor.camera.setSize(width, height);
         editor.ctx.onGoToMenu = () -> { editor.goToMenu(); inMenu = true; if (parametresUI != null) parametresUI.visible = false; };
 
-        parametresUI = new ParametresUI(() -> { parametresUI.visible = false; });
+        parametresUI = new ParametresUI(uiResources, () -> parametresUI.visible = false);
         parametresUI.setOnApply(this::applyConfig);
         parametresUI.setSize(width, height);
 
-        menuUI = new MenuUI(width, height, () -> glfwSetWindowShouldClose(window, true), () -> {
+        menuUI = new MenuUI(uiResources, width, height, () -> glfwSetWindowShouldClose(window, true), () -> {
             parametresUI.loadFromConfig();
             parametresUI.visible = true;
         });
@@ -190,28 +189,20 @@ public class App {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             if (parametresUI != null && parametresUI.visible || inMenu) {
+                view.set(editor.camera.getViewMatrix());
+                projection.set(editor.camera.getProjection());
+                editor.renderer.render(view, projection);
                 if (parametresUI != null && parametresUI.visible) {
                     parametresUI.render();
                 } else {
                     menuUI.render();
                 }
-            } else if (editor.editorUI.isConfirmSaveVisible()) {
-                editor.editorUI.renderConfirmOnly();
             } else {
                 view.set(editor.camera.getViewMatrix());
                 projection.set(editor.camera.getProjection());
                 editor.render(view, projection);
                 editor.processInput(mouseX, mouseY);
-                for (int k : pressedKeys) {
-                    switch (k) {
-                        case GLFW_KEY_UP    -> editor.camera.rotate(0f, 1f);
-                        case GLFW_KEY_DOWN  -> editor.camera.rotate(0f, -1f);
-                        case GLFW_KEY_LEFT  -> editor.camera.rotate(1f, 0f);
-                        case GLFW_KEY_RIGHT -> editor.camera.rotate(-1f, 0f);
-                        case GLFW_KEY_O     -> editor.camera.zoom(1f);
-                        case GLFW_KEY_P     -> editor.camera.zoom(-1f);
-                    }
-                }
+                editor.processKeys();
             }
 
             glfwPollEvents();
@@ -221,8 +212,7 @@ public class App {
 
     private void cleanup() {
         if (editor != null) editor.cleanup();
-        if (menuUI != null) menuUI.cleanup();
-        if (parametresUI != null) parametresUI.cleanup();
+        if (uiResources != null) uiResources.cleanup();
         Text.cleanup();
         glfwDestroyWindow(window);
         glfwTerminate();

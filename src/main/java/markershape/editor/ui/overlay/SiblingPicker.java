@@ -1,40 +1,25 @@
 package markershape.editor.ui.overlay;
 
 import markershape.config.ConfigParametres;
-import markershape.editor.ui.framework.UIContainer;
-import markershape.editor.ui.framework.UIRenderer;
-import markershape.editor.ui.framework.UIText;
+import markershape.editor.ui.UIElement;
+import markershape.editor.ui.UIResources;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 
 import java.util.function.Consumer;
 
-public class SiblingPicker {
-    private boolean visible;
+public class SiblingPicker extends UIElement {
     private int[] ids;
     private Vertex[] vertices;
-    private float px, py, ph;
     private static final float PW = 220;
     private static final float ROW_H = 26;
     private Consumer<Integer> callback;
-    private int width, height;
-    private final UIRenderer renderer = new UIRenderer();
-    private final UIContainer root = new UIContainer(0, 0, 1, 1);
 
-    private static float ts(float designScale) { return designScale / 720f; }
-
-    public SiblingPicker() {
-        root.alpha = UIContainer.Alpha.NONE;
+    public SiblingPicker(UIResources res) {
+        super(res);
+        visible = false;
     }
-
-    public void setSize(int w, int h) {
-        width = w;
-        height = h;
-        renderer.setScreenSize(w, h);
-    }
-
-    public boolean isVisible() { return visible; }
 
     public void show(ShapeData data, int[] siblingIds, float mx, float my,
                      int screenW, int screenH, Consumer<Integer> cb) {
@@ -42,30 +27,31 @@ public class SiblingPicker {
         vertices = new Vertex[ids.length];
         for (int i = 0; i < ids.length; i++) vertices[i] = data.vertices.get(ids[i]);
         callback = cb;
-        ph = ids.length * ROW_H + 30;
-        px = Math.min(mx, screenW - PW - 10);
-        py = Math.min(my, screenH - ph - 10);
-        if (px < 10) px = 10;
-        if (py < 10) py = 10;
+        w = PW;
+        h = ids.length * ROW_H + 30;
+        x = Math.min(mx, screenW - PW - 10);
+        y = Math.min(my, screenH - h - 10);
+        if (x < 10) x = 10;
+        if (y < 10) y = 10;
         visible = true;
     }
 
+    @Override
     public void hide() { visible = false; callback = null; }
 
-    public float getX() { return px; }
-    public float getY() { return py; }
-    public float getW() { return PW; }
-    public float getH() { return ph; }
+    public float getX() { return x; }
+    public float getY() { return y; }
+    public float getW() { return w; }
+    public float getH() { return h; }
 
-    public int click(float mx, float my) {
+    public int clickItem(float mx, float my) {
         if (!visible) return -1;
-        float h = ph;
-        if (mx < px || mx > px + PW || my < py || my > py + h) {
+        if (mx < x || mx > x + w || my < y || my > y + h) {
             hide();
             return -1;
         }
         for (int i = 0; i < ids.length; i++) {
-            float ry = py + 30 + i * ROW_H;
+            float ry = y + 30 + i * ROW_H;
             if (my >= ry && my <= ry + ROW_H) {
                 int picked = ids[i];
                 if (callback != null) callback.accept(picked);
@@ -76,58 +62,37 @@ public class SiblingPicker {
         return -1;
     }
 
+    @Override
     public void render() {
         if (!visible || vertices == null) return;
-        root.clear();
-        build();
-        root.render(renderer);
-    }
 
-    private void build() {
-        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-        ConfigParametres cfg = ConfigParametres.get();
-        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        res.begin2D();
 
-        UIContainer panel = new UIContainer(px / width, py / height, PW / width, ph / height);
-        panel.alpha = UIContainer.Alpha.PANEL;
-        panel.bgR = mr;
-        panel.bgG = mg;
-        panel.bgB = mb;
-        root.add(panel);
-
-        UIText title = new UIText(8f / PW, 8f / ph, ts(1.5f), "Select vertex:");
-        title.useConfigText = false;
-        title.tR = tR; title.tG = tG; title.tB = tB;
-        panel.add(title);
+        float[] c = res.menuColor();
+        float alpha = BlurBackground.panelAlpha();
+        res.drawQuad(x, y, w, h, c[0], c[1], c[2], alpha);
 
         float rowAlpha = BlurBackground.rowAlpha();
         for (int i = 0; i < ids.length; i++) {
+            float ry = y + 30 + i * ROW_H;
+            float mult = (i % 2 == 0) ? 1.15f : 0.95f;
+            res.drawQuad(x + 2, ry, w - 2, ROW_H,
+                Math.min(1f, c[0] * mult), Math.min(1f, c[1] * mult), Math.min(1f, c[2] * mult), rowAlpha);
+        }
+
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+
+        res.drawText("Select vertex:", x + 8, y + 8, 1.5f, tR, tG, tB);
+
+        for (int i = 0; i < vertices.length; i++) {
             Vertex v = vertices[i];
             if (v == null) continue;
-            float ry = 30 + i * ROW_H;
-            float mult = (i % 2 == 0) ? 1.15f : 0.95f;
-
-            UIContainer row = new UIContainer(2f / PW, ry / ph, (PW - 4f) / PW, ROW_H / ph);
-            row.customAlpha = rowAlpha;
-            row.bgR = Math.min(1f, mr * mult);
-            row.bgG = Math.min(1f, mg * mult);
-            row.bgB = Math.min(1f, mb * mult);
-            panel.add(row);
-
-            UIContainer swatch = new UIContainer(8f / PW, (ry + 4f) / ph, 16f / PW, 16f / ph);
-            swatch.customAlpha = 1f;
-            swatch.bgR = v.r; swatch.bgG = v.g; swatch.bgB = v.b;
-            panel.add(swatch);
-
-            UIText t = new UIText(30f / PW, (ry + 4f) / ph, ts(1.5f),
-                "#" + v.id + " (" + String.format("%.2f,%.2f,%.2f", v.r, v.g, v.b) + ")");
-            t.useConfigText = false;
-            t.tR = tR; t.tG = tG; t.tB = tB;
-            panel.add(t);
+            float ry = y + 30 + i * ROW_H + 4;
+            float sw = 16;
+            res.drawQuad(x + 8, ry, sw, sw, v.r, v.g, v.b, 1f);
+            res.drawText("#" + v.id + " (" + String.format("%.2f,%.2f,%.2f", v.r, v.g, v.b) + ")",
+                x + 30, ry, 1.5f, tR, tG, tB);
         }
-    }
-
-    public void cleanup() {
-        renderer.cleanup();
     }
 }

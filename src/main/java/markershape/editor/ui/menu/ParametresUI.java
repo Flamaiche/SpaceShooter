@@ -1,112 +1,85 @@
 package markershape.editor.ui.menu;
 
 import markershape.config.ConfigParametres;
-import markershape.editor.ui.framework.UIContainer;
-import markershape.editor.ui.framework.UIButton;
-import markershape.editor.ui.framework.UIEditableField;
-import markershape.editor.ui.framework.UIRenderer;
-import markershape.editor.ui.framework.UIText;
+import markershape.editor.ui.Panel;
+import markershape.editor.ui.UIResources;
+import markershape.editor.ui.control.Button;
 import markershape.editor.ui.widgets.EditableTextField;
-import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParametresUI {
-    private UIRenderer renderer;
-    public boolean visible;
+import static org.lwjgl.glfw.GLFW.*;
+
+public class ParametresUI extends Panel {
+    private int width, height;
+    private static final int MENU_X = 440;
+    private static final int MENU_W = 400;
+    private static final int CAT_H = 42;
+    private static final int CAT_GAP = 6;
+    private static final int ROW_H = 32;
+    private static final int ROW_GAP = 4;
+
     private int currentMenu = -1;
     private final Runnable onBack;
     private Runnable onApply;
-    private final UIEditableField hexField;
-    private final UIEditableField textHexField;
-    private final UIEditableField floatField;
+    private final EditableTextField hexField;
+    private final EditableTextField textHexField;
+    private final EditableTextField floatField;
     private String editingFloatKey;
-    private JsonObject baselineValeurs;
 
     private boolean confirmVisible;
     private Runnable confirmOuiAction;
     private Runnable confirmNonAction;
+    private static final float CONFIRM_W = 220;
+    private static final float CONFIRM_H = 100;
+    private static final float CONFIRM_BTN_W = 70;
+    private static final float CONFIRM_BTN_H = 28;
 
-    private final UIContainer root = new UIContainer(0, 0, 1, 1);
-    private final UIContainer confirmRoot = new UIContainer(0, 0, 1, 1);
+    private Button saveBtn, backBtn;
 
-    private float panelX, panelY, panelW, panelH;
-
-    private static final float MENU_X = 440f / 1280f;
-    private static final float MENU_W = 400f / 1280f;
-    private static final float CAT_H = 42f / 720f;
-    private static final float CAT_GAP = 6f / 720f;
-    private static final float ROW_H = 32f / 720f;
-    private static final float ROW_GAP = 4f / 720f;
-    private static final float TITLE_Y = 50f / 720f;
-    private static final float SY_CATS = 130f / 720f;
-    private static final float SY_SUB = 110f / 720f;
-    private static final float SWATCH_H = 70f / 720f;
-
-    private static final float CONFIRM_W = 220f / 1280f;
-    private static final float CONFIRM_H = 100f / 720f;
-    private static final float CONFIRM_BTN_W = 70f / 1280f;
-    private static final float CONFIRM_BTN_H = 28f / 720f;
-
-    private static final float ROW_W = MENU_W * 1280f;
-    private static final float ROW_H_PX = ROW_H * 720f;
-    private static final float VX_FRAC = (MENU_W / 2f + 20f / 1280f) / MENU_W;
-    private static final float LABEL_X_FRAC = 8f / ROW_W;
-    private static final float LABEL_Y_FRAC = 6f / ROW_H_PX;
-    private static final float VALUE_OFF_FRAC = 2f / ROW_W;
-    private static final float MINUS_OFF_FRAC = 26f / ROW_W;
-    private static final float PLUS_OFF_FRAC = 8f / ROW_W;
-    private static final float MINUS_HIT_LO = 30f / ROW_W;
-    private static final float MINUS_HIT_HI = 6f / ROW_W;
-    private static final float PLUS_HIT_LO = 6f / ROW_W;
-    private static final float PLUS_HIT_HI = 30f / ROW_W;
-    private static final float VALUE_HIT_TAIL = 4f / ROW_W;
-
-    private static float ts(float designScale) { return designScale / 720f; }
-
-    public ParametresUI(Runnable onBack) {
+    public ParametresUI(UIResources res, Runnable onBack) {
+        super(res);
         this.onBack = onBack;
-        this.hexField = new UIEditableField("#000000", EditableTextField.ValueType.HEX_COLOR);
-        this.textHexField = new UIEditableField("#33210F", EditableTextField.ValueType.HEX_COLOR);
-        this.floatField = new UIEditableField("0", EditableTextField.ValueType.FLOAT);
-        renderer = new UIRenderer();
-        root.alpha = UIContainer.Alpha.NONE;
-        buildConfirmTree();
+        visible = false;
+        this.hexField = new EditableTextField("#000000", EditableTextField.ValueType.HEX_COLOR, 0, 0);
+        this.textHexField = new EditableTextField("#33210F", EditableTextField.ValueType.HEX_COLOR, 0, 0);
+        this.floatField = new EditableTextField("0", EditableTextField.ValueType.FLOAT, 0, 0);
+
+        saveBtn = new Button(res, "", 0, 0, 200, 38, null);
+        saveBtn.textScale = 2f;
+        backBtn = new Button(res, "", 0, 0, 200, 38, null);
+        backBtn.textScale = 2f;
+        addChild(saveBtn);
+        addChild(backBtn);
     }
 
-    public void setSize(int w, int h) { renderer.setScreenSize(w, h); }
+    public void setSize(int w, int h) {
+        width = w;
+        height = h;
+        res.setSize(w, h);
+    }
+
     public void loadFromConfig() {
         ConfigParametres.recharger();
-        ConfigParametres cfg = ConfigParametres.get();
-        baselineValeurs = cfg.valeurs != null ? cfg.valeurs.deepCopy() : null;
         currentMenu = -1;
     }
+
     public void setOnApply(Runnable r) { onApply = r; }
 
-    private void revertToBaseline() {
-        ConfigParametres cfg = ConfigParametres.get();
-        if (baselineValeurs != null) {
-            cfg.valeurs = baselineValeurs.deepCopy();
-        }
-        cfg.resetDirty();
-        cancelFields();
-        if (onApply != null) onApply.run();
-    }
-
-    public void render() {
-        if (!visible) return;
-        root.clear();
+    @Override
+    protected void renderContent() {
         if (confirmVisible) {
-            confirmRoot.render(renderer);
+            saveBtn.hide();
+            backBtn.hide();
+            renderConfirmPopup();
             return;
         }
-        if (currentMenu < 0) buildCategories();
-        else buildSubMenu();
-        root.render(renderer);
+        saveBtn.show();
+        backBtn.show();
+        if (currentMenu < 0) renderCategories();
+        else renderSubMenu();
     }
-
-    // ---------- Categories view ----------
 
     private List<Integer> getVisibleCategoryIndices() {
         ConfigParametres cfg = ConfigParametres.get();
@@ -118,362 +91,362 @@ public class ParametresUI {
         return idxs;
     }
 
-    private void buildCategories() {
+    private void renderCategories() {
         ConfigParametres cfg = ConfigParametres.get();
         List<Integer> visible = getVisibleCategoryIndices();
         List<ConfigParametres.Categorie> cats = cfg.categories;
         if (cats == null) return;
 
-        UIText title = new UIText(0, TITLE_Y, ts(3f), "Parametres");
-        title.w = 1f;
-        title.centered = true;
-        root.add(title);
+        float[] c = res.menuColor();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        res.drawText("Parametres",
+            width / 2f - res.getTextExtent("Parametres", 3f)[0] / 2f, 50, 3f, tR, tG, tB);
 
-        float sy = SY_CATS;
+        float sy = 130;
         float contentH = visible.size() * (CAT_H + CAT_GAP);
-        float btnY = sy + contentH + 22f / 720f;
-        panelX = MENU_X - 15f / 1280f;
-        panelY = sy - 10f / 720f;
-        panelW = MENU_W + 30f / 1280f;
-        panelH = contentH + 80f / 720f;
-
-        UIContainer panel = new UIContainer(panelX, panelY, panelW, panelH);
-        root.add(panel);
-
+        float btnY = sy + contentH + 22;
+        float panelAlpha = BlurBackground.panelAlpha();
+        float rowAlpha = BlurBackground.rowAlpha();
+        res.drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, contentH + 80, c[0], c[1], c[2], panelAlpha);
         for (int vi = 0; vi < visible.size(); vi++) {
-            int idx = visible.get(vi);
-            ConfigParametres.Categorie cat = cats.get(idx);
+            ConfigParametres.Categorie cat = cats.get(visible.get(vi));
             float y = sy + vi * (CAT_H + CAT_GAP);
-            float rx = relX(MENU_X);
-            float ry = relY(y);
-            float rw = MENU_W / panelW;
-            float rh = CAT_H / panelH;
-
-            UIContainer row = new UIContainer(rx, ry, rw, rh);
-            row.alpha = UIContainer.Alpha.ROW;
-            row.onClickAction = () -> { currentMenu = idx; cancelFields(); };
-            panel.add(row);
-
-            UIText label = new UIText(16f / (MENU_W * 1280f), 10f / (CAT_H * 720f), ts(2f), cat.label);
-            label.w = 1f;
-            label.h = 1f;
-            row.add(label);
+            res.drawQuad(MENU_X, y, MENU_W, CAT_H, c[0], c[1], c[2], rowAlpha);
+            res.drawText(cat.label + "  >", MENU_X + 16, y + 10, 2f, tR, tG, tB);
         }
 
-        if (cfg.hasChanges()) {
-            UIButton save = makeButton("Sauvegarder", 0.5f - 210f / 1280f, btnY, btnAlphaBg(1.1f),
-                () -> showConfirmPopup(
-                    () -> { ConfigParametres.sauvegarder(); if (onApply != null) onApply.run(); this.visible = false; if (onBack != null) onBack.run(); },
-                    () -> revertToBaseline()));
-            panel.add(save);
-        }
-        UIButton back = makeButton("Retour", 0.5f + 10f / 1280f, btnY, null,
-            () -> {
-                if (cfg.hasChanges()) {
-                    showConfirmPopup(
-                        () -> { ConfigParametres.sauvegarder(); if (onApply != null) onApply.run(); this.visible = false; if (onBack != null) onBack.run(); },
-                        () -> { revertToBaseline(); this.visible = false; if (onBack != null) onBack.run(); });
-                } else {
-                    if (onApply != null) onApply.run();
-                    this.visible = false;
-                    if (onBack != null) onBack.run();
-                }
-            });
-        panel.add(back);
+        setupButtons("Sauvegarder", "Retour", btnY, cfg.hasChanges(), tR, tG, tB);
     }
 
-    private UIButton makeButton(String label, float winX, float winY, float[] tint, Runnable action) {
-        UIButton b = new UIButton(relX(winX), relY(winY), 200f / 1280f / panelW, 38f / 720f / panelH, label, ts(2f));
-        b.alpha = UIContainer.Alpha.BTN;
-        if (tint != null) {
-            b.bgR = BlurBackground.menuR * tint[0];
-            b.bgG = BlurBackground.menuG * tint[1];
-            b.bgB = BlurBackground.menuB * tint[2];
-        }
-        b.onClickAction = action;
-        return b;
-    }
-
-    private float[] btnAlphaBg(float gMul) {
-        return new float[]{0.9f, gMul, 0.9f};
-    }
-
-    private float relX(float winX) { return (winX - panelX) / panelW; }
-    private float relY(float winY) { return (winY - panelY) / panelH; }
-
-    // ---------- Submenu view ----------
-
-    private boolean hasColorPicker(String catId) {
-        return "arriereplan".equals(catId) || "menu".equals(catId);
-    }
-
-    private boolean isArriere() {
-        return "arriereplan".equals(catId());
-    }
-
-    private String catId() {
-        ConfigParametres cfg = ConfigParametres.get();
-        if (cfg.categories == null || currentMenu < 0 || currentMenu >= cfg.categories.size()) return null;
-        return cfg.categories.get(currentMenu).id;
-    }
-
-    private void buildSubMenu() {
+    private void renderSubMenu() {
         ConfigParametres cfg = ConfigParametres.get();
         List<ConfigParametres.Categorie> cats = cfg.categories;
         if (cats == null || currentMenu < 0 || currentMenu >= cats.size()) return;
         ConfigParametres.Categorie cat = cats.get(currentMenu);
         if (cat.params == null) return;
 
-        UIText title = new UIText(0, TITLE_Y, ts(3f), cat.label);
-        title.w = 1f;
-        title.centered = true;
-        root.add(title);
+        float[] c = res.menuColor();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
-        float sy = SY_SUB;
-        boolean arriere = isArriere();
-        int preambleRows = hasColorPicker(cat.id) ? (arriere ? 0 : 2) : 0;
+        res.drawText(cat.label,
+            width / 2f - res.getTextExtent(cat.label, 3f)[0] / 2f, 50, 3f, tR, tG, tB);
+
+        float sy = 110;
+        boolean isArriere = "arriereplan".equals(cat.id);
+        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 0 : 2) : 0;
         int visibleCount = 0;
         for (ConfigParametres.Param p : cat.params) {
             if (p.isVisible(cfg)) visibleCount++;
         }
-        float contentH = arriere ? (SWATCH_H + 3 * (ROW_H + ROW_GAP) + 8f / 720f + SWATCH_H + 3 * (ROW_H + ROW_GAP))
-                                 : (preambleRows * (ROW_H + ROW_GAP) + visibleCount * (ROW_H + ROW_GAP));
-        float btnY = sy + contentH + 22f / 720f;
-        panelX = MENU_X - 15f / 1280f;
-        panelY = sy - 10f / 720f;
-        panelW = MENU_W + 30f / 1280f;
-        panelH = contentH + 80f / 720f;
-
-        UIContainer panel = new UIContainer(panelX, panelY, panelW, panelH);
-        root.add(panel);
+        float contentH = isArriere ? (80 + 3 * (ROW_H + ROW_GAP) + 8 + 80 + 3 * (ROW_H + ROW_GAP))
+                                  : (preambleRows * (ROW_H + ROW_GAP) + visibleCount * (ROW_H + ROW_GAP));
+        float btnY = sy + contentH + 22;
+        float panelAlpha = BlurBackground.panelAlpha();
+        res.drawQuad(MENU_X - 15, sy - 10, MENU_W + 30, contentH + 80, c[0], c[1], c[2], panelAlpha);
 
         int rendered = 0;
 
         if (hasColorPicker(cat.id)) {
-            if (arriere) {
+            if (isArriere) {
                 float curY = sy;
-                addSwatch(panel, curY, "bg", hexField);
-                curY += SWATCH_H;
-                for (int idx : new int[]{0, 1, 2}) {
-                    addFloatRow(panel, curY, cat.params.get(idx));
-                    curY += ROW_H + ROW_GAP;
-                    rendered++;
-                }
-                curY += 8f / 720f;
-                addSwatch(panel, curY, "text", textHexField);
-                curY += SWATCH_H;
-                for (int idx : new int[]{3, 4, 5}) {
-                    addFloatRow(panel, curY, cat.params.get(idx));
-                    curY += ROW_H + ROW_GAP;
-                    rendered++;
-                }
+                renderColorEditor(curY, hexField,
+                    (int) cfg.getFloat("bgR"), (int) cfg.getFloat("bgG"), (int) cfg.getFloat("bgB"), "bg");
+
+                curY += 80;
+                curY = renderFloatGroup(curY, cat.params, new int[]{0, 1, 2}, false);
+                rendered += 3;
+                curY += 8;
+
+                renderColorEditor(curY, textHexField,
+                    (int) cfg.getFloat("textR"), (int) cfg.getFloat("textG"), (int) cfg.getFloat("textB"), "text");
+
+                curY += 80;
+                curY = renderFloatGroup(curY, cat.params, new int[]{3, 4, 5}, true);
+                rendered += 3;
             } else {
-                float curY = sy;
-                addSwatch(panel, curY, "menu", hexField);
+                renderColorEditor(sy, hexField,
+                    (int) cfg.getFloat("menuR"), (int) cfg.getFloat("menuG"), (int) cfg.getFloat("menuB"), "menu");
             }
         }
 
         for (ConfigParametres.Param p : cat.params) {
             if (!p.isVisible(cfg)) continue;
-            if (arriere && rendered >= 6) break;
-            if (hasColorPicker(cat.id) && !arriere && rendered >= visibleCount) break;
+            if (isArriere && rendered >= 6) break;
+            if (hasColorPicker(cat.id) && !isArriere && rendered >= visibleCount) break;
             float y = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP);
+
             if ("bool".equals(p.type)) {
-                addBoolRow(panel, y, p);
+                drawBoolRow(y, p, tR, tG, tB);
             } else {
-                addFloatRow(panel, y, p);
+                drawFloatRow(y, p, tR, tG, tB);
+                if (p.key.equals(editingFloatKey) && !isArriere) renderFloatField(y, p);
             }
             rendered++;
         }
 
-        UIButton apply = makeButton("Appliquer", 0.5f - 210f / 1280f, btnY, btnAlphaBg(1.1f),
-            () -> { if (onApply != null) onApply.run(); });
-        panel.add(apply);
-        UIButton back = makeButton("Retour", 0.5f + 10f / 1280f, btnY, null,
-            () -> { currentMenu = -1; cancelFields(); });
-        panel.add(back);
+        setupButtons("Appliquer", "Retour", btnY, false, tR, tG, tB);
     }
 
-    private void addSwatch(UIContainer panel, float winY, String prefix, UIEditableField field) {
+    private void renderColorEditor(float y, EditableTextField field,
+                                   int r, int g, int b, String cfgPrefix) {
         ConfigParametres cfg = ConfigParametres.get();
-        float vr = cfg.getFloat(prefix + "R"), vg = cfg.getFloat(prefix + "G"), vb = cfg.getFloat(prefix + "B");
-
-        UIContainer swatch = new UIContainer(relX(MENU_X + 30f / 1280f), relY(winY),
-            (MENU_W - 60f / 1280f) / panelW, SWATCH_H / panelH);
-        swatch.alpha = UIContainer.Alpha.OPAQUE;
-        swatch.bgR = vr / 255f;
-        swatch.bgG = vg / 255f;
-        swatch.bgB = vb / 255f;
-        panel.add(swatch);
-
-        String hex = String.format("#%02X%02X%02X", (int) vr, (int) vg, (int) vb);
-        float[] tc = swatchTextColor(vr, vg, vb);
-
+        res.drawQuad(MENU_X + 30, y, MENU_W - 60, 70, r / 255f, g / 255f, b / 255f, 1f);
+        String hex = String.format("#%02X%02X%02X", r, g, b);
+        float hx = width / 2f - res.getTextExtent(hex, 2f)[0] / 2f;
         field.setText(hex);
-        field.centered = true;
-        field.relScale = ts(2f);
-        field.x = 0f;
-        field.y = 0f;
-        field.w = 1f;
-        field.h = 1f;
-        field.setColor(tc[0], tc[1], tc[2]);
+        field.setPosition(hx, y + 26);
+        field.setScale(2f);
+        field.setColor(r / 255f, g / 255f, b / 255f);
         field.setOnConfirm(newHex -> {
             int nr = Integer.parseInt(newHex.substring(1, 3), 16);
             int ng = Integer.parseInt(newHex.substring(3, 5), 16);
             int nb = Integer.parseInt(newHex.substring(5, 7), 16);
-            cfg.setFloat(prefix + "R", nr); cfg.setFloat(prefix + "G", ng); cfg.setFloat(prefix + "B", nb);
+            cfg.setFloat(cfgPrefix + "R", nr); cfg.setFloat(cfgPrefix + "G", ng); cfg.setFloat(cfgPrefix + "B", nb);
+            field.setText(field.getText());
         });
-        swatch.add(field);
+        field.render(res);
     }
 
-    private void addBoolRow(UIContainer panel, float winY, ConfigParametres.Param p) {
-        BoolRow row = new BoolRow(p);
-        row.x = relX(MENU_X);
-        row.y = relY(winY);
-        row.w = MENU_W / panelW;
-        row.h = ROW_H / panelH;
-        row.alpha = UIContainer.Alpha.ROW;
-        row.onClickAction = () -> {
-            ConfigParametres cfg = ConfigParametres.get();
-            cfg.setBool(p.key, !cfg.getBool(p.key));
-            editingFloatKey = null;
-        };
-        panel.add(row);
+    private float renderFloatGroup(float curY, List<ConfigParametres.Param> params,
+                                   int[] indices, boolean showEditField) {
+        ConfigParametres cfg = ConfigParametres.get();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        for (int idx : indices) {
+            ConfigParametres.Param p = params.get(idx);
+            drawFloatRow(curY, p, tR, tG, tB);
+            if (showEditField && p.key.equals(editingFloatKey)) renderFloatField(curY, p);
+            curY += ROW_H + ROW_GAP;
+        }
+        return curY;
     }
 
-    private void addFloatRow(UIContainer panel, float winY, ConfigParametres.Param p) {
-        FloatRow row = new FloatRow(p);
-        row.x = relX(MENU_X);
-        row.y = relY(winY);
-        row.w = MENU_W / panelW;
-        row.h = ROW_H / panelH;
-        row.alpha = UIContainer.Alpha.ROW;
-        row.onMinus = () -> {
-            ConfigParametres cfg = ConfigParametres.get();
-            float val = cfg.getFloat(p.key);
+    private boolean clickFloatRow(float mx, float my, float y, ConfigParametres.Param p) {
+        ConfigParametres cfg = ConfigParametres.get();
+        float val = cfg.getFloat(p.key);
+        float vx = MENU_X + MENU_W / 2f + 20;
+        float[] ext = res.getTextExtent(fmtNum(val), 1.7f);
+        if (mx >= vx - 30 && mx <= vx - 6 && my >= y && my <= y + ROW_H) {
             if (val > p.min) { cfg.setFloat(p.key, val - p.step); editingFloatKey = null; }
-        };
-        row.onPlus = () -> {
-            ConfigParametres cfg = ConfigParametres.get();
-            float val = cfg.getFloat(p.key);
+            return true;
+        }
+        if (mx >= vx + ext[0] + 6 && mx <= vx + ext[0] + 30 && my >= y && my <= y + ROW_H) {
             if (val < p.max) { cfg.setFloat(p.key, val + p.step); editingFloatKey = null; }
-        };
-        row.onValue = () -> {
-            ConfigParametres cfg = ConfigParametres.get();
-            float val = cfg.getFloat(p.key);
-            editingFloatKey = p.key;
-            floatField.setText(fmtNum(val));
-            floatField.setBounds(p.min, p.max);
-            floatField.setOnConfirm(newVal -> {
-                try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
-                catch (NumberFormatException ignored) {}
-                editingFloatKey = null;
-            });
-            floatField.activate();
-        };
-        panel.add(row);
-        if (editingFloatKey != null && editingFloatKey.equals(p.key)) {
-            ConfigParametres cfg = ConfigParametres.get();
-            floatField.centered = false;
-            floatField.relScale = ts(1.7f);
-            floatField.x = VX_FRAC + VALUE_OFF_FRAC;
-            floatField.y = LABEL_Y_FRAC;
-            floatField.w = 1f;
-            floatField.h = 1f;
-            floatField.setColor(cfg.getFloat("textR") / 255f, cfg.getFloat("textG") / 255f, cfg.getFloat("textB") / 255f);
-            row.add(floatField);
+            return true;
         }
+        if (!p.key.equals(editingFloatKey) || !floatField.isEditing()) {
+            if (mx >= vx && mx <= vx + ext[0] + 4 && my >= y && my <= y + ROW_H) {
+                editingFloatKey = p.key;
+                floatField.setText(fmtNum(val));
+                floatField.setPosition(vx + 2, y + 6);
+                floatField.setScale(1.7f);
+                floatField.setBounds(p.min, p.max);
+                floatField.setOnConfirm(newVal -> {
+                    try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
+                    catch (NumberFormatException ignored) {}
+                    editingFloatKey = null;
+                });
+                floatField.activate();
+                return true;
+            }
+        }
+        return false;
     }
 
-    // ---------- Float / Bool rows ----------
+    private void setupButtons(String primaryLabel, String backLabel, float btnY,
+                              boolean hasChanges, float tR, float tG, float tB) {
+        saveBtn.text = primaryLabel;
+        saveBtn.x = width / 2f - 210;
+        saveBtn.y = btnY;
+        backBtn.text = backLabel;
+        backBtn.x = width / 2f + 10;
+        backBtn.y = btnY;
 
-    private static class FloatRow extends UIContainer {
-        final ConfigParametres.Param p;
-        Runnable onMinus, onPlus, onValue;
+        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
+        saveBtn.bgR = mr * 0.9f; saveBtn.bgG = mg * 1.1f; saveBtn.bgB = mb * 0.9f;
+        backBtn.bgR = mr; backBtn.bgG = mg; backBtn.bgB = mb;
+        float a = BlurBackground.btnAlpha();
+        saveBtn.bgA = a; backBtn.bgA = a;
+        saveBtn.textR = tR; saveBtn.textG = tG; saveBtn.textB = tB;
+        backBtn.textR = tR; backBtn.textG = tG; backBtn.textB = tB;
 
-        FloatRow(ConfigParametres.Param p) { this.p = p; }
-
-        @Override
-        protected void renderSelf(UIRenderer r) {
-            super.renderSelf(r);
-            ConfigParametres cfg = ConfigParametres.get();
-            float tr = cfg.getFloat("textR") / 255f, tg = cfg.getFloat("textG") / 255f, tb = cfg.getFloat("textB") / 255f;
-            float x0 = absX(r), y0 = absY(r), rw = absW(r), rh = absH(r);
-            float labelScale = ts(1.6f) * r.getHeight();
-            r.text(p.label + ":", x0 + LABEL_X_FRAC * rw, y0 + LABEL_Y_FRAC * rh, labelScale, tr, tg, tb);
-            drawControls(r, cfg, tr, tg, tb, x0, y0, rw, rh);
-        }
-
-        private void drawControls(UIRenderer r, ConfigParametres cfg, float tr, float tg, float tb,
-                                  float x0, float y0, float rw, float rh) {
-            float val = cfg.getFloat(p.key);
-            float vx = x0 + VX_FRAC * rw;
-            String vs = fmtNum(val);
-            float cs = ts(1.7f) * r.getHeight();
-            float ty = y0 + LABEL_Y_FRAC * rh;
-            r.text("[-]", x0 + (VX_FRAC - MINUS_OFF_FRAC) * rw, ty, cs,
-                val > p.min ? tr : tr * 0.3f, val > p.min ? tg : tg * 0.3f, val > p.min ? tb : tb * 0.3f);
-            r.text(vs, x0 + (VX_FRAC + VALUE_OFF_FRAC) * rw, ty, cs, tr, tg, tb);
-            float[] ext = r.textExtent(vs, cs);
-            r.text("[+]", vx + ext[0] + PLUS_OFF_FRAC * rw, ty, cs,
-                val < p.max ? tr : tr * 0.3f, val < p.max ? tg : tg * 0.3f, val < p.max ? tb : tb * 0.3f);
-        }
-
-        @Override
-        protected boolean onClickSelf(float px, float py, UIRenderer r) {
-            ConfigParametres cfg = ConfigParametres.get();
-            float val = cfg.getFloat(p.key);
-            float x0 = absX(r), y0 = absY(r), rw = absW(r), rh = absH(r);
-            if (py < y0 || py > y0 + rh) return false;
-            float vx = x0 + VX_FRAC * rw;
-            float[] ext = r.textExtent(fmtNum(val), ts(1.7f) * r.getHeight());
-            if (px >= vx - MINUS_HIT_LO * rw && px <= vx - MINUS_HIT_HI * rw) { if (onMinus != null) onMinus.run(); return true; }
-            if (px >= vx + ext[0] + PLUS_HIT_LO * rw && px <= vx + ext[0] + PLUS_HIT_HI * rw) { if (onPlus != null) onPlus.run(); return true; }
-            if (px >= vx && px <= vx + ext[0] + VALUE_HIT_TAIL * rw) { if (onValue != null) onValue.run(); return true; }
-            return false;
-        }
-    }
-
-    private static class BoolRow extends UIContainer {
-        final ConfigParametres.Param p;
-
-        BoolRow(ConfigParametres.Param p) { this.p = p; }
-
-        @Override
-        protected void renderSelf(UIRenderer r) {
-            super.renderSelf(r);
-            ConfigParametres cfg = ConfigParametres.get();
-            boolean val = cfg.getBool(p.key);
-            float tr = cfg.getFloat("textR") / 255f, tg = cfg.getFloat("textG") / 255f, tb = cfg.getFloat("textB") / 255f;
-            String prefix = val ? "[x] " : "[ ] ";
-            float brightness = val ? 1f : 0.5f;
-            r.text(prefix + p.label, absX(r) + LABEL_X_FRAC * absW(r), absY(r) + LABEL_Y_FRAC * absH(r),
-                ts(1.8f) * r.getHeight(), tr * brightness, tg * brightness, tb * brightness);
-        }
-    }
-
-    // ---------- Click handling ----------
-
-    public void click(float mx, float my) {
-        if (!visible) return;
-        if (confirmVisible) {
-            confirmRoot.onClick(mx, my, renderer);
-            return;
-        }
         if (currentMenu < 0) {
-            root.onClick(mx, my, renderer);
-            return;
+            if (hasChanges) {
+                saveBtn.show();
+                saveBtn.action = () -> showConfirmPopup(
+                    this::saveAndClose,
+                    () -> {});
+            } else {
+                saveBtn.hide();
+            }
+            backBtn.action = () -> {
+                if (hasChanges) {
+                    showConfirmPopup(
+                        this::saveAndClose,
+                        this::rollbackAndClose);
+                } else {
+                    this.visible = false;
+                    if (onBack != null) onBack.run();
+                }
+            };
+        } else {
+            saveBtn.action = () -> {
+                if (onApply != null) onApply.run();
+            };
+            backBtn.action = () -> { currentMenu = -1; };
         }
-        String id = catId();
-        if (hasColorPicker(id != null ? id : "")) {
-            if (hexField.click(mx, my, renderer)) return;
-            if (isArriere() && textHexField.click(mx, my, renderer)) return;
+    }
+
+    private void saveAndClose() {
+        ConfigParametres.sauvegarder();
+        if (onApply != null) onApply.run();
+        this.visible = false;
+        if (onBack != null) onBack.run();
+    }
+
+    private void rollbackAndClose() {
+        ConfigParametres.recharger();
+        if (onApply != null) onApply.run();
+        this.visible = false;
+        if (onBack != null) onBack.run();
+    }
+
+    private void renderFloatField(float y, ConfigParametres.Param p) {
+        ConfigParametres cfg = ConfigParametres.get();
+        float val = cfg.getFloat(p.key);
+        float tr = cfg.getFloat("textR") / 255f, tg = cfg.getFloat("textG") / 255f, tb = cfg.getFloat("textB") / 255f;
+        float vx = MENU_X + MENU_W / 2f + 20;
+        String display = fmtNum(val);
+        floatField.setText(display);
+        floatField.setPosition(vx + 2, y + 6);
+        floatField.setScale(1.7f);
+        floatField.setBounds(p.min, p.max);
+        floatField.setColor(tr, tg, tb);
+        floatField.setOnConfirm(newVal -> {
+            try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
+            catch (NumberFormatException ignored) {}
+            editingFloatKey = null;
+        });
+        floatField.render(res);
+    }
+
+    @Override
+    public boolean click(float mx, float my) {
+        if (!visible) return false;
+        if (confirmVisible) {
+            handleConfirmClick(mx, my);
+            return true;
         }
-        root.onClick(mx, my, renderer);
+        if (currentMenu < 0) clickCategories(mx, my);
+        else clickSubMenu(mx, my);
+        return true;
+    }
+
+    private void clickCategories(float mx, float my) {
+        hexField.cancelEditing();
+        textHexField.cancelEditing();
+        floatField.cancelEditing();
+        editingFloatKey = null;
+        List<Integer> visibleIdxs = getVisibleCategoryIndices();
+        ConfigParametres cfg = ConfigParametres.get();
+        if (cfg.categories == null) return;
+
+        float sy = 130;
+        float contentH = visibleIdxs.size() * (CAT_H + CAT_GAP);
+        for (int vi = 0; vi < visibleIdxs.size(); vi++) {
+            int idx = visibleIdxs.get(vi);
+            float y = sy + vi * (CAT_H + CAT_GAP);
+            if (mx >= MENU_X && mx <= MENU_X + MENU_W && my >= y && my <= y + CAT_H) {
+                currentMenu = idx;
+                return;
+            }
+        }
+        float by = sy + contentH + 22;
+        if (my >= by && my <= by + 38) {
+            if (saveBtn.isVisible() && saveBtn.contains(mx, my)) {
+                saveBtn.click(mx, my);
+                return;
+            }
+            if (backBtn.contains(mx, my)) {
+                backBtn.click(mx, my);
+                return;
+            }
+        }
+    }
+
+    private void clickSubMenu(float mx, float my) {
+        ConfigParametres cfg = ConfigParametres.get();
+        List<ConfigParametres.Categorie> cats = cfg.categories;
+        if (cats == null || currentMenu < 0 || currentMenu >= cats.size()) return;
+        ConfigParametres.Categorie cat = cats.get(currentMenu);
+        if (cat.params == null) return;
+
+        if (hasColorPicker(cat.id)) {
+            if (hexField.click(res, mx, my)) return;
+            if ("arriereplan".equals(cat.id) && textHexField.click(res, mx, my)) return;
+        }
+
+        float sy = 110;
+        boolean isArriere = "arriereplan".equals(cat.id);
+        int preambleRows = hasColorPicker(cat.id) ? (isArriere ? 0 : 2) : 0;
+        int rendered = 0;
+
+        if (isArriere) {
+            float curY = sy + 80;
+            for (int idx : new int[]{0, 1, 2}) {
+                ConfigParametres.Param p = cat.params.get(idx);
+                if ("float".equals(p.type) && clickFloatRow(mx, my, curY, p)) return;
+                curY += ROW_H + ROW_GAP;
+                rendered++;
+            }
+            curY = sy + 80 + 3 * (ROW_H + ROW_GAP) + 8 + 80;
+            for (int idx : new int[]{3, 4, 5}) {
+                ConfigParametres.Param p = cat.params.get(idx);
+                if ("float".equals(p.type) && clickFloatRow(mx, my, curY, p)) return;
+                curY += ROW_H + ROW_GAP;
+                rendered++;
+            }
+        } else {
+            for (ConfigParametres.Param p : cat.params) {
+                if (!p.isVisible(cfg)) continue;
+                float y = sy + preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP);
+
+                if ("bool".equals(p.type)) {
+                    if (mx >= MENU_X && mx <= MENU_X + MENU_W && my >= y && my <= y + ROW_H) {
+                        cfg.setBool(p.key, !cfg.getBool(p.key));
+                        return;
+                    }
+                } else {
+                    if (clickFloatRow(mx, my, y, p)) return;
+                }
+                rendered++;
+            }
+        }
+
+        float contentH = isArriere ? (80 + 3 * (ROW_H + ROW_GAP) + 8 + 80 + 3 * (ROW_H + ROW_GAP))
+                                  : (preambleRows * (ROW_H + ROW_GAP) + rendered * (ROW_H + ROW_GAP));
+        float by = sy + contentH + 22;
+        if (my >= by && my <= by + 38) {
+            hexField.cancelEditing();
+            textHexField.cancelEditing();
+            floatField.cancelEditing();
+            editingFloatKey = null;
+            if (saveBtn.contains(mx, my)) {
+                saveBtn.click(mx, my);
+                return;
+            }
+            if (backBtn.contains(mx, my)) {
+                backBtn.click(mx, my);
+                return;
+            }
+        }
     }
 
     public void handleKey(int key, int action) {
-        if (confirmVisible) return;
+        if (action != GLFW_PRESS) return;
+        if (confirmVisible) {
+            if (key == GLFW_KEY_ESCAPE) confirmVisible = false;
+            return;
+        }
         if (hexField.isEditing()) {
             hexField.keyAction(key, action);
         } else if (textHexField.isEditing()) {
@@ -481,6 +454,18 @@ public class ParametresUI {
         } else if (floatField.isEditing()) {
             floatField.keyAction(key, action);
             if (!floatField.isEditing()) editingFloatKey = null;
+        } else if (key == GLFW_KEY_ESCAPE) {
+            if (currentMenu >= 0) {
+                currentMenu = -1;
+            } else {
+                ConfigParametres cfg = ConfigParametres.get();
+                if (cfg.hasChanges()) {
+                    showConfirmPopup(this::saveAndClose, this::rollbackAndClose);
+                } else {
+                    this.visible = false;
+                    if (onBack != null) onBack.run();
+                }
+            }
         }
     }
 
@@ -495,46 +480,8 @@ public class ParametresUI {
         }
     }
 
-    private void cancelFields() {
-        hexField.cancelEditing();
-        textHexField.cancelEditing();
-        floatField.cancelEditing();
-        editingFloatKey = null;
-    }
-
-    // ---------- Confirm popup ----------
-
-    private void buildConfirmTree() {
-        confirmRoot.alpha = UIContainer.Alpha.DIM;
-
-        float cx = (1f - CONFIRM_W) / 2f;
-        float cy = (36f / 720f + (1f - 36f / 720f) / 2f) - CONFIRM_H / 2f;
-
-        UIContainer box = new UIContainer(cx, cy, CONFIRM_W, CONFIRM_H);
-        box.alpha = UIContainer.Alpha.BOX;
-        confirmRoot.add(box);
-
-        UIText q = new UIText(0f, (18f / 720f) / CONFIRM_H, ts(1.5f), "Sauvegarder ?");
-        q.w = 1f;
-        q.centered = true;
-        box.add(q);
-
-        float by = (CONFIRM_H - CONFIRM_BTN_H - 12f / 720f) / CONFIRM_H;
-        UIButton oui = new UIButton((20f / 1280f) / CONFIRM_W, by, CONFIRM_BTN_W / CONFIRM_W, CONFIRM_BTN_H / CONFIRM_H, "Oui", ts(1.5f));
-        oui.alpha = UIContainer.Alpha.BTN;
-        oui.onClickAction = () -> {
-            confirmVisible = false;
-            if (confirmOuiAction != null) confirmOuiAction.run();
-        };
-        box.add(oui);
-
-        UIButton non = new UIButton((CONFIRM_W - 20f / 1280f - CONFIRM_BTN_W) / CONFIRM_W, by, CONFIRM_BTN_W / CONFIRM_W, CONFIRM_BTN_H / CONFIRM_H, "Non", ts(1.5f));
-        non.alpha = UIContainer.Alpha.BTN;
-        non.onClickAction = () -> {
-            confirmVisible = false;
-            if (confirmNonAction != null) confirmNonAction.run();
-        };
-        box.add(non);
+    private boolean hasColorPicker(String catId) {
+        return "arriereplan".equals(catId) || "menu".equals(catId);
     }
 
     private void showConfirmPopup(Runnable oui, Runnable non) {
@@ -543,22 +490,67 @@ public class ParametresUI {
         confirmNonAction = non;
     }
 
-    // ---------- Util ----------
+    private void renderConfirmPopup() {
+        float cx = (width - CONFIRM_W) / 2;
+        float cy = (36 + (height - 36) / 2) - CONFIRM_H / 2;
+        ConfigParametres cfg = ConfigParametres.get();
+        float[] c = res.menuColor();
+        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
+        res.drawQuad(0, 0, width, height, c[0], c[1], c[2], BlurBackground.dimAlpha());
+        res.drawQuad(cx, cy, CONFIRM_W, CONFIRM_H, c[0], c[1], c[2], BlurBackground.boxAlpha());
+        res.drawText("Sauvegarder ?",
+            cx + CONFIRM_W / 2 - res.getTextExtent("Sauvegarder ?", 1.5f)[0] / 2f, cy + 18, 1.5f, tR, tG, tB);
+        float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
+        res.drawText("Oui", cx + 30, btnY + 2, 1.5f, tR, tG, tB);
+        res.drawText("Non", cx + CONFIRM_W - 60, btnY + 2, 1.5f, tR, tG, tB);
+    }
 
-    private static String fmtNum(float v) {
+    private void handleConfirmClick(float mx, float my) {
+        float cx = (width - CONFIRM_W) / 2;
+        float cy = (36 + (height - 36) / 2) - CONFIRM_H / 2;
+        float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
+        float ouiX = cx + 20;
+        float nonX = cx + CONFIRM_W - 20 - CONFIRM_BTN_W;
+        if (my >= btnY && my <= btnY + CONFIRM_BTN_H) {
+            if (mx >= ouiX && mx <= ouiX + CONFIRM_BTN_W) {
+                confirmVisible = false;
+                if (confirmOuiAction != null) confirmOuiAction.run();
+                return;
+            }
+            if (mx >= nonX && mx <= nonX + CONFIRM_BTN_W) {
+                confirmVisible = false;
+                if (confirmNonAction != null) confirmNonAction.run();
+                return;
+            }
+        }
+    }
+
+    private void drawBoolRow(float y, ConfigParametres.Param p, float tr, float tg, float tb) {
+        ConfigParametres cfg = ConfigParametres.get();
+        boolean val = cfg.getBool(p.key);
+        String prefix = val ? "[x] " : "[ ] ";
+        float brightness = val ? 1f : 0.5f;
+        res.drawText(prefix + p.label, MENU_X + 8, y + 6, 1.8f,
+            tr * brightness, tg * brightness, tb * brightness);
+    }
+
+    private void drawFloatRow(float y, ConfigParametres.Param p, float tr, float tg, float tb) {
+        ConfigParametres cfg = ConfigParametres.get();
+        float val = cfg.getFloat(p.key);
+
+        res.drawText(p.label + ":", MENU_X + 8, y + 6, 1.6f, tr, tg, tb);
+
+        float vx = MENU_X + MENU_W / 2f + 20;
+        res.drawText("[-]", vx - 26, y + 6, 1.7f,
+            val > p.min ? tr : tr * 0.3f, val > p.min ? tg : tg * 0.3f, val > p.min ? tb : tb * 0.3f);
+        res.drawText(fmtNum(val), vx + 2, y + 6, 1.7f, tr, tg, tb);
+        float[] ext = res.getTextExtent(fmtNum(val), 1.7f);
+        res.drawText("[+]", vx + ext[0] + 8, y + 6, 1.7f,
+            val < p.max ? tr : tr * 0.3f, val < p.max ? tg : tg * 0.3f, val < p.max ? tb : tb * 0.3f);
+    }
+
+    private String fmtNum(float v) {
         if (v == Math.floor(v) && !Float.isInfinite(v)) return String.valueOf((int) v);
         return String.format("%.2f", v).replace(',', '.');
-    }
-
-    private static float[] swatchTextColor(float r, float g, float b) {
-        float avg = (r + g + b) / 3f;
-        if (avg >= 127.5f) {
-            return new float[]{r * 0.4f / 255f, g * 0.4f / 255f, b * 0.4f / 255f};
-        }
-        return new float[]{(r + (255f - r) * 0.65f) / 255f, (g + (255f - g) * 0.65f) / 255f, (b + (255f - b) * 0.65f) / 255f};
-    }
-
-    public void cleanup() {
-        renderer.cleanup();
     }
 }
