@@ -1,8 +1,7 @@
 package markershape.editor.ui.overlay;
 
 import markershape.config.ConfigParametres;
-import markershape.editor.ui.framework.UIContainer;
-import markershape.editor.ui.menu.BlurBackground;
+import markershape.editor.ui.UIResources;
 import markershape.shape.Vertex;
 
 import java.util.function.Consumer;
@@ -26,8 +25,8 @@ public class VertexOverlay extends Overlay {
 
     private Consumer<Integer> switchCallback;
 
-    public VertexOverlay() {
-        super(280, 320);
+    public VertexOverlay(UIResources res) {
+        super(res, 280, 320);
     }
 
     public void setSwitchCallback(Consumer<Integer> cb) { switchCallback = cb; }
@@ -51,16 +50,13 @@ public class VertexOverlay extends Overlay {
 
         if (isCloseClicked(mx, my)) { hide(); return -1; }
 
-        if (isDeleteClicked(mx, my)) {
-            if (deleteCallback != null) deleteCallback.run();
-            return 20;
-        }
+        if (deleteBtn.contains(mx, my)) { deleteBtn.click(mx, my); return 20; }
 
         if (siblingIds != null && siblingBadgePos != null && siblingIds.length > 0) {
             for (int i = 0; i < siblingIds.length; i++) {
                 float sx = siblingBadgePos[i][0], sy = siblingBadgePos[i][1];
                 String label = "[#" + siblingIds[i] + "]";
-                float[] ext = renderer.textExtent(label, 1.5f);
+                float[] ext = res.getTextExtent(label, 1.5f);
                 if (mx >= sx && mx <= sx + ext[0] && my >= sy && my <= sy + 22) {
                     if (switchCallback != null) switchCallback.accept(siblingIds[i]);
                     return 10;
@@ -69,10 +65,10 @@ public class VertexOverlay extends Overlay {
         }
 
         for (int i = 0; i < fieldYOff.length; i++) {
-            float by = py + fieldYOff[i];
+            float by = y + fieldYOff[i];
             if (my < by || my > by + 20) continue;
 
-            if (mx >= px + MINUS_X && mx <= px + MINUS_X + BTN_W) {
+            if (mx >= x + MINUS_X && mx <= x + MINUS_X + BTN_W) {
                 if (preEditCallback != null) preEditCallback.run();
                 float step = i <= 2 ? 0.1f : 0.05f;
                 setFieldValue(i, getFieldValue(i) - step);
@@ -80,7 +76,7 @@ public class VertexOverlay extends Overlay {
                 if (editCallback != null) editCallback.run();
                 return i;
             }
-            if (mx >= px + PLUS_X && mx <= px + PLUS_X + BTN_W) {
+            if (mx >= x + PLUS_X && mx <= x + PLUS_X + BTN_W) {
                 if (preEditCallback != null) preEditCallback.run();
                 float step = i <= 2 ? 0.1f : 0.05f;
                 setFieldValue(i, getFieldValue(i) + step);
@@ -88,7 +84,7 @@ public class VertexOverlay extends Overlay {
                 if (editCallback != null) editCallback.run();
                 return i;
             }
-            if (mx >= px + VAL_X && mx <= px + VAL_X + VAL_W) {
+            if (mx >= x + VAL_X && mx <= x + VAL_X + VAL_W) {
                 selectedField = (selectedField == i) ? -1 : i;
                 return i;
             }
@@ -121,52 +117,59 @@ public class VertexOverlay extends Overlay {
     }
 
     @Override
-    protected void buildContent(UIContainer panel) {
+    protected void renderContent() {
+        if (selectedField >= 0) {
+            float sy = y + fieldYOff[selectedField];
+            res.drawQuad(x + VAL_X, sy, VAL_W, 20, 0.3f, 0.5f, 0.9f, 0.3f);
+        }
+
+        float sepY = y + fieldYOff[0] - 4;
+        float[] c = res.menuColor();
+        res.drawLine(x + 10, sepY, x + w - 10, sepY, c[0] + 0.15f, c[1] + 0.15f, c[2] + 0.2f, 0.9f);
+    }
+
+    @Override
+    protected void renderText() {
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         float dimR = tR * 0.7f, dimG = tG * 0.7f, dimB = tB * 0.7f;
         float dim2R = tR * 0.5f, dim2G = tG * 0.5f, dim2B = tB * 0.5f;
 
-        panel.add(label(12, 10, "Vertex #" + vertex.id, tR, tG, tB));
-
-        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-        panel.add(box(10, fieldYOff[0] - 4, pw - 20, 1,
-            Math.min(1f, mr + 0.15f), Math.min(1f, mg + 0.15f), Math.min(1f, mb + 0.2f), 0.9f));
+        res.drawText("Vertex #" + vertex.id, x + 12, y + 10, 1.5f, tR, tG, tB);
 
         for (int i = 0; i < fieldYOff.length; i++) {
-            float fy = fieldYOff[i];
+            float fy = y + fieldYOff[i];
             float val = getFieldValue(i);
             String fmt = i <= 2 ? "%.3f" : "%.2f";
             boolean sel = (i == selectedField);
 
-            panel.add(label(12, fy, fieldLabels[i], tR, tG, tB));
-            if (sel) panel.add(box(VAL_X, fy, VAL_W, 20, 0.3f, 0.5f, 0.9f, 0.3f));
-            panel.add(label(VAL_X, fy, String.format(fmt, val), sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB));
-            panel.add(label(MINUS_X, fy + 1, "[-]", tR, tG, tB));
-            panel.add(label(PLUS_X, fy + 1, "[+]", tR, tG, tB));
+            res.drawText(fieldLabels[i], x + 12, fy, 1.5f, tR, tG, tB);
+            res.drawText(String.format(fmt, val), x + VAL_X, fy, 1.5f, sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB);
+            res.drawText("[-]", x + MINUS_X, fy + 1, 1.5f, tR, tG, tB);
+            res.drawText("[+]", x + PLUS_X, fy + 1, 1.5f, tR, tG, tB);
         }
 
-        panel.add(label(12, 186, "Edges: " + edgeCount, dimR, dimG, dimB));
+        res.drawText("Edges: " + edgeCount, x + 12, y + 186, 1.5f, dimR, dimG, dimB);
 
         if (siblingIds != null && siblingIds.length > 0) {
-            float[] labelExt = renderer.textExtent("Also:", 1.5f);
-            float baseY = 210;
-            panel.add(label(12, baseY, "Also:", dimR, dimG, dimB));
-            float bx = 12 + labelExt[0] + 4;
+            float[] labelExt = res.getTextExtent("Also:", 1.5f);
+            float baseY = y + 210;
+            res.drawText("Also:", x + 12, baseY, 1.5f, dimR, dimG, dimB);
+            float bx = x + 12 + labelExt[0] + 4;
             float by = baseY;
-            float maxX = pw - 12;
+            float maxX = x + w - 12;
             int row = 0;
             siblingBadgePos = new float[siblingIds.length][2];
             for (int i = 0; i < siblingIds.length; i++) {
-                String s = "[#" + siblingIds[i] + "]";
-                float[] ext = renderer.textExtent(s, 1.5f);
+                String label = "[#" + siblingIds[i] + "]";
+                float[] ext = res.getTextExtent(label, 1.5f);
                 if (bx + ext[0] > maxX) {
-                    bx = 12;
+                    bx = x + 12;
                     by = baseY + (++row) * 22;
                 }
-                siblingBadgePos[i][0] = px + bx;
-                siblingBadgePos[i][1] = py + by;
-                panel.add(label(bx, by, s, dim2R, dim2G, dim2B));
+                siblingBadgePos[i][0] = bx;
+                siblingBadgePos[i][1] = by;
+                res.drawText(label, bx, by, 1.5f, dim2R, dim2G, dim2B);
                 bx += ext[0] + 4;
             }
         }

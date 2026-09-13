@@ -7,6 +7,7 @@ import markershape.editor.input.*;
 import markershape.shape.*;
 import markershape.shape.render.ShapeRenderer;
 import markershape.editor.ui.EditorUI;
+import markershape.editor.ui.UIResources;
 import markershape.editor.ui.menu.MenuUI;
 import markershape.editor.ui.overlay.EdgeOverlay;
 import markershape.editor.ui.overlay.SiblingPicker;
@@ -31,11 +32,13 @@ public class Editor {
     public int width, height;
     public long window;
     public String currentFile;
+    private final UIResources uiResources;
 
-    public Editor(long window, int w, int h) {
+    public Editor(long window, int w, int h, UIResources uiResources) {
         this.window = window;
         this.width = w;
         this.height = h;
+        this.uiResources = uiResources;
 
         camera = new EditorCamera();
         renderer = new ShapeRenderer();
@@ -45,9 +48,9 @@ public class Editor {
         pick.setCamera(camera);
         pick.setSize(w, h);
 
-        VertexOverlay vertexOverlay = new VertexOverlay();
-        EdgeOverlay edgeOverlay = new EdgeOverlay();
-        SiblingPicker siblingPicker = new SiblingPicker();
+        VertexOverlay vertexOverlay = new VertexOverlay(uiResources);
+        EdgeOverlay edgeOverlay = new EdgeOverlay(uiResources);
+        SiblingPicker siblingPicker = new SiblingPicker(uiResources);
         SelectionManager selection = new SelectionManager(vertexOverlay, edgeOverlay, siblingPicker);
         selection.setRenderer(renderer);
 
@@ -60,11 +63,9 @@ public class Editor {
 
         io = new ShapeIO(ctx);
 
-        editorUI = new EditorUI(w, h,
+        editorUI = new EditorUI(uiResources, w, h,
             () -> io.save(),
-            () -> org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose(window, true),
-            () -> { ctx.creatingEdge = true; ctx.creatingVertex = false; ctx.edgeFirstVertex = -1; editorUI.setActiveMode(1); editorUI.closeNewMenu(); selection.hideOverlays(); selection.selectedVertex = -1; selection.selectedEdge = -1; },
-            () -> { ctx.creatingVertex = true; ctx.creatingEdge = false; ctx.edgeFirstVertex = -1; editorUI.setActiveMode(0); editorUI.closeNewMenu(); selection.hideOverlays(); selection.selectedVertex = -1; selection.selectedEdge = -1; });
+            () -> org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose(window, true));
         editorUI.setFilterCallback(this::applyFilterSettings);
         ctx.ui = editorUI;
 
@@ -73,8 +74,10 @@ public class Editor {
         vertex = new VertexAction(ctx);
         del = new DeleteAction(ctx, faceUtils);
         hover = new HoverManager(ctx);
-        input = new InputManager(ctx, hover, vertex, edge, del, io);
+        input = new InputManager(ctx, hover, vertex, edge, del, io, camera);
 
+        vertexOverlay.setPreEditCallback(() -> ctx.undoredo.snapshot(renderer.getShapeData()));
+        edgeOverlay.setPreEditCallback(() -> ctx.undoredo.snapshot(renderer.getShapeData()));
         vertexOverlay.setEditCallback(() -> {
             renderer.rebuild();
             if (selection.selectedVertex >= 0) {
@@ -112,9 +115,6 @@ public class Editor {
         renderer.setScreenSize(w, h);
         editorUI.setSize(w, h);
         if (menuUI != null) menuUI.setSize(w, h);
-        ctx.selection.vertexOverlay.setSize(w, h);
-        ctx.selection.edgeOverlay.setSize(w, h);
-        ctx.selection.siblingPicker.setSize(w, h);
         ctx.windowWidth = w;
         ctx.windowHeight = h;
     }
@@ -141,13 +141,13 @@ public class Editor {
         renderer.setPointSize(sv[0]);
         renderer.setLineWidth(sv[1]);
         renderer.setFaceAlpha(sv[2]);
+        renderer.setGridStep(sv[3]);
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
         renderer.render(view, projection);
 
         editorUI.entityList.setData(ctx.renderer.getShapeData());
-
         editorUI.render(currentFile);
 
         if (ctx.selection.vertexOverlay.isVisible()) {
@@ -162,7 +162,7 @@ public class Editor {
             ctx.selection.siblingPicker.render();
         }
 
-        editorUI.renderEntityList(width, height);
+        editorUI.renderEntityList();
     }
 
     public void goToMenu() {
@@ -183,6 +183,14 @@ public class Editor {
         input.process(mx, my);
     }
 
+    public void setKeyState(int key, int action) {
+        input.setKeyState(key, action);
+    }
+
+    public void processKeys() {
+        input.processFrameKeys();
+    }
+
     public void onMouseButton(int btn, int action, float mx, float my) {
         input.onMouseButton(btn, action, mx, my);
     }
@@ -193,8 +201,6 @@ public class Editor {
 
     public void cleanup() {
         renderer.cleanup();
-        editorUI.cleanup();
-        if (menuUI != null) menuUI.cleanup();
         gamegl.gestion.texte.Text.cleanup();
     }
 }

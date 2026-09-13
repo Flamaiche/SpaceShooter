@@ -193,3 +193,13 @@ Version : (A:Alpha)
   	   - MarkerShape : barre de menu transparente + boutons sans fond, mode actif coloré
   	   - MarkerShape : blur derrière le SiblingPicker (manquant)
   	   - MarkerShape : correction tint blur 0.85-0.95 (gris visible au lieu de noir)
+    13/09/2026:
+        - MarkerShape : session de validation + corrections de bugs
+            - rendu sans faces (points/arêtes dessinés tant que ShapeData existe, même sans shape construite)
+            - undo/redo clavier centralisé (Ctrl+Z, alias Ctrl+W pour AZERTY) + restauration de la sélection après undo/redo
+            - popup "Confirmer la sauvegarde ?" strictement modale (les clics n'atteignent plus l'éditeur)
+            - pose continue des vertices sans sortir du mode création
+            - Esc dans Paramètres : fermeture sans modification / retour sous-menu / popup confirm + "Non" → rollback
+            - ouverture/fermeture propre du panneau filtre
+            - pas de grille appliqué au chargement d'une shape
+            - renommage des libellés de Paramètres
