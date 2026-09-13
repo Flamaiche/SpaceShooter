@@ -252,4 +252,38 @@ public class PickUtils {
         worldP.div(worldP.w);
         return new Vector3f(worldP.x, worldP.y, worldP.z);
     }
+
+    /**
+     * Magnetic snap: returns an existing vertex's position if a vertex on screen
+     * sits within {@code radiusPx} pixels of the cursor. Otherwise returns null.
+     *
+     * @param mx       cursor x in pixels
+     * @param my       cursor y in pixels
+     * @param radiusPx magnet radius in pixels
+     */
+    public Vertex findVertexNearCursor(float mx, float my, float radiusPx) {
+        if (!renderer.hasShape()) return null;
+        ShapeData data = renderer.getShapeData();
+        if (data == null || data.vertices.isEmpty()) return null;
+
+        Matrix4f mvp = new Matrix4f(camera.getProjection());
+        mvp.mul(camera.getViewMatrix());
+
+        float best = radiusPx * radiusPx;
+        Vertex bestV = null;
+        Vector4f p = new Vector4f();
+        for (Vertex v : data.vertices.values()) {
+            p.set(v.x, v.y, v.z, 1f).mul(mvp);
+            if (p.w <= 0) continue;
+            float sx = (p.x / p.w * 0.5f + 0.5f) * width;
+            float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * height;
+            float dx = sx - mx, dy = sy - my;
+            float d2 = dx * dx + dy * dy;
+            if (d2 < best) {
+                best = d2;
+                bestV = v;
+            }
+        }
+        return bestV;
+    }
 }

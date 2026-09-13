@@ -25,6 +25,11 @@ public class VertexOverlay extends Overlay {
 
     private Consumer<Integer> switchCallback;
 
+    private boolean typing;
+    private String typedOld;
+    private final StringBuilder typedBuf = new StringBuilder();
+    private long editStart;
+
     public VertexOverlay(UIResources res) {
         super(res, 280, 320);
     }
@@ -41,9 +46,59 @@ public class VertexOverlay extends Overlay {
         selectedField = -1;
     }
 
-    @Override public void hide() { super.hide(); vertex = null; siblingIds = null; siblingBadgePos = null; }
+    @Override public void hide() { super.hide(); vertex = null; siblingIds = null; siblingBadgePos = null; typing = false; }
     public Vertex getVertex() { return vertex; }
     @Override protected boolean hasEntity() { return vertex != null; }
+    public boolean isTyping() { return visible && typing; }
+
+    protected void beginTyping(int field) {
+        selectedField = field;
+        typing = true;
+        typedOld = String.format(field <= 2 ? "%.3f" : "%.2f", getFieldValue(field));
+        typedBuf.setLength(0);
+        editStart = System.currentTimeMillis();
+    }
+
+    public void charTyped(int codepoint) {
+        if (!isTyping()) return;
+        char c = (char) codepoint;
+        if (Character.isDigit(c) || c == '-' || c == '.') {
+            typedBuf.append(c);
+            editStart = System.currentTimeMillis();
+        }
+    }
+
+    public boolean keyTyped(int key, int action) {
+        if (!isTyping() || action != 1) return false;
+        if (key == 257) { confirmTyping(); return true; }          // ENTER
+        if (key == 256) { cancelTyping(); return true; }             // ESCAPE
+        if (key == 259 && typedBuf.length() > 0) {                    // BACKSPACE
+            typedBuf.deleteCharAt(typedBuf.length() - 1);
+            editStart = System.currentTimeMillis();
+            return true;
+        }
+        return false;
+    }
+
+    private void confirmTyping() {
+        if (!typing || selectedField < 0) return;
+        String s = typedBuf.toString();
+        if (!s.isEmpty()) {
+            try {
+                float v = Float.parseFloat(s);
+                if (preEditCallback != null) preEditCallback.run();
+                setFieldValue(selectedField, v);
+                if (editCallback != null) editCallback.run();
+            } catch (NumberFormatException ignored) { }
+        }
+        typing = false;
+        selectedField = -1;
+    }
+
+    private void cancelTyping() {
+        typing = false;
+        selectedField = -1;
+    }
 
     public int clickField(float mx, float my) {
         if (!visible || vertex == null) return -1;
@@ -69,6 +124,7 @@ public class VertexOverlay extends Overlay {
             if (my < by || my > by + 20) continue;
 
             if (mx >= x + MINUS_X && mx <= x + MINUS_X + BTN_W) {
+                confirmTyping();
                 if (preEditCallback != null) preEditCallback.run();
                 float step = i <= 2 ? 0.1f : 0.05f;
                 setFieldValue(i, getFieldValue(i) - step);
@@ -77,6 +133,7 @@ public class VertexOverlay extends Overlay {
                 return i;
             }
             if (mx >= x + PLUS_X && mx <= x + PLUS_X + BTN_W) {
+                confirmTyping();
                 if (preEditCallback != null) preEditCallback.run();
                 float step = i <= 2 ? 0.1f : 0.05f;
                 setFieldValue(i, getFieldValue(i) + step);
@@ -85,7 +142,8 @@ public class VertexOverlay extends Overlay {
                 return i;
             }
             if (mx >= x + VAL_X && mx <= x + VAL_X + VAL_W) {
-                selectedField = (selectedField == i) ? -1 : i;
+                if (selectedField == i) { confirmTyping(); }
+                else { beginTyping(i); }
                 return i;
             }
         }
@@ -139,12 +197,20 @@ public class VertexOverlay extends Overlay {
 
         for (int i = 0; i < fieldYOff.length; i++) {
             float fy = y + fieldYOff[i];
-            float val = getFieldValue(i);
-            String fmt = i <= 2 ? "%.3f" : "%.2f";
             boolean sel = (i == selectedField);
 
             res.drawText(fieldLabels[i], x + 12, fy, 1.5f, tR, tG, tB);
-            res.drawText(String.format(fmt, val), x + VAL_X, fy, 1.5f, sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB);
+
+            if (typing && sel) {
+                String display = typedBuf.toString();
+                long elapsed = System.currentTimeMillis() - editStart;
+                if ((elapsed / 500) % 2 == 0) display += "|";
+                res.drawText(display, x + VAL_X, fy, 1.5f, tR, tG, tB);
+            } else {
+                float val = getFieldValue(i);
+                String fmt = i <= 2 ? "%.3f" : "%.2f";
+                res.drawText(String.format(fmt, val), x + VAL_X, fy, 1.5f, sel ? tR : dimR, sel ? tG : dimG, sel ? tB : dimB);
+            }
             res.drawText("[-]", x + MINUS_X, fy + 1, 1.5f, tR, tG, tB);
             res.drawText("[+]", x + PLUS_X, fy + 1, 1.5f, tR, tG, tB);
         }

@@ -51,4 +51,14 @@ public class Context {
             pos.z = Math.round(pos.z / step) * step;
         }
     }
+
+    /** Magnetic snap: snaps pos to the nearest existing vertex near the cursor. */
+    public void magnetIfEnabled(Vector3f pos, float mx, float my) {
+        if (ui == null || !ui.isMagnetEnabled()) return;
+        float radius = ui.getMagnetRadius();
+        markershape.shape.Vertex v = pick.findVertexNearCursor(mx, my, radius);
+        if (v != null) {
+            pos.x = v.x; pos.y = v.y; pos.z = v.z;
+        }
+    }
 }

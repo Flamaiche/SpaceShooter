@@ -212,6 +212,10 @@ public class EditorUI extends Panel {
     public float getSnapStep() { return filter.getSnapStep(); }
     public void setSnapEnabled(boolean v) { filter.setSnapEnabled(v); }
     public void setSnapStep(float v) { filter.setSnapStep(v); }
+    public boolean isMagnetEnabled() { return filter.isMagnetEnabled(); }
+    public void setMagnetEnabled(boolean v) { filter.setMagnetEnabled(v); }
+    public float getMagnetRadius() { return filter.getMagnetRadius(); }
+    public void setMagnetRadius(float v) { filter.setMagnetRadius(v); }
 
     public void setFilterCallback(Runnable cb) { filter.setFilterCallback(cb); }
 }

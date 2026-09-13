@@ -142,9 +142,50 @@ public class Editor {
         renderer.setLineWidth(sv[1]);
         renderer.setFaceAlpha(sv[2]);
         renderer.setGridStep(sv[3]);
+        frameToShape();
+    }
+
+    /**
+     * Frames the camera onto the loaded shape (bounding box center + size),
+     * preserving the current orientation.
+     */
+    public void frameToShape() {
+        if (renderer.getShapeData() == null || renderer.getShapeData().vertices.isEmpty()) return;
+        float[] bb = bounds(renderer.getShapeData());
+        org.joml.Vector3f center = new org.joml.Vector3f(
+            (bb[0] + bb[3]) / 2f, (bb[1] + bb[4]) / 2f, (bb[2] + bb[5]) / 2f);
+        float size = Math.max(bb[3] - bb[0], Math.max(bb[4] - bb[1], bb[5] - bb[2]));
+        camera.frame(center, size);
+    }
+
+private float[] bounds(markershape.shape.ShapeData data) {
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
+        float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
+        for (markershape.shape.Vertex v : data.vertices.values()) {
+            minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x);
+            minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y);
+            minZ = Math.min(minZ, v.z); maxZ = Math.max(maxZ, v.z);
+        }
+        return new float[]{minX, minY, minZ, maxX, maxY, maxZ};
+    }
+
+    private void updateFrontArrow() {
+        org.joml.Vector3f center = null;
+        float size = 0f;
+        if (renderer.getShapeData() != null && !renderer.getShapeData().vertices.isEmpty()) {
+            float[] bb = bounds(renderer.getShapeData());
+            center = new org.joml.Vector3f(
+                (bb[0] + bb[3]) / 2f, (bb[1] + bb[4]) / 2f, (bb[2] + bb[5]) / 2f);
+            size = Math.max(bb[3] - bb[0], Math.max(bb[4] - bb[1], bb[5] - bb[2]));
+        }
+        boolean show = center != null;
+        float arrowLen = show ? Math.max(size * 0.35f, 0.5f) : 1f;
+        renderer.setFrontArrow(show, center == null ? new org.joml.Vector3f() : center,
+            camera.getFrontDirection(), arrowLen);
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
+        updateFrontArrow();
         renderer.render(view, projection);
 
         editorUI.entityList.setData(ctx.renderer.getShapeData());
@@ -187,6 +228,15 @@ public class Editor {
         input.setKeyState(key, action);
     }
 
+    public boolean isTyping() {
+        return ctx.selection.vertexOverlay.isTyping() || ctx.selection.edgeOverlay.isTyping();
+    }
+
+    public void handleChar(int codepoint) {
+        if (ctx.selection.vertexOverlay.isTyping()) ctx.selection.vertexOverlay.charTyped(codepoint);
+        if (ctx.selection.edgeOverlay.isTyping()) ctx.selection.edgeOverlay.charTyped(codepoint);
+    }
+
     public void processKeys() {
         input.processFrameKeys();
     }
@@ -196,6 +246,14 @@ public class Editor {
     }
 
     public void handleKey(int key, int scancode, int action, int mods) {
+        if (ctx.selection.vertexOverlay.isTyping()) {
+            ctx.selection.vertexOverlay.keyTyped(key, action);
+            return;
+        }
+        if (ctx.selection.edgeOverlay.isTyping()) {
+            ctx.selection.edgeOverlay.keyTyped(key, action);
+            return;
+        }
         input.handleKey(key, scancode, action, mods);
     }
 

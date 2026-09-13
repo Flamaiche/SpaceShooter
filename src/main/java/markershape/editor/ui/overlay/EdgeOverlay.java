@@ -19,17 +19,73 @@ public class EdgeOverlay extends Overlay {
         super(res, 280, 240);
     }
 
+    private boolean typing;
+    private String typedOld;
+    private final StringBuilder typedBuf = new StringBuilder();
+    private long editStart;
+
     public void show(Edge e, int va, int vb) {
         edge = e;
         vertexA = va;
         vertexB = vb;
         visible = true;
         selectedField = -1;
+        typing = false;
     }
 
-    @Override public void hide() { super.hide(); edge = null; }
+    @Override public void hide() { super.hide(); edge = null; typing = false; }
     public Edge getEdge() { return edge; }
     @Override protected boolean hasEntity() { return edge != null; }
+    public boolean isTyping() { return visible && typing; }
+
+    private void beginTyping() {
+        selectedField = 1;
+        typing = true;
+        typedOld = String.format("%.3f", edge.thickness);
+        typedBuf.setLength(0);
+        editStart = System.currentTimeMillis();
+    }
+
+    public void charTyped(int codepoint) {
+        if (!isTyping()) return;
+        char c = (char) codepoint;
+        if (Character.isDigit(c) || c == '-' || c == '.') {
+            typedBuf.append(c);
+            editStart = System.currentTimeMillis();
+        }
+    }
+
+    public boolean keyTyped(int key, int action) {
+        if (!isTyping() || action != 1) return false;
+        if (key == 257) { confirmTyping(); return true; }
+        if (key == 256) { cancelTyping(); return true; }
+        if (key == 259 && typedBuf.length() > 0) {
+            typedBuf.deleteCharAt(typedBuf.length() - 1);
+            editStart = System.currentTimeMillis();
+            return true;
+        }
+        return false;
+    }
+
+    private void confirmTyping() {
+        if (!typing) return;
+        String s = typedBuf.toString();
+        if (!s.isEmpty()) {
+            try {
+                float v = Float.parseFloat(s);
+                if (preEditCallback != null) preEditCallback.run();
+                edge.thickness = Math.max(0.001f, Math.min(10f, v));
+                if (editCallback != null) editCallback.run();
+            } catch (NumberFormatException ignored) { }
+        }
+        typing = false;
+        selectedField = -1;
+    }
+
+    private void cancelTyping() {
+        typing = false;
+        selectedField = -1;
+    }
 
     public int clickField(float mx, float my) {
         if (!visible || edge == null) return -1;
@@ -52,6 +108,7 @@ public class EdgeOverlay extends Overlay {
         float thickY = y + 120;
         if (my >= thickY && my <= thickY + 20) {
             if (mx >= x + MINUS_X && mx <= x + MINUS_X + BTN_W) {
+                confirmTyping();
                 if (preEditCallback != null) preEditCallback.run();
                 edge.thickness = Math.max(0.001f, edge.thickness - 0.02f);
                 selectedField = 1;
@@ -59,6 +116,7 @@ public class EdgeOverlay extends Overlay {
                 return 1;
             }
             if (mx >= x + PLUS_X && mx <= x + PLUS_X + BTN_W) {
+                confirmTyping();
                 if (preEditCallback != null) preEditCallback.run();
                 edge.thickness = Math.min(10f, edge.thickness + 0.02f);
                 selectedField = 1;
@@ -66,7 +124,8 @@ public class EdgeOverlay extends Overlay {
                 return 1;
             }
             if (mx >= x + VAL_X && mx <= x + VAL_X + VAL_W) {
-                selectedField = (selectedField == 1) ? -1 : 1;
+                if (selectedField == 1) confirmTyping();
+                else beginTyping();
                 return 1;
             }
         }
@@ -100,8 +159,15 @@ public class EdgeOverlay extends Overlay {
         float tcG = (selectedField == 1) ? tG : dimG;
         float tcB = (selectedField == 1) ? tB : dimB;
         res.drawText("Thick:", x + 12, y + 120, 1.5f, tR, tG, tB);
-        res.drawText(String.format("%.3f", edge.thickness),
-            x + VAL_X, y + 120, 1.5f, tcR, tcG, tcB);
+        if (typing) {
+            String display = typedBuf.toString();
+            long elapsed = System.currentTimeMillis() - editStart;
+            if ((elapsed / 500) % 2 == 0) display += "|";
+            res.drawText(display, x + VAL_X, y + 120, 1.5f, tR, tG, tB);
+        } else {
+            res.drawText(String.format("%.3f", edge.thickness),
+                x + VAL_X, y + 120, 1.5f, tcR, tcG, tcB);
+        }
         res.drawText("[-]", x + MINUS_X, y + 121, 1.5f, tR, tG, tB);
         res.drawText("[+]", x + PLUS_X, y + 121, 1.5f, tR, tG, tB);
     }

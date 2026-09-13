@@ -11,6 +11,7 @@ import markershape.shape.render.edge.EdgeBatchRenderer;
 import markershape.shape.render.edge.EdgeHighlightRenderer;
 import markershape.shape.render.face.FaceRenderer;
 import markershape.shape.render.point.CrosshairRenderer;
+import markershape.shape.render.point.GhostPointRenderer;
 import markershape.shape.render.point.PointRenderer;
 
 import java.util.*;
@@ -32,6 +33,8 @@ public class ShapeRenderer {
     private final EdgeBatchRenderer edgeBatchRenderer = new EdgeBatchRenderer();
     private final EdgeHighlightRenderer edgeHighlightRenderer = new EdgeHighlightRenderer();
     private final CrosshairRenderer crosshairRenderer = new CrosshairRenderer();
+    private final GhostPointRenderer ghostPointRenderer = new GhostPointRenderer();
+    private final FrontArrowRenderer frontArrowRenderer = new FrontArrowRenderer();
     public final ShadowRenderer shadow = new ShadowRenderer();
     private final GridRenderer grid = new GridRenderer();
 
@@ -138,6 +141,8 @@ public class ShapeRenderer {
         edgeHighlightRenderer.cleanup();
         shadow.cleanup();
         crosshairRenderer.cleanup();
+        ghostPointRenderer.cleanup();
+        frontArrowRenderer.cleanup();
     }
 
     public void setHoveredVertex(int id) {
@@ -151,6 +156,25 @@ public class ShapeRenderer {
     public void setCrosshair(boolean visible, org.joml.Vector3f pos) {
         crosshairRenderer.setVisible(visible);
         crosshairRenderer.setPosition(pos);
+    }
+
+    public void setPlacementGhost(boolean visible, org.joml.Vector3f pos) {
+        ghostPointRenderer.setVisible(visible);
+        ghostPointRenderer.setPointSize(pointSize);
+        if (pos != null) ghostPointRenderer.setPosition(pos.x, pos.y, pos.z);
+    }
+
+    /** Hides the transient placement/arrow overlays (e.g. when the menu is shown). */
+    public void hideTransientOverlays() {
+        ghostPointRenderer.setVisible(false);
+        frontArrowRenderer.setVisible(false);
+        crosshairRenderer.setVisible(false);
+    }
+
+    public void setFrontArrow(boolean visible, org.joml.Vector3f center, org.joml.Vector3f dir, float length) {
+        frontArrowRenderer.setVisible(visible);
+        if (!visible) return;
+        frontArrowRenderer.setArrow(center.x, center.y, center.z, dir, length);
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
@@ -207,6 +231,8 @@ public class ShapeRenderer {
             }
 
             crosshairRenderer.render(shader, shapeData);
+            ghostPointRenderer.render(shader, shapeData);
+            frontArrowRenderer.render(shader, shapeData);
         }
 
         shader.unbind();
