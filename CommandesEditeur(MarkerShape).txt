@@ -5,9 +5,9 @@ Table des matieres
 ------------------
 1.  Navigation camera (souris + clavier)
 2.  Zoom
-3.  Selection (simple, multiple, tout) - Ctrl+clic / Ctrl+A
-4.  Deplacement d'un sommet / d'un groupe (drag + contraintes)
-5.  Creation de sommets / aretes (mode Vertex chaine, frere MAJ+clic)
+3.  Selection (simple, multiple, boite, tout) - Ctrl+clic / Ctrl+A / marquee
+4.  Deplacement d'un sommet / d'un groupe (drag, G grab, contraintes d'axe)
+5.  Creation de sommets / aretes / faces (Vertex, Edge, Tracé T)
 6.  Outils de modification (S subdiviser, E extruder, F remplir, M fusionner)
 7.  Dupliquer / Copier-Coller (Ctrl+D / Ctrl+C / Ctrl+V)
 8.  Nettoyage (K) et aide (H)
@@ -52,8 +52,8 @@ Table des matieres
   valeur est normalisee par 120). Distance limitee a [0.5, 50] unites.
 
 
-3. Selection (simple, multiple, tout) - Ctrl+clic / Ctrl+A
-----------------------------------------------------------
+3. Selection (simple, multiple, boite, tout) - Ctrl+clic / Ctrl+A / marquee
+ ----------------------------------------------------------
 - Clic gauche sur un sommet visible : selectionne le sommet (fenetre
   VertexOverlay), annule la multi-selection.
 - Ctrl+clic gauche sur un sommet : ajoute / retire le sommet de la
@@ -63,6 +63,10 @@ Table des matieres
 - Clic sur un sommet/arete DEJA multi-selectionne(e) : le rend primaire
   (overlay) sans perdre le groupe.
 - Ctrl+A : selectionne tous les sommets.
+- BOITE DE SELECTION (marquee) : clic gauche maintenu sur une zone VIDE puis
+  deplacement -> un cadre bleu apparait ; au relachement, tous les sommets
+  visibles a l'interieur du cadre sont selectionnes (groupe). Un clic court
+  sans cadre deselectionne.
 - Ctrl+clic sur une zone vide : deselectionne tout.
 - Clic gauche sur une zone vide : deselectionne tout.
 - Clic gauche sur la position du crosshair (sommets a la meme position) :
@@ -83,6 +87,12 @@ Table des matieres
       G : libere le mouvement (aucun verrou d'axe)
       ESC : libere le mouvement (aucun verrou d'axe)
 - Relacher le clic gauche termine le drag et met a jour le rendu.
+- Les coordonnees affichees dans la fenetre sommet suivent le drag en temps
+  reel (X / Y / Z mis a jour pendant le mouvement).
+- G GRAB : avec une selection de sommets, touche G puis bouge la souris :
+  la selection suit le curseur (meme profondeur), les axes X/Y/Z fonctionnent
+  comme pendant le drag ; clic gauche = valider, ESC = annuler (retour a la
+  position d'origine).
 - Suppr / Backspace : supprime TOUTE la selection (sommets en cascade
   -> aretes -> faces, nettoyage des faces orphelines).
 
@@ -102,6 +112,25 @@ Table des matieres
 - Aimantation magnetique : activez la case "Magnet" du panneau Filtre.
   Le point pose / le crosshair se colle au sommet le plus proche du curseur
   (rayon reglable : magnetRadius, defaut 14 px).
+
+MODE "TRACE (FACE)" - touche T (ou Outils -> Trace (face)) :
+- Chaque clic gauche pose un sommet et relle automatiquement l'avant-dernier
+  (le contour orange montre la boucle en cours + le sommet fantome a la souris).
+- Clic gauche sur le PREMIER sommet pose (ou touche Entree) : ferme la boucle
+  (arete de cloture creee si besoin) et remplit les faces (triangulation
+  eventail). Le mode se quitte tout seul.
+- ESC : abandonne le trace sans fermer.
+- Avec >= 3 sommets et une boucle fermee, toutes les faces internes sont creees.
+
+RUBBER-BAND (arete par tirer-relacher) :
+- MAJ + clic gauche maintenu sur un sommet puis survoler le sommet cible :
+  une ligne cyan etire le futur lien ; relacher = creation de l'arete
+  (+ faces auto), le drag normal reste deplace le sommet (sans MAJ).
+
+PIPETTE COULEUR :
+- Clic droit (rapproche) sur un sommet colore : sa couleur devient la couleur
+  courante de creation (defaultVertexColor, persistee). Un clic droit long
+  reste une orbite camera.
 
 
 6. Outils de modification (S subdiviser, E extruder, F remplir, M fusionner)
@@ -185,12 +214,12 @@ Table des matieres
   (mode Edge).
 - Bouton "Outils" : palette de tous les outils et modes :
       Groupes (separes par des lignes) :
-        Modes : Selection, Sommet, Arete
+        Modes : Selection, Sommet, Arete, Trace (face) (T)
         Modification : Subdiviser (S), Extruder (E), Remplir (F), Fusionner (M)
         Organisation : Dupliquer (Ctrl+D), Copier (Ctrl+C), Coller (Ctrl+V),
                        Nettoyer (K), Aide (H)
       Le raccourci clavier apparait a droite de chaque ligne.
-      Le mode actif (Selection / Sommet / Arete) est surligne avec ">".
+      Le mode actif (Selection / Sommet / Arete / Trace) est surligne avec ">".
 - Bouton "Filtre" : panneau d'affichage :
       cases a cocher : Faces / Aretes / Points / Axes X / Y / Z / Grille /
       Magnet

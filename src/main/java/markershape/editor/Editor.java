@@ -132,6 +132,9 @@ public class Editor {
         renderer.setHoveredVertex(-1);
         renderer.setHoveredEdge(-1);
         renderer.setHoveredPositionIds(ctx.hoveredPositionIds);
+        renderer.clearRubberBand();
+        renderer.setMarquee(false, 0f, 0f, 0f, 0f);
+        renderer.setTracePreview(null);
         renderer.loadShape(filename);
         boolean[] fv = editorUI.getFilterValues();
         float[] sv = editorUI.getSliderValues();
@@ -226,6 +229,9 @@ private float[] bounds(markershape.shape.ShapeData data) {
         ctx.ui.closeConfirmSave();
         ctx.ui.setActiveMode(-1);
         if (ctx.help != null) ctx.help.hide();
+        renderer.clearRubberBand();
+        renderer.setMarquee(false, 0f, 0f, 0f, 0f);
+        renderer.setTracePreview(null);
         if (menuUI != null) menuUI.refresh();
     }
 

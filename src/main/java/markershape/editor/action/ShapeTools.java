@@ -308,6 +308,31 @@ public class ShapeTools {
         learngl.LogFile.logf("[MarkerShape] filled loop with %d faces", added);
     }
 
+    /**
+     * Closes a traced vertex loop (closing edge created if needed) and fills it
+     * with fan triangles. Assumes the caller already took an undo snapshot.
+     * @return number of faces created
+     */
+    public int closeTraceLoop(java.util.List<Integer> vids) {
+        ShapeData d = ctx.renderer.getShapeData();
+        if (d == null || vids.size() < 3) return 0;
+        int first = vids.get(0);
+        int last = vids.get(vids.size() - 1);
+        if (first != last && !faceUtils.connectedBetween(d, first, last)) {
+            d.addEdge(new Edge(nextEdgeId(d), last, first, "stun", 0.02f));
+        }
+        int added = 0;
+        for (int i = 1; i + 1 < vids.size(); i++) {
+            int a = vids.get(i), b = vids.get(i + 1);
+            if (b == first) break;
+            if (!faceUtils.triExists(d, first, a, b)) {
+                d.faces.add(new int[]{first, a, b});
+                added++;
+            }
+        }
+        return added;
+    }
+
     /** Builds the ordered vertex loop described by the selected edges, or null. */
     private List<Integer> buildLoop(ShapeData data, TreeSet<Integer> edgeIds) {
         HashMap<Integer, Integer> deg = new HashMap<>();

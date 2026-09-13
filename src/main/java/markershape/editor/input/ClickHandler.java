@@ -110,6 +110,29 @@ public class ClickHandler {
     private void handleViewClick(float mx, float my) {
         if (ctx.renderer.getShapeData() == null) return;
 
+        if (ctx.creatingFace) {
+            int v = ctx.pick.findVisibleVertexAt(mx, my);
+            if (v >= 0) {
+                if (ctx.traceVertices.size() >= 3 && v == ctx.traceVertices.get(0)) {
+                    closeTrace();
+                }
+                return;
+            }
+            vertex.create(mx, my);
+            int nv = ctx.selection.selectedVertex;
+            if (nv >= 0) {
+                if (ctx.traceVertices.isEmpty()) {
+                    ctx.traceVertices.add(nv);
+                } else {
+                    int prev = ctx.traceVertices.get(ctx.traceVertices.size() - 1);
+                    edge.create(prev, nv);
+                    ctx.traceVertices.add(nv);
+                }
+            }
+            ctx.renderer.setPlacementGhost(false, null);
+            return;
+        }
+
         int vertId = -1;
         if (ctx.creatingVertex) {
             vertId = ctx.pick.findVisibleVertexAt(mx, my);
@@ -203,7 +226,7 @@ public class ClickHandler {
         if (ctx.ui.newMenu.isOpen()) { ctx.ui.newMenu.close(); return; }
         if (ctx.ui.isToolsOpen()) { ctx.ui.closeToolsPal(); return; }
         if (ctx.ui.filter.isOpen()) { ctx.ui.filter.setOpen(false); return; }
-        if (ctx.creatingVertex || ctx.creatingEdge) { ctx.exitModes(); ctx.ui.setActiveMode(-1); return; }
+        if (ctx.creatingVertex || ctx.creatingEdge) { ctx.exitModes(); ctx.ui.setActiveMode(-1); ctx.renderer.setTracePreview(null); return; }
         if (ctx.selection.selectedVertex >= 0 || ctx.selection.selectedEdge >= 0) {
             ctx.selection.reset();
             ctx.hoveredVertexId = -1;
@@ -247,17 +270,41 @@ public class ClickHandler {
     }
 
     private void onNewVertex() {
+        ctx.exitModes();
         ctx.creatingVertex = true; ctx.ui.setActiveMode(0);
-        ctx.creatingEdge = false; ctx.edgeFirstVertex = -1;
         ctx.ui.closeNewMenu(); ctx.selection.hideOverlays();
         ctx.selection.reset();
     }
 
     private void onNewEdge() {
+        ctx.exitModes();
         ctx.creatingEdge = true; ctx.ui.setActiveMode(1);
-        ctx.edgeFirstVertex = -1; ctx.creatingVertex = false;
         ctx.ui.closeNewMenu(); ctx.selection.hideOverlays();
         ctx.selection.reset();
+    }
+
+    /** Enters the "Tracé (face)" mode: chained vertex placement closed by a fill. */
+    public void onNewTrace() {
+        ctx.exitModes();
+        ctx.creatingFace = true;
+        ctx.creatingVertex = true;
+        ctx.ui.setActiveMode(2);
+        ctx.ui.closeNewMenu(); ctx.selection.hideOverlays();
+        ctx.selection.reset();
+    }
+
+    /** Closes the traced loop, fills it with faces and exits the mode. */
+    public void closeTrace() {
+        if (ctx.renderer.getShapeData() == null) return;
+        if (ctx.traceVertices.size() < 3) { ctx.exitModes(); ctx.ui.setActiveMode(-1); return; }
+        ctx.undoredo.snapshot(ctx.renderer.getShapeData());
+        int added = tools.closeTraceLoop(ctx.traceVertices);
+        ctx.renderer.rebuild();
+        int n = ctx.traceVertices.size();
+        ctx.exitModes();
+        ctx.ui.setActiveMode(-1);
+        ctx.renderer.setTracePreview(null);
+        System.out.println("[MarkerShape] Trace cloturee : " + n + " sommets, " + added + " faces");
     }
 
     private boolean hasVertexSelection() {
@@ -279,6 +326,7 @@ public class ClickHandler {
             }
             case markershape.editor.ui.menu.ToolPalette.TOOL_VERTEX -> onNewVertex();
             case markershape.editor.ui.menu.ToolPalette.TOOL_EDGE -> onNewEdge();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_TRACE -> onNewTrace();
             case markershape.editor.ui.menu.ToolPalette.TOOL_SPLIT -> {
                 if (hasEdgeSelection()) {
                     tools.splitEdge(ctx.selection.selectedEdge >= 0

@@ -48,6 +48,12 @@ public class ShapeRenderer {
     private float pointSize = 5f, lineWidth = 3f, faceAlpha = 1f;
     private int screenW = 1280, screenH = 720;
 
+    private boolean marqueeVisible;
+    private float marqueeX1, marqueeY1, marqueeX2, marqueeY2;
+    private boolean rubberVisible;
+    private float rubberAx, rubberAy, rubberBx, rubberBy;
+    private float[] tracePreview; // alternating sx, sy screen points
+
     public ShapeRenderer() {
         try {
             shader = new Shader(shaderPath + "default_Vertex.glsl", shaderPath + "default_Fragment.glsl");
@@ -173,6 +179,28 @@ public class ShapeRenderer {
         if (ids != null) multiEdgeHighlight.addAll(ids);
     }
     public void setHoveredPositionIds(Set<Integer> ids) { edgeHighlightRenderer.setHoveredPositionIds(ids); }
+
+    public void setMarquee(boolean visible, float x1, float y1, float x2, float y2) {
+        marqueeVisible = visible;
+        marqueeX1 = Math.min(x1, x2);
+        marqueeY1 = Math.min(y1, y2);
+        marqueeX2 = Math.max(x1, x2);
+        marqueeY2 = Math.max(y1, y2);
+    }
+
+    public void setRubberBand(float ax, float ay, float bx, float by) {
+        rubberVisible = true;
+        rubberAx = ax; rubberAy = ay; rubberBx = bx; rubberBy = by;
+    }
+
+    public void clearRubberBand() {
+        rubberVisible = false;
+    }
+
+    /** Sets the 2D polyline drawn during a "Tracé" session (screen-space points). */
+    public void setTracePreview(float[] xy) {
+        tracePreview = xy;
+    }
     public void setCrosshair(boolean visible, org.joml.Vector3f pos) {
         crosshairRenderer.setVisible(visible);
         crosshairRenderer.setPosition(pos);
@@ -297,6 +325,35 @@ public class ShapeRenderer {
                     float sx = (p.x / p.w * 0.5f + 0.5f) * screenW;
                     float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * screenH;
                     shadow.drawPoint(sx, sy, 0.55f, 0.9f, 1f, 1f, pointSize);
+                }
+            }
+
+            // Marquee selection box (2D overlay)
+            if (marqueeVisible) {
+                float mx1 = marqueeX1, my1 = marqueeY1, mx2 = marqueeX2, my2 = marqueeY2;
+                shadow.drawEdge(mx1, my1, mx2, my1, 0.35f, 0.7f, 1f, 0.9f, 2f);
+                shadow.drawEdge(mx2, my1, mx2, my2, 0.35f, 0.7f, 1f, 0.9f, 2f);
+                shadow.drawEdge(mx2, my2, mx1, my2, 0.35f, 0.7f, 1f, 0.9f, 2f);
+                shadow.drawEdge(mx1, my2, mx1, my1, 0.35f, 0.7f, 1f, 0.9f, 2f);
+            }
+
+            // Rubber-band edge preview (2D overlay)
+            if (rubberVisible) {
+                shadow.drawEdge(rubberAx, rubberAy, rubberBx, rubberBy, 0.3f, 0.9f, 1f, 0.9f, 2f);
+            }
+
+            // Tracé loop preview (2D overlay)
+            if (tracePreview != null && tracePreview.length >= 4) {
+                int n = tracePreview.length / 2;
+                for (int i = 0; i + 1 < n; i++) {
+                    shadow.drawEdge(tracePreview[i * 2], tracePreview[i * 2 + 1],
+                        tracePreview[(i + 1) * 2], tracePreview[(i + 1) * 2 + 1],
+                        0.9f, 0.55f, 0.2f, 0.9f, 3f);
+                }
+                if (n >= 3) {
+                    shadow.drawEdge(tracePreview[0], tracePreview[1],
+                        tracePreview[(n - 1) * 2], tracePreview[(n - 1) * 2 + 1],
+                        0.9f, 0.55f, 0.2f, 0.5f, 2f);
                 }
             }
 
