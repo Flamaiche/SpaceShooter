@@ -84,6 +84,69 @@
 - [x] Sliders (taille points, épaisseur lignes, alpha faces)
 - [x] Click-and-drag sur les sliders
 
+## Éditeur — PRIORITÉ : navigation & placement (2026-09-13)
+Objectif : l'éditeur doit être « malléable » — bouger (caméra) et placer (éléments)
+doit devenir fluide à la souris. Réutiliser le moteur `learngl` :
+`OrbitController` (orbite + target mobile), `AxesCalculator`, `Camera`/`CameraPhysics`/
+`GestionnaireVue` (vue FPS), `Shader`, `Text`.
+
+### P1. Naviguer à la souris (orbite + pan + zoom curseur)
+- [ ] Câbler `EditorCamera` sur `learngl.camera.OrbitController` (au lieu des calculs
+      maison yaw/pitch/radius) → orbite, zoom, + target déplaçable (pan) fournis
+      par le moteur. Conserver yaw/pitch/radius exposés pour l'existant.
+- [ ] Orbite souris : clic droit maintenu + déplacement horizontal/vertical
+      → `camera.rotate(dyaw, dpitch)` (le clic gauche conserve son rôle
+      sélection/placement ; les flèches clavier restent actives)
+- [ ] Pan caméra : MAJ + clic droit maintenu (ou molette appuyée) → déplacer
+      le target le long du plan de vue (perpendiculaire au regard) via
+      `right`/`up` calculés par `AxesCalculator`
+- [ ] Zoom vers le curseur : ajuster target + radius pour garder le point sous
+      la souris à l'écran pendant le zoom molette
+- [ ] Recentrage auto sur la shape au chargement : target = centre de la bounding
+      box, radius = taille max de la shape → la forme apparaît cadrée
+- [ ] Touche `R` = reset de vue → revient devant l'« avant » de la shape
+
+### P1b. Direction fixe « avant » de la shape + reset (RFC 13/09)
+- [ ] Définir une direction d'« avant » : touche `F` capture la direction de la
+      caméra actuelle → devient « l'avant » de la shape (il se trouve dans ce sens)
+- [ ] `R` cadre la caméra face à l'avant (la vue par défaut du reset pointe là)
+- [ ] Sauvegarder l'avant dans `data/markershape/config/parametres.json`
+      (frontYaw/frontPitch ou vecteur avant) via `ConfigParametres`
+- [ ] Afficher une flèche/repère du sens de l'avant dans la vue 3D
+      (renderer lignes réutilisant le pattern `CrosshairRenderer`/`Shader`)
+
+### P2. Bouger les éléments (drag + axes + saisie)
+- [ ] Câbler `DragAction` (déjà implémenté, jamais utilisé) : press sur un sommet
+      visible → drag (depth verrouillée `dragNdcZ`), move → update, release → end.
+      Snap reste actif pendant le drag (`ctx.snapIfEnabled`).
+      Seuil de distance (px) pour distinguer clic (sélection) vs drag (déplacement)
+- [ ] Contrainte d'axe pendant le drag : maintenir `X`/`Y`/`Z` pendant le drag
+      → verrouille le déplacement le long de l'axe correspondant
+      (le delta χρlimited à l'axe, appliqué dans `DragAction.update`)
+- [ ] Saisie numérique dans les overlays : clic sur une valeur (X/Y/Z, R/G/B,
+      épaisseur) → `EditableTextField` (widget déjà existant) → Entrée = valider,
+      Échap = annuler. Réutiliser le widget et son `ValueType` (FLOAT, HEX_COLOR…)
+
+### P3. Placer proprement (chaîne + aimantation + ghost)
+- [ ] Mode chaîne/polyline : en mode Vertex, chaque clic pose un sommet ;
+      clic sur un sommet existant = crée l'arête avec le dernier posé ;
+      en mode Edge, l'enchaînement continue (reste actif après chaque paire) ;
+      Échap = arrêter la chaîne et sortir des modes
+- [ ] Aimantation magnétique : quand le snap est actif et la souris passe près
+      d'un sommet existant (rayon configurable en px), le ghost de placement
+      s'y accroche (position exacte du sommet, pas juste la grille)
+- [ ] Ghost de placement : faux sommet semi-transparent à la taille réelle
+      des points (et non juste le crosshair) avant de valider le clic
+
+### Affichages & diagnostics (long terme, réutiliser le moteur)
+- [ ] Afficher la taille de la shape (largeur/hauteur/profondeur de la `ShapeData`)
+- [ ] Afficher le centre (marqueur au centre de la bounding box)
+- [ ] Afficher les vecteurs (triad position, normales des faces, bbox wireframe)
+- [ ] Vue « première personne » : prévisualiser la shape comme vue du joueur en
+      réutilisant `learngl.camera.Camera` + `CameraPhysics` + `GestionnaireVue`
+      (mêmes patterns que `PlayingState` : déplacement ZQSD + souris libre)
+- [ ] Raccourcis touches documentés (touche H = aide) + `touches.txt` à jour
+
 ## Court terme
 - [x] **Undo/Redo** — pile d'états ShapeData (Ctrl+Z, Ctrl+Shift+Z), snapshot avant mutation, max 50, clear au changement de shape
 - [x] **Snap‑to‑grid** — accrochage placement/drag (checkbox + slider pas 0.1–5 dans le panneau filtre)
