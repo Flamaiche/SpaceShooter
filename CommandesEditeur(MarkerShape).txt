@@ -14,7 +14,7 @@ Table des matieres
 9.  Saisie numerique dans les overlays
 10. Edition des valeurs (boutons [-]/[+] et frappe directe)
 11. Annuler / refaire / sauvegarder / supprimer
-12. Panneaux de l'interface (menu du haut, filtre, liste)
+12. Panneaux de l'interface (menu du haut, filtre, liste, palette outils)
 13. Parametres de configuration (parametres.json)
 
 
@@ -179,10 +179,18 @@ Table des matieres
 
 12. Panneaux de l'interface (menu du haut, filtre, liste)
 ---------------------------------------------------------
-- Barre du haut : titre de la shape + boutons New / Filtre / Sauvegarder /
-  Quitter.
+- Barre du haut : titre de la shape + boutons New / Outils / Filtre /
+  Sauvegarder / Quitter.
 - Bouton "New" : menu de creation de sommet (mode Vertex) ou arete
   (mode Edge).
+- Bouton "Outils" : palette de tous les outils et modes :
+      Groupes (separes par des lignes) :
+        Modes : Selection, Sommet, Arete
+        Modification : Subdiviser (S), Extruder (E), Remplir (F), Fusionner (M)
+        Organisation : Dupliquer (Ctrl+D), Copier (Ctrl+C), Coller (Ctrl+V),
+                       Nettoyer (K), Aide (H)
+      Le raccourci clavier apparait a droite de chaque ligne.
+      Le mode actif (Selection / Sommet / Arete) est surligne avec ">".
 - Bouton "Filtre" : panneau d'affichage :
       cases a cocher : Faces / Aretes / Points / Axes X / Y / Z / Grille /
       Magnet
@@ -192,6 +200,8 @@ Table des matieres
   clic pour selectionner, molette pour paginer.
 - Tout clic sur l'interface (hors vue 3D) n'interagit qu'avec l'UI,
   jamais avec la scene.
+- ESC ferme progressivement : aide > outils > newMenu > filtre > modes >
+  selection courante.
 
 
 13. Parametres de configuration (parametres.json)

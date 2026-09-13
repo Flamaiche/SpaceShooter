@@ -8,18 +8,20 @@ import markershape.editor.ui.control.FilterPanel;
 import markershape.editor.ui.menu.BlurBackground;
 import markershape.editor.ui.menu.ConfirmSavePopup;
 import markershape.editor.ui.menu.NewMenu;
+import markershape.editor.ui.menu.ToolPalette;
 
 public class EditorUI extends Panel {
     private int width, height;
     public static final int BAR_H = 36;
     public static final int BTN_W = 130;
-    private Button saveBtn, quitBtn, filterBtn, newBtn;
+    private Button saveBtn, quitBtn, filterBtn, newBtn, outilsBtn;
     private String currentFile;
 
     public boolean transparentBar = true;
 
     public final FilterPanel filter;
     public final NewMenu newMenu;
+    public final ToolPalette toolsPal;
     public final ConfirmSavePopup confirmSave;
     public final EntityListPanel entityList;
     private float lastMenuR = -1f, lastMenuG = -1f, lastMenuB = -1f;
@@ -31,6 +33,7 @@ public class EditorUI extends Panel {
 
         filter = new FilterPanel(res);
         newMenu = new NewMenu(res);
+        toolsPal = new ToolPalette(res);
         confirmSave = new ConfirmSavePopup(res);
         entityList = new EntityListPanel(res);
 
@@ -40,6 +43,7 @@ public class EditorUI extends Panel {
         quitBtn.textScale = 1.5f;
         newBtn = new Button(res, "New", 0, 0, BTN_W, BAR_H, () -> {
             newMenu.toggle();
+            toolsPal.close();
             filter.setOpen(false);
         });
         newBtn.textScale = 1.5f;
@@ -48,11 +52,19 @@ public class EditorUI extends Panel {
             newMenu.close();
         });
         filterBtn.textScale = 1.5f;
+        outilsBtn = new Button(res, "Outils", 0, 0, BTN_W, BAR_H, () -> {
+            toolsPal.toggle();
+            newMenu.close();
+            filter.setOpen(false);
+        });
+        outilsBtn.textScale = 1.5f;
 
         addChild(saveBtn);
         addChild(quitBtn);
         addChild(newBtn);
         addChild(filterBtn);
+        addChild(outilsBtn);
+        addChild(toolsPal);
         addChild(newMenu);
         addChild(filter);
         addChild(confirmSave);
@@ -71,16 +83,19 @@ public class EditorUI extends Panel {
         filter.setSize(w, h);
         confirmSave.setSize(w, h);
         newMenu.setSize(w, h);
+        toolsPal.setSize(w, h);
         entityList.setSize(w, h);
 
         saveBtn.x = width - BTN_W * 2 - 10;
         saveBtn.y = 0;
         quitBtn.x = width - BTN_W - 5;
         quitBtn.y = 0;
-        newBtn.x = width - BTN_W * 4 - 25;
+        newBtn.x = width - BTN_W * 4 - 20;
         newBtn.y = 0;
-        filterBtn.x = width - BTN_W * 3 - 20;
+        filterBtn.x = width - BTN_W * 3 - 15;
         filterBtn.y = 0;
+        outilsBtn.x = width - BTN_W * 5 - 25;
+        outilsBtn.y = 0;
         syncFromConfig();
     }
 
@@ -91,12 +106,14 @@ public class EditorUI extends Panel {
         quitBtn.showBackground = opaque;
         newBtn.showBackground = opaque;
         filterBtn.showBackground = opaque;
+        outilsBtn.showBackground = opaque;
 
         if (opaque) {
             saveBtn.bgR = BlurBackground.menuR; saveBtn.bgG = BlurBackground.menuG; saveBtn.bgB = BlurBackground.menuB;
             quitBtn.bgR = BlurBackground.menuR; quitBtn.bgG = BlurBackground.menuG; quitBtn.bgB = BlurBackground.menuB;
             newBtn.bgR = BlurBackground.menuR; newBtn.bgG = BlurBackground.menuG; newBtn.bgB = BlurBackground.menuB;
             filterBtn.bgR = BlurBackground.menuR; filterBtn.bgG = BlurBackground.menuG; filterBtn.bgB = BlurBackground.menuB;
+            outilsBtn.bgR = BlurBackground.menuR; outilsBtn.bgG = BlurBackground.menuG; outilsBtn.bgB = BlurBackground.menuB;
         }
 
         ConfigParametres cfg = ConfigParametres.get();
@@ -106,6 +123,7 @@ public class EditorUI extends Panel {
         quitBtn.textR = tR; quitBtn.textG = tG; quitBtn.textB = tB;
         filterBtn.textR = tR; filterBtn.textG = tG; filterBtn.textB = tB;
         newBtn.textR = tR; newBtn.textG = tG; newBtn.textB = tB;
+        outilsBtn.textR = tR; outilsBtn.textG = tG; outilsBtn.textB = tB;
 
         if (opaque) {
             setActiveMode(newMenu.getActiveMode());
@@ -136,6 +154,7 @@ public class EditorUI extends Panel {
         res.drawText("MarkerShape - " + label, 10, 10, 1.5f, t[0], t[1], t[2]);
 
         newMenu.setBtnPos(newBtn.x, newBtn.y);
+        toolsPal.setBtnPos(outilsBtn.x, newBtn.y);
         filter.setPosition(filterBtn.x, BAR_H);
     }
 
@@ -147,6 +166,7 @@ public class EditorUI extends Panel {
         if (my < BAR_H) return true;
         if (filter.contains(mx, my)) return true;
         if (newMenu.contains(mx, my)) return true;
+        if (toolsPal.contains(mx, my)) return true;
         if (confirmSave.contains(mx, my)) return true;
         if (entityList.contains(mx, my)) return true;
         return false;
@@ -168,12 +188,24 @@ public class EditorUI extends Panel {
         return newMenu.clickItem(mx, my);
     }
 
+    public int clickTools(float mx, float my) {
+        if (outilsBtn.contains(mx, my)) {
+            outilsBtn.click(mx, my);
+            return -2;
+        }
+        return toolsPal.clickItem(mx, my);
+    }
+
+    public boolean isToolsOpen() { return toolsPal.isOpen(); }
+    public void closeToolsPal() { toolsPal.close(); }
+
     public int clickEntityList(float mx, float my) {
         return entityList.clickList(mx, my);
     }
 
     public void setActiveMode(int mode) {
         newMenu.setActiveMode(mode);
+        toolsPal.setActiveMode(mode);
         if (BlurBackground.transparentUI) {
             newBtn.textR = 1f; newBtn.textG = 1f; newBtn.textB = 1f;
             if (mode == 0) { newBtn.textR = 1f; newBtn.textG = 0.7f; newBtn.textB = 0.3f; }

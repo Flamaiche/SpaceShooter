@@ -37,7 +37,7 @@ public class InputManager {
         this.camera = camera;
         this.tools = tools;
         this.drag = new DragAction(ctx);
-        this.clicks = new ClickHandler(ctx, hover, vertex, edge, del, io);
+        this.clicks = new ClickHandler(ctx, hover, vertex, edge, del, io, tools);
     }
 
     public void setKeyState(int key, int action) {

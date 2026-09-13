@@ -222,6 +222,7 @@ private float[] bounds(markershape.shape.ShapeData data) {
         ctx.hoveredEdgeId = -1;
         ctx.selection.hideOverlays();
         ctx.ui.closeNewMenu();
+        ctx.ui.closeToolsPal();
         ctx.ui.closeConfirmSave();
         ctx.ui.setActiveMode(-1);
         if (ctx.help != null) ctx.help.hide();
