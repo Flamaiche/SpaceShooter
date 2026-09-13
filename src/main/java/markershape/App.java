@@ -90,11 +90,12 @@ public class App {
 
         glfwSetScrollCallback(window, (w, xo, yo) -> {
             if (!inMenu && editor != null) {
+                float step = (float) ((Math.abs(yo) >= 100.0) ? yo / 120.0 : yo);
                 if (editor.editorUI.entityList.contains(mouseX, mouseY)) {
-                    if (yo < 0) editor.editorUI.entityList.pageNext();
+                    if (step < 0) editor.editorUI.entityList.pageNext();
                     else editor.editorUI.entityList.pagePrev();
                 } else {
-                    editor.camera.zoomToward((float) yo, mouseX, mouseY);
+                    editor.camera.zoomToward(step, mouseX, mouseY);
                 }
             }
         });

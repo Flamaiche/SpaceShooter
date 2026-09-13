@@ -25,6 +25,8 @@ public class InputManager {
     private int pendingDragVertex = -1;
     private float pressX, pressY;
     private static final float DRAG_THRESHOLD_PX = 5f;
+    private static final int NAV_NONE = 0, NAV_PAN = 1, NAV_ORBIT = 2;
+    private int navMode = NAV_NONE;
 
     public InputManager(Context ctx, HoverManager hover, VertexAction vertex,
                         EdgeAction edge, DeleteAction del, ShapeIO io, EditorCamera camera) {
@@ -69,14 +71,29 @@ public class InputManager {
             float dy = my - lastMouseY;
             lastMouseX = mx;
             lastMouseY = my;
-            if (shiftDown || middleDown) {
+            boolean panWanted = middleDown || (shiftDown && rightDown);
+            if (panWanted) {
+                if (navMode == NAV_NONE) navMode = NAV_PAN;
+                if (navMode == NAV_ORBIT) endOrbit();
+                navMode = NAV_PAN;
+            } else if (navMode == NAV_NONE) {
+                navMode = NAV_ORBIT;
+                beginOrbit(mx, my);
+            } else if (navMode == NAV_PAN) {
+                navMode = NAV_ORBIT;
+                beginOrbit(mx, my);
+            }
+            if (navMode == NAV_PAN) {
                 camera.pan(dx, dy);
             } else {
                 camera.rotate(-dx * 0.15f, -dy * 0.15f);
+                updateOrbitMarkerAxes();
             }
         } else {
             lastMouseX = mx;
             lastMouseY = my;
+            navMode = NAV_NONE;
+            endOrbit();
         }
 
         processDrag(mx, my);
@@ -144,6 +161,32 @@ public class InputManager {
     private void endDrag() {
         pendingDragVertex = -1;
         if (drag.isDragging()) drag.end();
+    }
+
+    private final org.joml.Vector3f orbitPivot = new org.joml.Vector3f();
+    private boolean orbitPivotSet;
+
+    private void beginOrbit(float mx, float my) {
+        orbitPivot.set(ctx.pick.getClickWorldPos(mx, my));
+        camera.setOrbitPivot(orbitPivot);
+        orbitPivotSet = true;
+        float size = camera.getRadius() * 0.12f;
+        ctx.renderer.setOrbitPivotMarker(true, orbitPivot, Math.max(0.15f, size));
+        updateOrbitMarkerAxes();
+    }
+
+    private void updateOrbitMarkerAxes() {
+        if (!orbitPivotSet) return;
+        org.joml.Vector3f right = camera.getRight();
+        org.joml.Vector3f up = camera.getUp();
+        ctx.renderer.setOrbitPivotMarkerAxes(right.x, right.y, right.z, up.x, up.y, up.z);
+    }
+
+    private void endOrbit() {
+        if (orbitPivotSet) {
+            orbitPivotSet = false;
+            ctx.renderer.setOrbitPivotMarker(false, null, 0f);
+        }
     }
 
     public void handleKey(int key, int scancode, int action, int mods) {
