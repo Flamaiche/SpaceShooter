@@ -33,7 +33,7 @@ public class EdgeHighlightRenderer implements Renderer {
     public void setScreenSize(int w, int h) { shadow.setScreenSize(w, h); }
 
     @Override
-    public void render(Shader shader, ShapeData data) {
+    public void render(Shader shader, ShapeData data, org.joml.Matrix4f view, org.joml.Matrix4f projection, int screenW, int screenH) {
         // 3D shader path — used as stub; actual work done by render2D
     }
 

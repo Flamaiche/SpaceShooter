@@ -320,10 +320,9 @@ public class InputManager {
 
     private void beginOrbit(float mx, float my) {
         orbitPivot.set(ctx.pick.getClickWorldPos(mx, my));
-        camera.setOrbitPivot(orbitPivot);
         orbitPivotSet = true;
-        float size = camera.getRadius() * 0.12f;
-        ctx.renderer.setOrbitPivotMarker(true, orbitPivot, Math.max(0.15f, size));
+        float size = camera.getRadius() * 0.3f;
+        ctx.renderer.setOrbitPivotMarker(true, orbitPivot, Math.max(0.8f, size));
         updateOrbitMarkerAxes();
     }
 

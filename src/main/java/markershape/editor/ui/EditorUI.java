@@ -26,6 +26,19 @@ public class EditorUI extends Panel {
     public final EntityListPanel entityList;
     private float lastMenuR = -1f, lastMenuG = -1f, lastMenuB = -1f;
     private boolean lastTransparentUI;
+    private int hudLodLevel = 0;
+    private int hudTotalFaces = 0;
+    private int hudRenderedFaces = 0;
+    private float hudLodDistance = 0f;
+    private boolean hudHasMesh = false;
+
+    public void setLodStats(int level, float dist, int rendered, int total) {
+        hudLodLevel = level;
+        hudLodDistance = dist;
+        hudRenderedFaces = rendered;
+        hudTotalFaces = total;
+        hudHasMesh = total > 0;
+    }
 
     public EditorUI(UIResources res, int w, int h,
                     Runnable onSave, Runnable onQuit) {
@@ -50,6 +63,7 @@ public class EditorUI extends Panel {
         filterBtn = new Button(res, "Filtre", 0, 0, BTN_W, BAR_H, () -> {
             filter.toggle();
             newMenu.close();
+            toolsPal.close();
         });
         filterBtn.textScale = 1.5f;
         outilsBtn = new Button(res, "Outils", 0, 0, BTN_W, BAR_H, () -> {
@@ -152,6 +166,20 @@ public class EditorUI extends Panel {
         String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
         float[] t = res.textColor();
         res.drawText("MarkerShape - " + label, 10, 10, 1.5f, t[0], t[1], t[2]);
+
+        if (hudHasMesh) {
+            float tr, tg, tb;
+            switch (hudLodLevel) {
+                case 0: tr = 0.5f; tg = 0.9f; tb = 0.5f; break;
+                case 1: tr = 1f; tg = 0.85f; tb = 0.3f; break;
+                case 2: tr = 1f; tg = 0.6f; tb = 0.2f; break;
+                default: tr = 1f; tg = 0.35f; tb = 0.25f; break;
+            }
+            String s = String.format("LOD %d  %d/%d faces  d=%.1f",
+                hudLodLevel, hudRenderedFaces, hudTotalFaces, hudLodDistance);
+            float[] ext = res.getTextExtent(s, 1.5f);
+            res.drawText(s, width - ext[0] - 12, height - 26, 1.5f, tr, tg, tb);
+        }
 
         newMenu.setBtnPos(newBtn.x, newBtn.y);
         toolsPal.setBtnPos(outilsBtn.x, newBtn.y);

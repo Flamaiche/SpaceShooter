@@ -4,73 +4,66 @@ import learngl.Shader;
 import markershape.shape.Edge;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
+import markershape.shape.render.Cam;
+import markershape.shape.render.TriBuilder;
+import markershape.shape.render.TriShape;
 import markershape.shape.render.Renderer;
-import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
+/**
+ * Renders the mesh edges as quads (two triangles each) whose thickness follows
+ * the configured line width in screen pixels, through a {@link learngl.shape.Shape}.
+ */
 public class EdgeBatchRenderer implements Renderer {
-    private int vao = -1, vbo = -1;
-    private int count;
+    private final TriShape tri = new TriShape();
+    private final Vector3f thick = new Vector3f();
     private float lineWidth = 3f;
+    private Matrix4f lastView;
+    private float lastWidth = -1f;
 
     public void setLineWidth(float w) { lineWidth = w; }
 
     @Override
-    public void render(Shader shader, ShapeData data) {
+    public void render(Shader shader, ShapeData data, Matrix4f view, Matrix4f projection, int screenW, int screenH) {
         if (data == null || data.edges.isEmpty()) return;
-        if (vao < 0) build(data);
 
-        count = data.edges.size();
-        FloatBuffer buf = BufferUtils.createFloatBuffer(count * 2 * 6);
-        for (Edge e : data.edges.values()) {
-            Vertex va = data.vertices.get(e.a);
-            Vertex vb = data.vertices.get(e.b);
-            if (va == null || vb == null) continue;
-            float r = (va.r + vb.r) * 0.5f, g = (va.g + vb.g) * 0.5f, b = (va.b + vb.b) * 0.5f;
-            buf.put(va.x); buf.put(va.y); buf.put(va.z);
-            buf.put(r); buf.put(g); buf.put(b);
-            buf.put(vb.x); buf.put(vb.y); buf.put(vb.z);
-            buf.put(r); buf.put(g); buf.put(b);
+        boolean viewChanged = lastView == null || !lastView.equals(view);
+        boolean widthChanged = lastWidth != lineWidth;
+        if (viewChanged || widthChanged) {
+            Cam cam = Cam.extract(view, projection, screenH);
+            TriBuilder b = new TriBuilder();
+            for (Edge e : data.edges.values()) {
+                Vertex va = data.vertices.get(e.a);
+                Vertex vb = data.vertices.get(e.b);
+                if (va == null || vb == null) continue;
+                float mx = (va.x + vb.x) * 0.5f, my = (va.y + vb.y) * 0.5f, mz = (va.z + vb.z) * 0.5f;
+                float depth = cam.viewDepth(mx, my, mz);
+                if (depth <= 1e-5f) continue;
+                float half = cam.halfSize(lineWidth, depth);
+                if (half <= 0f) continue;
+                cam.thickness(va.x, va.y, va.z, vb.x, vb.y, vb.z, thick);
+                float r = (va.r + vb.r) * 0.5f, g = (va.g + vb.g) * 0.5f, bl = (va.b + vb.b) * 0.5f;
+                b.quad(va.x, va.y, va.z, vb.x, vb.y, vb.z,
+                    thick.x, thick.y, thick.z, half, r, g, bl);
+            }
+            tri.rebuild(b.isEmpty() ? null : b.toFloats());
+            lastView = new Matrix4f(view);
+            lastWidth = lineWidth;
         }
-        buf.flip();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, buf, GL_DYNAMIC_DRAW);
-        glDepthMask(false);
-        glLineWidth(lineWidth);
-        glDrawArrays(GL_LINES, 0, count * 2);
-        glLineWidth(1f);
-        glDepthMask(true);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
+        if (!tri.hasGeometry()) return;
 
-    private void build(ShapeData data) {
-        if (data.edges.isEmpty()) return;
-        count = data.edges.size();
-        vao = glGenVertexArrays();
-        vbo = glGenBuffers();
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, (long) count * 2 * 6 * 4, GL_DYNAMIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * 4, 0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * 4, 3 * 4);
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        glDepthMask(false);
+        tri.render();
+        glDepthMask(true);
     }
 
     @Override
     public void cleanup() {
-        if (vao >= 0) { glDeleteVertexArrays(vao); vao = -1; }
-        if (vbo >= 0) { glDeleteBuffers(vbo); vbo = -1; }
-        count = 0;
+        tri.release();
+        lastView = null;
+        lastWidth = -1f;
     }
 }
