@@ -193,6 +193,8 @@ private float[] bounds(markershape.shape.ShapeData data) {
     public void render(Matrix4f view, Matrix4f projection) {
         updateFrontArrow();
         renderer.render(view, projection);
+        editorUI.setLodStats(renderer.getLodLevel(), renderer.getLodDistance(),
+            renderer.getRenderedFaceCount(), renderer.getTotalFaceCount());
 
         editorUI.entityList.setData(ctx.renderer.getShapeData());
         editorUI.render(currentFile);

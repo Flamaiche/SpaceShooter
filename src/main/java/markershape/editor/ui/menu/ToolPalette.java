@@ -16,7 +16,7 @@ public class ToolPalette extends Panel {
     public static final float PAL_W = 200;
     public static final float ITEM_H = 25;
 
-    // Row codes (returned by clickItem)
+    // Row codes (returned by clickItem). Values MUST stay aligned with LABELS/KEYS.
     public static final int TOOL_SELECT = 0;
     public static final int TOOL_VERTEX = 1;
     public static final int TOOL_EDGE = 2;
@@ -25,26 +25,26 @@ public class ToolPalette extends Panel {
     public static final int TOOL_EXTRUDE = 5;
     public static final int TOOL_FILL = 6;
     public static final int TOOL_WELD = 7;
-    public static final int TOOL_DUPLICATE = 8;
-    public static final int TOOL_COPY = 9;
-    public static final int TOOL_PASTE = 10;
-    public static final int TOOL_CLEAN = 11;
+    public static final int TOOL_CLEAN = 8;
+    public static final int TOOL_DUPLICATE = 9;
+    public static final int TOOL_COPY = 10;
+    public static final int TOOL_PASTE = 11;
     public static final int TOOL_HELP = 12;
 
     private static final String[] LABELS = {
         "Selection", "Sommet", "Arete", "Tracé (face)",
         "Subdiviser", "Extruder", "Remplir", "Fusionner",
-        "Dupliquer", "Copier", "Coller", "Nettoyer", "Aide"
+        "Nettoyer", "Dupliquer", "Copier", "Coller", "Aide"
     };
 
     private static final String[] KEYS = {
         "", "", "", "T",
         "S", "E", "F", "M",
-        "Ctrl+D", "Ctrl+C", "Ctrl+V", "K", "H"
+        "K", "Ctrl+D", "Ctrl+C", "Ctrl+V", "H"
     };
 
     // index of the last row of each group (a divider is drawn after it)
-    private static final int[] GROUP_END = {3, 7};
+    private static final int[] GROUP_END = {3, 8, 11};
 
     public ToolPalette(UIResources res) {
         super(res);

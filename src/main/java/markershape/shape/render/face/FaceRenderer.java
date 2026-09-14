@@ -8,6 +8,7 @@ import markershape.shape.Vertex;
 import markershape.shape.render.Renderer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class FaceRenderer implements Renderer {
@@ -15,14 +16,19 @@ public class FaceRenderer implements Renderer {
     private Shader currentShader;
 
     public void build(ShapeData data, Shader shader) {
+        build(data.vertices, data.faces, shader);
+    }
+
+    /** Builds a reduced face set (used by LOD). Vertices come from the shape data. */
+    public void build(HashMap<Integer, Vertex> vertices, List<int[]> faces, Shader shader) {
         cleanup();
         this.currentShader = shader;
-        if (data.vertices.isEmpty()) return;
+        if (vertices.isEmpty()) return;
 
         List<Float> verts = new ArrayList<>();
-        for (int[] tri : data.faces) {
+        for (int[] tri : faces) {
             for (int idx : tri) {
-                Vertex v = data.vertices.get(idx);
+                Vertex v = vertices.get(idx);
                 if (v == null) continue;
                 verts.add(v.x); verts.add(v.y); verts.add(v.z);
                 verts.add(v.r); verts.add(v.g); verts.add(v.b);
@@ -43,7 +49,7 @@ public class FaceRenderer implements Renderer {
     }
 
     @Override
-    public void render(Shader shader, ShapeData data) {
+    public void render(Shader shader, ShapeData data, org.joml.Matrix4f view, org.joml.Matrix4f projection, int screenW, int screenH) {
         if (shape != null && currentShader != null) {
             shape.render();
         }

@@ -17,6 +17,7 @@ import markershape.shape.render.point.PointRenderer;
 import java.util.*;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -35,7 +36,6 @@ public class ShapeRenderer {
     private final CrosshairRenderer crosshairRenderer = new CrosshairRenderer();
     private final GhostPointRenderer ghostPointRenderer = new GhostPointRenderer();
     private final FrontArrowRenderer frontArrowRenderer = new FrontArrowRenderer();
-    private final OrbitPivotRenderer orbitPivotRenderer = new OrbitPivotRenderer();
     public final ShadowRenderer shadow = new ShadowRenderer();
     private final GridRenderer grid = new GridRenderer();
 
@@ -47,12 +47,21 @@ public class ShapeRenderer {
     private boolean showFaces = true, showEdges = true, showPoints = true;
     private float pointSize = 5f, lineWidth = 3f, faceAlpha = 1f;
     private int screenW = 1280, screenH = 720;
+    private boolean lodEnabled = true;
+    private int lodLevel = 0;
+    private float lodDistance = 0f;
+    private int renderedFaceCount = 0;
+    private int[][] originalFaces;
+    private final Vector3f meshCenter = new Vector3f();
+    private boolean meshCenterValid = false;
 
     private boolean marqueeVisible;
     private float marqueeX1, marqueeY1, marqueeX2, marqueeY2;
     private boolean rubberVisible;
     private float rubberAx, rubberAy, rubberBx, rubberBy;
     private float[] tracePreview; // alternating sx, sy screen points
+    private boolean pivotMarkerVisible;
+    private final org.joml.Vector3f pivotMarkerPos = new org.joml.Vector3f();
 
     public ShapeRenderer() {
         try {
@@ -93,26 +102,12 @@ public class ShapeRenderer {
             return;
         }
 
-        List<Float> verts = new ArrayList<>();
-        for (int[] tri : data.faces) {
-            for (int idx : tri) {
-                Vertex v = data.vertices.get(idx);
-                if (v == null) continue;
-                verts.add(v.x); verts.add(v.y); verts.add(v.z);
-                verts.add(v.r); verts.add(v.g); verts.add(v.b);
-            }
-        }
-        if (verts.isEmpty()) return;
-
-        float[] raw = new float[verts.size()];
-        for (int i = 0; i < verts.size(); i++) raw[i] = verts.get(i);
-        float[] full = VertexUtils.autoAddSlotTexture(raw);
-        shape = new Shape(full);
-        shape.setShader(shader);
-        faceRenderer.build(data, shader);
+        storeOriginalFaces(data);
+        rebuildLodGeometry();
+        grid.rebuild();
 
         LogFile.logf("[ShapeRenderer] built: vertices=%d faces=%d triangles=%d",
-            data.vertices.size(), data.faces.size(), raw.length / 6);
+            data.vertices.size(), data.faces.size(), data.vertices.size() > 0 ? data.faces.size() * 3 : 0);
     }
 
     public ShapeData getShapeData() { return shapeData; }
@@ -124,23 +119,8 @@ public class ShapeRenderer {
         if (data != null && !data.vertices.isEmpty()) {
             shader = oldShader;
             if (shader == null) return;
-            List<Float> verts = new ArrayList<>();
-            for (int[] tri : data.faces) {
-                for (int idx : tri) {
-                    Vertex v = data.vertices.get(idx);
-                    if (v == null) continue;
-                    verts.add(v.x); verts.add(v.y); verts.add(v.z);
-                    verts.add(v.r); verts.add(v.g); verts.add(v.b);
-                }
-            }
-            if (!verts.isEmpty()) {
-                float[] raw = new float[verts.size()];
-                for (int i = 0; i < verts.size(); i++) raw[i] = verts.get(i);
-                float[] full = VertexUtils.autoAddSlotTexture(raw);
-                shape = new Shape(full);
-                shape.setShader(shader);
-                faceRenderer.build(data, shader);
-            }
+            storeOriginalFaces(data);
+            rebuildLodGeometry();
         }
     }
 
@@ -154,8 +134,77 @@ public class ShapeRenderer {
         crosshairRenderer.cleanup();
         ghostPointRenderer.cleanup();
         frontArrowRenderer.cleanup();
-        orbitPivotRenderer.cleanup();
     }
+
+    private void storeOriginalFaces(ShapeData data) {
+        originalFaces = data.faces.toArray(new int[0][]);
+        meshCenterValid = false;
+        if (data.vertices == null || data.vertices.isEmpty()) return;
+        float cx = 0, cy = 0, cz = 0;
+        int n = 0;
+        for (Vertex v : data.vertices.values()) {
+            cx += v.x; cy += v.y; cz += v.z; n++;
+        }
+        if (n > 0) {
+            meshCenter.set(cx / n, cy / n, cz / n);
+            meshCenterValid = true;
+        }
+    }
+
+    /** (Re)builds the face geometry with the faces reduced to the current LOD level. */
+    private void rebuildLodGeometry() {
+        if (shader == null || originalFaces == null) return;
+        List<int[]> src = (lodEnabled && lodLevel > 0)
+            ? LOD.reduce(originalFaces, lodLevel)
+            : Arrays.asList(originalFaces);
+        renderedFaceCount = src.size();
+        if (src.isEmpty()) return;
+
+        List<Float> verts = new ArrayList<>();
+        for (int[] tri : src) {
+            for (int idx : tri) {
+                Vertex v = shapeData.vertices.get(idx);
+                if (v == null) continue;
+                verts.add(v.x); verts.add(v.y); verts.add(v.z);
+                verts.add(v.r); verts.add(v.g); verts.add(v.b);
+            }
+        }
+        if (verts.isEmpty()) return;
+
+        float[] raw = new float[verts.size()];
+        for (int i = 0; i < verts.size(); i++) raw[i] = verts.get(i);
+        float[] full = VertexUtils.autoAddSlotTexture(raw);
+        shape = new Shape(full);
+        shape.setShader(shader);
+        faceRenderer.build(shapeData.vertices, src, shader);
+    }
+
+    /** Computes the camera distance and swaps the LOD level if it changed. */
+    private void updateLod(Matrix4f view) {
+        if (!lodEnabled || !meshCenterValid || originalFaces == null) return;
+        Matrix4f inv = new Matrix4f(view).invertAffine();
+        float dx = inv.m30() - meshCenter.x;
+        float dy = inv.m31() - meshCenter.y;
+        float dz = inv.m32() - meshCenter.z;
+        lodDistance = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+        int level = LOD.level(lodDistance);
+        if (level != lodLevel) {
+            lodLevel = level;
+            rebuildLodGeometry();
+        }
+    }
+
+    public void setLodEnabled(boolean enabled) {
+        if (lodEnabled == enabled) return;
+        lodEnabled = enabled;
+        lodLevel = 0;
+        if (shapeData != null) rebuildLodGeometry();
+    }
+    public boolean isLodEnabled() { return lodEnabled; }
+    public int getLodLevel() { return lodEnabled ? lodLevel : 0; }
+    public float getLodDistance() { return lodDistance; }
+    public int getTotalFaceCount() { return originalFaces != null ? originalFaces.length : 0; }
+    public int getRenderedFaceCount() { return renderedFaceCount; }
 
     public void setHoveredVertex(int id) {
         hoveredVertexId = id;
@@ -217,7 +266,7 @@ public class ShapeRenderer {
         ghostPointRenderer.setVisible(false);
         frontArrowRenderer.setVisible(false);
         crosshairRenderer.setVisible(false);
-        orbitPivotRenderer.setVisible(false);
+        pivotMarkerVisible = false;
     }
 
     public void setFrontArrow(boolean visible, org.joml.Vector3f center, org.joml.Vector3f dir, float length) {
@@ -227,19 +276,17 @@ public class ShapeRenderer {
     }
 
     /**
-     * Shows/hides the orbit pivot "+" marker. When visible, draws a fixed
-     * billboard cross at the pivot point (kept for the whole orbit gesture).
+     * Shows/hides the orbit pivot "+" marker. Rendered as a small fixed-size
+     * 2D crosshair (like a game crosshair) at the pivot's screen position,
+     * kept for the whole orbit gesture.
      */
     public void setOrbitPivotMarker(boolean visible, org.joml.Vector3f pos, float halfLen) {
-        orbitPivotRenderer.setVisible(visible);
-        if (!visible) return;
-        if (pos != null) orbitPivotRenderer.setPosition(pos.x, pos.y, pos.z);
-        orbitPivotRenderer.setHalfLength(halfLen);
+        pivotMarkerVisible = visible;
+        if (pos != null) pivotMarkerPos.set(pos);
     }
 
-    /** Updates the pivot marker billboard orientation to the camera axes. */
+    /** Kept for API compatibility; the 2D crosshair needs no billboard axes. */
     public void setOrbitPivotMarkerAxes(float rx, float ry, float rz, float ux, float uy, float uz) {
-        orbitPivotRenderer.setAxes(rx, ry, rz, ux, uy, uz);
     }
 
     public void render(Matrix4f view, Matrix4f projection) {
@@ -257,22 +304,23 @@ public class ShapeRenderer {
 
         glEnable(GL_DEPTH_TEST);
 
-        if (grid.anyVisible()) grid.render();
+        if (grid.anyVisible()) grid.render(view, projection, screenW, screenH);
 
         if (shape != null) {
+            updateLod(view);
             if (showFaces) {
                 shader.setUniform1f("uAlpha", faceAlpha);
-                faceRenderer.render(shader, shapeData);
+                faceRenderer.render(shader, shapeData, view, projection, screenW, screenH);
             }
         }
 
         if (shapeData != null) {
             if (showEdges && !shapeData.edges.isEmpty()) {
-                edgeBatchRenderer.render(shader, shapeData);
+                edgeBatchRenderer.render(shader, shapeData, view, projection, screenW, screenH);
             }
 
             if (showPoints) {
-                pointRenderer.render(shader, shapeData);
+                pointRenderer.render(shader, shapeData, view, projection, screenW, screenH);
             }
 
             // Edge highlights in 2D overlay
@@ -357,10 +405,22 @@ public class ShapeRenderer {
                 }
             }
 
-            crosshairRenderer.render(shader, shapeData);
-            ghostPointRenderer.render(shader, shapeData);
-            frontArrowRenderer.render(shader, shapeData);
-            orbitPivotRenderer.render(shader, shapeData);
+            crosshairRenderer.render(shader, shapeData, view, projection, screenW, screenH);
+            ghostPointRenderer.render(shader, shapeData, view, projection, screenW, screenH);
+            frontArrowRenderer.render(shader, shapeData, view, projection, screenW, screenH);
+
+            // Orbit pivot marker: small fixed-size 2D crosshair (like a game crosshair)
+            if (pivotMarkerVisible) {
+                Vector4f pt = new Vector4f(pivotMarkerPos.x, pivotMarkerPos.y, pivotMarkerPos.z, 1f).mul(mvp);
+                if (pt.w > 0) {
+                    float sx = (pt.x / pt.w * 0.5f + 0.5f) * screenW;
+                    float sy = (1f - (pt.y / pt.w * 0.5f + 0.5f)) * screenH;
+                    float arm = 5f;
+                    shadow.drawEdge(sx - arm, sy, sx + arm, sy, 1f, 0.9f, 0.3f, 1f, 1.5f);
+                    shadow.drawEdge(sx, sy - arm, sx, sy + arm, 1f, 0.9f, 0.3f, 1f, 1.5f);
+                    shadow.drawPoint(sx, sy, 1f, 0.9f, 0.3f, 1f, 2.5f);
+                }
+            }
         }
 
         shader.unbind();
@@ -393,23 +453,8 @@ public class ShapeRenderer {
         if (shader == null) return;
         if (data.vertices.isEmpty()) return;
 
-        List<Float> verts = new ArrayList<>();
-        for (int[] tri : data.faces) {
-            for (int idx : tri) {
-                Vertex v = data.vertices.get(idx);
-                if (v == null) continue;
-                verts.add(v.x); verts.add(v.y); verts.add(v.z);
-                verts.add(v.r); verts.add(v.g); verts.add(v.b);
-            }
-        }
-        if (verts.isEmpty()) return;
-
-        float[] raw = new float[verts.size()];
-        for (int i = 0; i < verts.size(); i++) raw[i] = verts.get(i);
-        float[] full = VertexUtils.autoAddSlotTexture(raw);
-        shape = new Shape(full);
-        shape.setShader(shader);
-        faceRenderer.build(data, shader);
+        storeOriginalFaces(data);
+        rebuildLodGeometry();
         grid.rebuild();
     }
 
