@@ -2,6 +2,7 @@ package markershape.editor.action;
 
 import markershape.editor.Context;
 import markershape.shape.Edge;
+import markershape.shape.Face;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 import org.joml.Vector3f;
@@ -20,7 +21,7 @@ public class ShapeTools {
     private final FaceUtils faceUtils;
 
     private static ArrayList<Vertex> clipVerts = new ArrayList<>();
-    private static ArrayList<int[]> clipEdges = new ArrayList<>();
+    private static ArrayList<Edge> clipEdges = new ArrayList<>();
 
     public ShapeTools(Context ctx, FaceUtils faceUtils) {
         this.ctx = ctx;
@@ -39,6 +40,27 @@ public class ShapeTools {
         int max = -1;
         for (int id : d.edges.keySet()) if (id > max) max = id;
         return max + 1;
+    }
+
+    /** Face with the colour of the seed face but new indices. */
+    private static Face newFaceLike(Face seed, int a, int b, int c) {
+        return new Face(a, b, c, seed.r, seed.g, seed.b);
+    }
+
+    /** Face with the current creation colour. */
+    private Face newFace(int a, int b, int c) {
+        return new Face(a, b, c,
+            markershape.config.ConfigParametres.get().getFloat("createColorR"),
+            markershape.config.ConfigParametres.get().getFloat("createColorG"),
+            markershape.config.ConfigParametres.get().getFloat("createColorB"));
+    }
+
+    private Edge newEdgeWithCurrentColor(int a, int b) {
+        markershape.config.ConfigParametres cfg = markershape.config.ConfigParametres.get();
+        return new Edge(nextEdgeId(ctx.renderer.getShapeData()), a, b, "stun", 0.02f,
+            cfg.getFloat("createColorR"),
+            cfg.getFloat("createColorG"),
+            cfg.getFloat("createColorB"));
     }
 
     private TreeSet<Integer> activeVertices() {
@@ -63,11 +85,6 @@ public class ShapeTools {
             minZ = Math.min(minZ, v.z); maxZ = Math.max(maxZ, v.z);
         }
         return Math.max(maxX - minX, Math.max(maxY - minY, maxZ - minZ));
-    }
-
-    private static boolean contains(int[] arr, int v) {
-        for (int x : arr) if (x == v) return true;
-        return false;
     }
 
     public void duplicateSelected() {
@@ -150,6 +167,7 @@ public class ShapeTools {
         for (Edge e : loops) data.removeEdge(e.id);
         removeDuplicateEdges(data);
         faceUtils.cleanupFaces(data);
+        data.purgeOrphanVertices();
 
         ctx.selection.selectVertex(keep);
         ctx.renderer.rebuild();
@@ -183,21 +201,23 @@ public class ShapeTools {
             (va.r + vb.r) / 2f, (va.g + vb.g) / 2f, (va.b + vb.b) / 2f));
 
         data.removeEdge(edgeId);
-        Edge e1 = new Edge(nextEdgeId(data), e.a, mid, e.mode, e.thickness);
-        Edge e2 = new Edge(nextEdgeId(data), mid, e.b, e.mode, e.thickness);
+        Edge e1 = new Edge(nextEdgeId(data), e.a, mid, e.mode, e.thickness, e.r, e.g, e.bl);
+        Edge e2 = new Edge(nextEdgeId(data), mid, e.b, e.mode, e.thickness, e.r, e.g, e.bl);
         data.addEdge(e1);
         data.addEdge(e2);
 
-        List<int[]> updated = new ArrayList<>();
-        for (int[] tri : data.faces) {
-            if (contains(tri, e.a) && contains(tri, e.b)) {
+        List<Face> updated = new ArrayList<>();
+        for (Face tri : data.faces) {
+            if (tri.contains(e.a) && tri.contains(e.b)) {
                 int c = -1;
-                for (int x : tri) if (x != e.a && x != e.b) { c = x; break; }
+                if (tri.a != e.a && tri.a != e.b) c = tri.a;
+                else if (tri.b != e.a && tri.b != e.b) c = tri.b;
+                else c = tri.c;
                 if (c < 0) continue;
-                if (!faceUtils.triExists(data, e.a, mid, c)) updated.add(new int[]{e.a, mid, c});
-                if (!faceUtils.triExists(data, mid, e.b, c)) updated.add(new int[]{mid, e.b, c});
+                if (!faceUtils.triExists(data, e.a, mid, c)) updated.add(newFaceLike(tri, e.a, mid, c));
+                if (!faceUtils.triExists(data, mid, e.b, c)) updated.add(newFaceLike(tri, mid, e.b, c));
             } else {
-                updated.add(tri);
+                updated.add(tri.copy());
             }
         }
         data.faces = updated;
@@ -234,15 +254,17 @@ public class ShapeTools {
         data.addVertex(new Vertex(nA, va.x + delta.x, va.y + delta.y, va.z + delta.z, va.r, va.g, va.b));
         data.addVertex(new Vertex(nB, vb.x + delta.x, vb.y + delta.y, vb.z + delta.z, vb.r, vb.g, vb.b));
 
-        Edge nAB = new Edge(nextEdgeId(data), nA, nB, e.mode, e.thickness);
-        Edge eA = new Edge(nextEdgeId(data), e.a, nA, e.mode, e.thickness);
-        Edge eB = new Edge(nextEdgeId(data), e.b, nB, e.mode, e.thickness);
+        Edge nAB = new Edge(nextEdgeId(data), nA, nB, e.mode, e.thickness, e.r, e.g, e.bl);
+        Edge eA = new Edge(nextEdgeId(data), e.a, nA, e.mode, e.thickness, e.r, e.g, e.bl);
+        Edge eB = new Edge(nextEdgeId(data), e.b, nB, e.mode, e.thickness, e.r, e.g, e.bl);
         data.addEdge(nAB);
         data.addEdge(eA);
         data.addEdge(eB);
 
-        if (!faceUtils.triExists(data, e.a, e.b, nB)) data.faces.add(new int[]{e.a, e.b, nB});
-        if (!faceUtils.triExists(data, e.a, nB, nA)) data.faces.add(new int[]{e.a, nB, nA});
+        Face f1 = newFace(e.a, e.b, nB);
+        Face f2 = newFace(e.a, nB, nA);
+        if (!faceUtils.triExists(data, e.a, e.b, nB)) data.faces.add(f1);
+        if (!faceUtils.triExists(data, e.a, nB, nA)) data.faces.add(f2);
 
         ctx.selection.selectEdge(nAB.id);
         ctx.selection.multiVertices.add(nA);
@@ -257,11 +279,12 @@ public class ShapeTools {
         Vertex vb = data.vertices.get(e.b);
         Vector3f ab = new Vector3f(vb.x - va.x, vb.y - va.y, vb.z - va.z);
         Vector3f normal = null;
-        for (int[] tri : data.faces) {
-            if (!contains(tri, e.a) || !contains(tri, e.b)) continue;
+        for (Face tri : data.faces) {
+            if (!tri.contains(e.a) || !tri.contains(e.b)) continue;
             int c = -1;
-            for (int x : tri) if (x != e.a && x != e.b) { c = x; break; }
-            if (c < 0) continue;
+            if (tri.a != e.a && tri.a != e.b) c = tri.a;
+            else if (tri.b != e.a && tri.b != e.b) c = tri.b;
+            else c = tri.c;
             Vertex vc = data.vertices.get(c);
             if (vc == null) continue;
             Vector3f cross = new Vector3f(ab)
@@ -300,7 +323,7 @@ public class ShapeTools {
             int vB = loop.get(i + 1);
             if (vB == v0) break;
             if (!faceUtils.triExists(data, v0, vA, vB)) {
-                data.faces.add(new int[]{v0, vA, vB});
+                data.faces.add(newFace(v0, vA, vB));
                 added++;
             }
         }
@@ -319,18 +342,145 @@ public class ShapeTools {
         int first = vids.get(0);
         int last = vids.get(vids.size() - 1);
         if (first != last && !faceUtils.connectedBetween(d, first, last)) {
-            d.addEdge(new Edge(nextEdgeId(d), last, first, "stun", 0.02f));
+            d.addEdge(newEdgeWithCurrentColor(last, first));
         }
         int added = 0;
         for (int i = 1; i + 1 < vids.size(); i++) {
             int a = vids.get(i), b = vids.get(i + 1);
             if (b == first) break;
             if (!faceUtils.triExists(d, first, a, b)) {
-                d.faces.add(new int[]{first, a, b});
+                d.faces.add(newFace(first, a, b));
                 added++;
             }
         }
         return added;
+    }
+
+    /** Orders N selected vertices into a contour loop: it uses the selected
+     * edges to build the loop when they form a single closed circuit, otherwise
+     * it falls back to an angular ordering around the selection centroid.
+     */
+    /**
+     * Orders the selection into a contour loop. A face can be built from points,
+     * from edges, or from any mix: the vertices of each selected edge are
+     * automatically added to the loop (so there is no need to select the edge
+     * endpoints separately, and each edge is only used once).
+     */
+    public List<Integer> orderSelectionIntoLoop() {
+        ShapeData data = ctx.renderer.getShapeData();
+        if (data == null) return null;
+        TreeSet<Integer> edges = activeEdges();
+        TreeSet<Integer> verts = new TreeSet<>(activeVertices());
+        for (int eid : edges) {
+            Edge e = data.edges.get(eid);
+            if (e == null) continue;
+            verts.add(e.a);
+            verts.add(e.b);
+        }
+        if (verts.size() < 3) {
+            System.out.println("[MarkerShape] selectionnez 3+ sommets et/ou aretes");
+            return null;
+        }
+        // Prefer the exact contour when the selected edges already close a loop.
+        List<Integer> loop = null;
+        if (edges.size() >= 3) {
+            List<Integer> eLoop = buildLoop(data, edges);
+            if (eLoop != null) {
+                loop = new ArrayList<>(eLoop);
+                if (!loop.isEmpty() && loop.get(loop.size() - 1).equals(loop.get(0))) {
+                    loop.remove(loop.size() - 1);
+                }
+            }
+        }
+        if (loop == null) loop = angularOrder(data, verts);
+        if (loop == null || loop.size() < 3) {
+            System.out.println("[MarkerShape] impossible d'ordonner la selection en un contour");
+            return null;
+        }
+        return loop;
+    }
+
+    /** Enters the "face by selection" pending state: computes and previews the contour. */
+    public boolean prepareFaceFromSelection() {
+        ShapeData data = ctx.renderer.getShapeData();
+        if (data == null) return false;
+        List<Integer> loop = orderSelectionIntoLoop();
+        if (loop == null) return false;
+        ctx.faceSelectLoop.clear();
+        ctx.faceSelectLoop.addAll(loop);
+        ctx.faceSelectPending = true;
+        ctx.renderer.setFaceSelectPreview(loop);
+        ctx.renderer.rebuild();
+        System.out.println("[MarkerShape] contour prevu : " + loop.size() + " sommets (Entree valide, Echap annule)");
+        return true;
+    }
+
+    /** Validates the pending face-by-selection contour (fan triangulation). */
+    public int confirmFaceFromSelection() {
+        ShapeData data = ctx.renderer.getShapeData();
+        if (data == null) return 0;
+        if (!ctx.faceSelectPending || ctx.faceSelectLoop.size() < 3) {
+            cancelFaceFromSelection();
+            return 0;
+        }
+        ctx.undoredo.snapshot(data);
+        TreeSet<Integer> removedEdges = activeEdges();
+        int v0 = ctx.faceSelectLoop.get(0);
+        int added = 0;
+        int n = ctx.faceSelectLoop.size();
+        for (int i = 1; i + 1 < ctx.faceSelectLoop.size(); i++) {
+            int vA = ctx.faceSelectLoop.get(i);
+            int vB = ctx.faceSelectLoop.get(i + 1);
+            if (vB == v0) break;
+            if (!faceUtils.triExists(data, v0, vA, vB)) {
+                data.faces.add(newFace(v0, vA, vB));
+                added++;
+            }
+        }
+        // The selected edges are removed and replaced by the face's own edges:
+        // this avoids stacking a second identical edge over an existing one.
+        for (int eid : new ArrayList<>(removedEdges)) data.removeEdge(eid);
+        for (int i = 1; i + 1 < n; i++) {
+            int a = ctx.faceSelectLoop.get(i);
+            int b = ctx.faceSelectLoop.get(i + 1);
+            if (b == v0) break;
+            if (!faceUtils.connectedBetween(data, v0, a)) data.addEdge(newEdgeWithCurrentColor(v0, a));
+            if (!faceUtils.connectedBetween(data, a, b)) data.addEdge(newEdgeWithCurrentColor(a, b));
+            if (!faceUtils.connectedBetween(data, v0, b)) data.addEdge(newEdgeWithCurrentColor(v0, b));
+        }
+        ctx.renderer.rebuild();
+        cancelFaceFromSelection();
+        System.out.println("[MarkerShape] face creee : " + n + " sommets, " + added + " triangles, "
+            + removedEdges.size() + " arete(s) remplacee(s)");
+        return added;
+    }
+
+    /** Cancels the pending face-by-selection state and clears its preview. */
+    public void cancelFaceFromSelection() {
+        ctx.faceSelectPending = false;
+        ctx.faceSelectLoop.clear();
+        ctx.renderer.clearFaceSelectPreview();
+    }
+
+    /** Orders a vertex set angularly around its centroid (best-effort contour). */
+    private List<Integer> angularOrder(ShapeData data, TreeSet<Integer> verts) {
+        if (verts.size() < 3) return null;
+        Vector3f c = new Vector3f();
+        for (int id : verts) {
+            Vertex v = data.vertices.get(id);
+            if (v != null) c.add(v.x, v.y, v.z);
+        }
+        c.mul(1f / verts.size());
+        List<Integer> list = new ArrayList<>(verts);
+        list.sort((i, j) -> {
+            Vertex vi = data.vertices.get(i);
+            Vertex vj = data.vertices.get(j);
+            if (vi == null || vj == null) return 0;
+            double ai = Math.atan2(vi.z - c.z, vi.x - c.x);
+            double aj = Math.atan2(vj.z - c.z, vj.x - c.x);
+            return Double.compare(ai, aj);
+        });
+        return list;
     }
 
     /** Builds the ordered vertex loop described by the selected edges, or null. */
@@ -371,6 +521,20 @@ public class ShapeTools {
         return loop;
     }
 
+    /** Translates ALL the model's vertices by the given delta (world origin shift). */
+    public void translateAll(float dx, float dy, float dz) {
+        ShapeData data = ctx.renderer.getShapeData();
+        if (data == null || data.vertices.isEmpty()) return;
+        ctx.undoredo.snapshot(data);
+        for (Vertex v : data.vertices.values()) {
+            v.x += dx;
+            v.y += dy;
+            v.z += dz;
+        }
+        ctx.renderer.rebuild();
+        learngl.LogFile.logf("[MarkerShape] origine deplacee de (%.2f, %.2f, %.2f)", dx, dy, dz);
+    }
+
     public void selectAll() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null || data.vertices.isEmpty()) return;
@@ -408,8 +572,9 @@ public class ShapeTools {
             clipVerts.add(v.copy());
         }
         for (Edge e : data.edges.values()) {
-            Integer ia = idx.get(e.a), ib = idx.get(e.b);
-            if (ia != null && ib != null) clipEdges.add(new int[]{ia, ib});
+            if (idx.containsKey(e.a) && idx.containsKey(e.b)) {
+                clipEdges.add(e.copy());
+            }
         }
         learngl.LogFile.logf("[MarkerShape] copied %d vertices, %d edges", clipVerts.size(), clipEdges.size());
     }
@@ -429,15 +594,15 @@ public class ShapeTools {
             data.addVertex(new Vertex(nid, cv.x + off, cv.y + off, cv.z + off, cv.r, cv.g, cv.b));
             newIds.add(nid);
         }
-        for (int[] ce : clipEdges) {
-            int nA = newIds.get(ce[0]), nB = newIds.get(ce[1]);
+        for (Edge ce : clipEdges) {
+            int nA = newIds.get(ce.a), nB = newIds.get(ce.b);
             if (nA == nB) continue;
             boolean dup = false;
             for (Edge e : data.edges.values()) {
                 if ((e.a == nA && e.b == nB) || (e.a == nB && e.b == nA)) { dup = true; break; }
             }
             if (dup) continue;
-            data.addEdge(new Edge(nextEdgeId(data), nA, nB, "stun", 0.02f));
+            data.addEdge(new Edge(nextEdgeId(data), nA, nB, ce.mode, ce.thickness, ce.r, ce.g, ce.bl));
         }
         ctx.selection.selectDuplicateVertices(newIds);
         ctx.renderer.rebuild();

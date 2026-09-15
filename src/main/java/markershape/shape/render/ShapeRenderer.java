@@ -35,7 +35,6 @@ public class ShapeRenderer {
     private final EdgeHighlightRenderer edgeHighlightRenderer = new EdgeHighlightRenderer();
     private final CrosshairRenderer crosshairRenderer = new CrosshairRenderer();
     private final GhostPointRenderer ghostPointRenderer = new GhostPointRenderer();
-    private final FrontArrowRenderer frontArrowRenderer = new FrontArrowRenderer();
     public final ShadowRenderer shadow = new ShadowRenderer();
     private final GridRenderer grid = new GridRenderer();
 
@@ -51,7 +50,7 @@ public class ShapeRenderer {
     private int lodLevel = 0;
     private float lodDistance = 0f;
     private int renderedFaceCount = 0;
-    private int[][] originalFaces;
+    private Face[] originalFaces;
     private final Vector3f meshCenter = new Vector3f();
     private boolean meshCenterValid = false;
 
@@ -60,6 +59,7 @@ public class ShapeRenderer {
     private boolean rubberVisible;
     private float rubberAx, rubberAy, rubberBx, rubberBy;
     private float[] tracePreview; // alternating sx, sy screen points
+    private java.util.List<Integer> faceSelectPreview; // ordered contour vertex ids (pending face creation)
     private boolean pivotMarkerVisible;
     private final org.joml.Vector3f pivotMarkerPos = new org.joml.Vector3f();
 
@@ -133,11 +133,10 @@ public class ShapeRenderer {
         shadow.cleanup();
         crosshairRenderer.cleanup();
         ghostPointRenderer.cleanup();
-        frontArrowRenderer.cleanup();
     }
 
     private void storeOriginalFaces(ShapeData data) {
-        originalFaces = data.faces.toArray(new int[0][]);
+        originalFaces = data.faces.toArray(new Face[0]);
         meshCenterValid = false;
         if (data.vertices == null || data.vertices.isEmpty()) return;
         float cx = 0, cy = 0, cz = 0;
@@ -154,20 +153,24 @@ public class ShapeRenderer {
     /** (Re)builds the face geometry with the faces reduced to the current LOD level. */
     private void rebuildLodGeometry() {
         if (shader == null || originalFaces == null) return;
-        List<int[]> src = (lodEnabled && lodLevel > 0)
+        List<Face> src = (lodEnabled && lodLevel > 0)
             ? LOD.reduce(originalFaces, lodLevel)
             : Arrays.asList(originalFaces);
         renderedFaceCount = src.size();
         if (src.isEmpty()) return;
 
         List<Float> verts = new ArrayList<>();
-        for (int[] tri : src) {
-            for (int idx : tri) {
-                Vertex v = shapeData.vertices.get(idx);
-                if (v == null) continue;
-                verts.add(v.x); verts.add(v.y); verts.add(v.z);
-                verts.add(v.r); verts.add(v.g); verts.add(v.b);
-            }
+        for (Face tri : src) {
+            Vertex va = shapeData.vertices.get(tri.a);
+            Vertex vb = shapeData.vertices.get(tri.b);
+            Vertex vc = shapeData.vertices.get(tri.c);
+            if (va == null || vb == null || vc == null) continue;
+            verts.add(va.x); verts.add(va.y); verts.add(va.z);
+            verts.add(tri.r); verts.add(tri.g); verts.add(tri.bl);
+            verts.add(vb.x); verts.add(vb.y); verts.add(vb.z);
+            verts.add(tri.r); verts.add(tri.g); verts.add(tri.bl);
+            verts.add(vc.x); verts.add(vc.y); verts.add(vc.z);
+            verts.add(tri.r); verts.add(tri.g); verts.add(tri.bl);
         }
         if (verts.isEmpty()) return;
 
@@ -250,6 +253,15 @@ public class ShapeRenderer {
     public void setTracePreview(float[] xy) {
         tracePreview = xy;
     }
+
+    /** Sets the ordered contour preview for a pending face-by-selection creation. */
+    public void setFaceSelectPreview(List<Integer> vertexIds) {
+        faceSelectPreview = vertexIds == null ? null : new ArrayList<>(vertexIds);
+    }
+
+    public void clearFaceSelectPreview() {
+        faceSelectPreview = null;
+    }
     public void setCrosshair(boolean visible, org.joml.Vector3f pos) {
         crosshairRenderer.setVisible(visible);
         crosshairRenderer.setPosition(pos);
@@ -264,15 +276,8 @@ public class ShapeRenderer {
     /** Hides the transient placement/arrow overlays (e.g. when the menu is shown). */
     public void hideTransientOverlays() {
         ghostPointRenderer.setVisible(false);
-        frontArrowRenderer.setVisible(false);
         crosshairRenderer.setVisible(false);
         pivotMarkerVisible = false;
-    }
-
-    public void setFrontArrow(boolean visible, org.joml.Vector3f center, org.joml.Vector3f dir, float length) {
-        frontArrowRenderer.setVisible(visible);
-        if (!visible) return;
-        frontArrowRenderer.setArrow(center.x, center.y, center.z, dir, length);
     }
 
     /**
@@ -405,9 +410,34 @@ public class ShapeRenderer {
                 }
             }
 
+            // Face-by-selection contour preview (2D overlay)
+            if (faceSelectPreview != null && faceSelectPreview.size() >= 3 && shapeData != null) {
+                Matrix4f mvp2 = new Matrix4f(projection);
+                mvp2.mul(view);
+                int n = faceSelectPreview.size();
+                float[][] sxy = new float[n][2];
+                for (int i = 0; i < n; i++) {
+                    Vertex v = shapeData.vertices.get(faceSelectPreview.get(i));
+                    if (v == null) { sxy[i][0] = Float.NaN; sxy[i][1] = Float.NaN; continue; }
+                    Vector4f p = new Vector4f(v.x, v.y, v.z, 1f).mul(mvp2);
+                    if (p.w <= 0) { sxy[i][0] = Float.NaN; sxy[i][1] = Float.NaN; continue; }
+                    sxy[i][0] = (p.x / p.w * 0.5f + 0.5f) * screenW;
+                    sxy[i][1] = (1f - (p.y / p.w * 0.5f + 0.5f)) * screenH;
+                }
+                for (int i = 0; i < n; i++) {
+                    int j = (i + 1) % n;
+                    if (Float.isNaN(sxy[i][0]) || Float.isNaN(sxy[j][0])) continue;
+                    shadow.drawEdge(sxy[i][0], sxy[i][1], sxy[j][0], sxy[j][1],
+                        0.3f, 0.9f, 0.55f, 0.9f, 3f);
+                }
+                for (int i = 2; i < n; i++) {
+                    if (Float.isNaN(sxy[0][0]) || Float.isNaN(sxy[i - 1][0]) || Float.isNaN(sxy[i][0])) continue;
+                    shadow.drawEdge(sxy[0][0], sxy[0][1], sxy[i][0], sxy[i][1], 0.3f, 0.9f, 0.55f, 0.35f, 1.5f);
+                }
+            }
+
             crosshairRenderer.render(shader, shapeData, view, projection, screenW, screenH);
             ghostPointRenderer.render(shader, shapeData, view, projection, screenW, screenH);
-            frontArrowRenderer.render(shader, shapeData, view, projection, screenW, screenH);
 
             // Orbit pivot marker: small fixed-size 2D crosshair (like a game crosshair)
             if (pivotMarkerVisible) {

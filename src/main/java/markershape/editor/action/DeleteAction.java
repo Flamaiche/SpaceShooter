@@ -24,6 +24,7 @@ public class DeleteAction {
         for (int id : vv) data.removeVertex(id);
         for (int id : ee) data.removeEdge(id);
         faceUtils.cleanupFaces(data);
+        data.purgeOrphanVertices();
         ctx.selection.reset();
         ctx.renderer.rebuild();
         learngl.LogFile.logf("[MarkerShape] deleted %d vertices, %d edges (cascade)", vv.size(), ee.size());
@@ -36,6 +37,7 @@ public class DeleteAction {
         if (ctx.selection.selectedVertex >= 0) {
             data.removeVertex(ctx.selection.selectedVertex);
             faceUtils.cleanupFaces(data);
+            data.purgeOrphanVertices();
             ctx.selection.reset();
             ctx.renderer.rebuild();
         }
@@ -48,6 +50,7 @@ public class DeleteAction {
         if (ctx.selection.selectedEdge >= 0) {
             data.removeEdge(ctx.selection.selectedEdge);
             faceUtils.cleanupFaces(data);
+            data.purgeOrphanVertices();
             ctx.selection.reset();
             ctx.renderer.rebuild();
         }

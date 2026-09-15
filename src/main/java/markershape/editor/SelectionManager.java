@@ -148,7 +148,7 @@ public class SelectionManager {
                 crosshairValid = true;
                 int edgeCount = v.edgeIds.size();
                 int[] siblings = findSiblings(data, v);
-                vertexOverlay.show(v, edgeCount, siblings);
+                vertexOverlay.show(v, edgeCount, siblings, data);
                 vertexOverlay.setPosition(10, 50);
                 edgeOverlay.hide();
                 return;

@@ -45,9 +45,8 @@ public class EdgeBatchRenderer implements Renderer {
                 float half = cam.halfSize(lineWidth, depth);
                 if (half <= 0f) continue;
                 cam.thickness(va.x, va.y, va.z, vb.x, vb.y, vb.z, thick);
-                float r = (va.r + vb.r) * 0.5f, g = (va.g + vb.g) * 0.5f, bl = (va.b + vb.b) * 0.5f;
                 b.quad(va.x, va.y, va.z, vb.x, vb.y, vb.z,
-                    thick.x, thick.y, thick.z, half, r, g, bl);
+                    thick.x, thick.y, thick.z, half, e.r, e.g, e.bl);
             }
             tri.rebuild(b.isEmpty() ? null : b.toFloats());
             lastView = new Matrix4f(view);

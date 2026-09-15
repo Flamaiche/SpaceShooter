@@ -36,6 +36,7 @@ public class Converter {
         int vertexId = 0;
         List<int[]> triangleList = new ArrayList<>();
         List<int[]> edgeListRaw = new ArrayList<>();
+        List<float[]> triColors = new ArrayList<>();
 
         for (int i = 0; i < shipData.length; i += FLOATS_PER_TRI) {
             int[] triIndices = new int[VERTICES_PER_TRI];
@@ -54,9 +55,9 @@ public class Converter {
                 vert.x = x;
                 vert.y = y;
                 vert.z = z;
-                vert.r = r;
-                vert.g = g;
-                vert.b = b;
+                vert.r = 1f;
+                vert.g = 1f;
+                vert.b = 1f;
                 data.addVertex(vert);
                 triIndices[v] = vertexId;
                 vertexId++;
@@ -71,10 +72,16 @@ public class Converter {
             edgeListRaw.add(new int[]{a, b});
             edgeListRaw.add(new int[]{b, c});
             edgeListRaw.add(new int[]{c, a});
+
+            int base0 = i;
+            triColors.add(new float[]{
+                shipData[base0 + 3], shipData[base0 + 4], shipData[base0 + 5]});
         }
 
-        for (int[] tri : triangleList) {
-            data.faces.add(tri);
+        for (int t = 0; t < triangleList.size(); t++) {
+            int[] tri = triangleList.get(t);
+            float[] col = triColors.get(t);
+            data.faces.add(new Face(tri[0], tri[1], tri[2], col[0], col[1], col[2]));
         }
 
         Set<String> seenEdges = new HashSet<>();
@@ -121,23 +128,24 @@ public class Converter {
 
         Map<Integer, Vertex> vertexMap = data.vertices;
 
-        for (int[] tri : data.faces) {
+        for (Face tri : data.faces) {
+            int[] ids = {tri.a, tri.b, tri.c};
             for (int v = 0; v < VERTICES_PER_TRI; v++) {
-                int vertId = tri[v];
+                int vertId = ids[v];
                 Vertex vert = vertexMap.get(vertId);
 
                 if (vert == null) {
                     throw new IllegalStateException(
-                            "Vertex id " + vertId + " not found in ShapeData for face " + tri[v]
+                            "Vertex id " + vertId + " not found in ShapeData for face "
                     );
                 }
 
                 result[idx++] = vert.x;
                 result[idx++] = vert.y;
                 result[idx++] = vert.z;
-                result[idx++] = vert.r;
-                result[idx++] = vert.g;
-                result[idx++] = vert.b;
+                result[idx++] = tri.r;
+                result[idx++] = tri.g;
+                result[idx++] = tri.b;
             }
         }
 

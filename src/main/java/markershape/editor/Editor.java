@@ -77,7 +77,7 @@ public class Editor {
         tools = new ShapeTools(ctx, faceUtils);
         hover = new HoverManager(ctx);
         ctx.help = new markershape.editor.ui.overlay.HelpOverlay(uiResources);
-        input = new InputManager(ctx, hover, vertex, edge, del, io, tools, camera);
+        input = new InputManager(ctx, hover, vertex, edge, del, io, tools, camera, uiResources);
 
         vertexOverlay.setPreEditCallback(() -> ctx.undoredo.snapshot(renderer.getShapeData()));
         edgeOverlay.setPreEditCallback(() -> ctx.undoredo.snapshot(renderer.getShapeData()));
@@ -175,24 +175,10 @@ private float[] bounds(markershape.shape.ShapeData data) {
         return new float[]{minX, minY, minZ, maxX, maxY, maxZ};
     }
 
-    private void updateFrontArrow() {
-        org.joml.Vector3f center = null;
-        float size = 0f;
-        if (renderer.getShapeData() != null && !renderer.getShapeData().vertices.isEmpty()) {
-            float[] bb = bounds(renderer.getShapeData());
-            center = new org.joml.Vector3f(
-                (bb[0] + bb[3]) / 2f, (bb[1] + bb[4]) / 2f, (bb[2] + bb[5]) / 2f);
-            size = Math.max(bb[3] - bb[0], Math.max(bb[4] - bb[1], bb[5] - bb[2]));
-        }
-        boolean show = center != null;
-        float arrowLen = show ? Math.max(size * 0.35f, 0.5f) : 1f;
-        renderer.setFrontArrow(show, center == null ? new org.joml.Vector3f() : center,
-            camera.getFrontDirection(), arrowLen);
-    }
-
     public void render(Matrix4f view, Matrix4f projection) {
-        updateFrontArrow();
         renderer.render(view, projection);
+        input.getDragPanel().render();
+
         editorUI.setLodStats(renderer.getLodLevel(), renderer.getLodDistance(),
             renderer.getRenderedFaceCount(), renderer.getTotalFaceCount());
 
@@ -228,7 +214,9 @@ private float[] bounds(markershape.shape.ShapeData data) {
         ctx.selection.hideOverlays();
         ctx.ui.closeNewMenu();
         ctx.ui.closeToolsPal();
+        ctx.ui.closeOrigin();
         ctx.ui.closeConfirmSave();
+        ctx.ui.closeConfirmDelete();
         ctx.ui.setActiveMode(-1);
         if (ctx.help != null) ctx.help.hide();
         renderer.clearRubberBand();

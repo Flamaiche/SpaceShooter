@@ -57,6 +57,21 @@ public class ShapeLoader {
                     edge.b = o.get("b").getAsInt();
                     edge.mode = o.has("mode") ? o.get("mode").getAsString() : "stun";
                     edge.thickness = o.has("thickness") ? o.get("thickness").getAsFloat() : 0.02f;
+                    if (o.has("color")) {
+                        JsonArray c = o.getAsJsonArray("color");
+                        edge.r = c.get(0).getAsFloat();
+                        edge.g = c.get(1).getAsFloat();
+                        edge.bl = c.get(2).getAsFloat();
+                    } else {
+                        // Migration: derive from the two endpoint vertices (old format).
+                        Vertex va = data.vertices.get(edge.a);
+                        Vertex vb = data.vertices.get(edge.b);
+                        if (va != null && vb != null) {
+                            edge.r = (va.r + vb.r) * 0.5f;
+                            edge.g = (va.g + vb.g) * 0.5f;
+                            edge.bl = (va.b + vb.b) * 0.5f;
+                        }
+                    }
                     data.addEdge(edge);
                 }
             }
@@ -66,11 +81,26 @@ public class ShapeLoader {
                 for (JsonElement e : faces) {
                     JsonObject o = e.getAsJsonObject();
                     JsonArray idx = o.getAsJsonArray("indices");
-                    int[] tri = new int[idx.size()];
-                    for (int i = 0; i < idx.size(); i++) {
-                        tri[i] = idx.get(i).getAsInt();
+                    Face face = new Face();
+                    face.a = idx.get(0).getAsInt();
+                    face.b = idx.get(1).getAsInt();
+                    face.c = idx.size() > 2 ? idx.get(2).getAsInt() : face.b;
+                    if (o.has("color")) {
+                        JsonArray c = o.getAsJsonArray("color");
+                        face.r = c.get(0).getAsFloat();
+                        face.g = c.get(1).getAsFloat();
+                        face.bl = c.get(2).getAsFloat();
+                    } else {
+                        // Migration: average of the three vertex colors (old format).
+                        Vertex va = data.vertices.get(face.a);
+                        Vertex vb = data.vertices.get(face.b);
+                        Vertex vc = data.vertices.get(face.c);
+                        if (va != null) { face.r = va.r; face.g = va.g; face.bl = va.b; }
+                        if (vb != null) { face.r += vb.r; face.g += vb.g; face.bl += vb.b; }
+                        if (vc != null) { face.r += vc.r; face.g += vc.g; face.bl += vc.b; }
+                        face.r /= 3f; face.g /= 3f; face.bl /= 3f;
                     }
-                    data.faces.add(tri);
+                    data.faces.add(face);
                 }
             }
             return data;
@@ -116,16 +146,28 @@ public class ShapeLoader {
             o.addProperty("b", e.b);
             o.addProperty("mode", e.mode);
             o.addProperty("thickness", e.thickness);
+            JsonArray c = new JsonArray();
+            c.add(e.r);
+            c.add(e.g);
+            c.add(e.bl);
+            o.add("color", c);
             edges.add(o);
         }
         root.add("edges", edges);
 
         JsonArray faces = new JsonArray();
-        for (int[] tri : data.faces) {
+        for (Face f : data.faces) {
             JsonObject o = new JsonObject();
             JsonArray idx = new JsonArray();
-            for (int i : tri) idx.add(i);
+            idx.add(f.a);
+            idx.add(f.b);
+            idx.add(f.c);
             o.add("indices", idx);
+            JsonArray c = new JsonArray();
+            c.add(f.r);
+            c.add(f.g);
+            c.add(f.bl);
+            o.add("color", c);
             faces.add(o);
         }
         root.add("faces", faces);

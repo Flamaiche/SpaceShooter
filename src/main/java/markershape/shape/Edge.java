@@ -9,6 +9,7 @@ public class Edge {
     public int a, b;
     public String mode;
     public float thickness;
+    public float r, g, bl;
 
     public Edge() {}
 
@@ -26,9 +27,15 @@ public class Edge {
         this.a = a;  this.b = b;
         this.mode = mode;
         this.thickness = thickness;
+        this.r = 1f; this.g = 1f; this.bl = 1f;
+    }
+
+    public Edge(int id, int a, int b, String mode, float thickness, float r, float g, float bl) {
+        this(id, a, b, mode, thickness);
+        this.r = r; this.g = g; this.bl = bl;
     }
 
     public Edge copy() {
-        return new Edge(id, a, b, mode, thickness);
+        return new Edge(id, a, b, mode, thickness, r, g, bl);
     }
 }

@@ -1,6 +1,7 @@
 package markershape.editor;
 
 import markershape.shape.Edge;
+import markershape.shape.Face;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 import markershape.camera.EditorCamera;
@@ -186,11 +187,12 @@ public class PickUtils {
                 float bestT = Float.MAX_VALUE;
                 Vector3f e1 = new Vector3f(), e2 = new Vector3f(), P = new Vector3f();
                 Vector3f T = new Vector3f(), Q = new Vector3f();
-                for (int[] poly : data.faces) {
-                    for (int j = 0; j + 2 < poly.length; j += 3) {
-                        Vertex va = data.vertices.get(poly[j]);
-                        Vertex vb = data.vertices.get(poly[j + 1]);
-                        Vertex vc = data.vertices.get(poly[j + 2]);
+                for (Face poly : data.faces) {
+                    int[] tri = {poly.a, poly.b, poly.c};
+                    for (int j = 0; j + 2 < tri.length; j += 3) {
+                        Vertex va = data.vertices.get(tri[j]);
+                        Vertex vb = data.vertices.get(tri[j + 1]);
+                        Vertex vc = data.vertices.get(tri[j + 2]);
                         if (va == null || vb == null || vc == null) continue;
                         Vector3f a = new Vector3f(va.x, va.y, va.z);
                         Vector3f b = new Vector3f(vb.x, vb.y, vb.z);
@@ -225,19 +227,6 @@ public class PickUtils {
 
         float t = (target.dot(viewDir) - rayOrig.dot(viewDir)) / denom;
         return new Vector3f(rayOrig).add(rayDir.mul(t));
-    }
-
-    public boolean isNearCrosshair(float mx, float my, Vector3f crosshairPos, float radiusPx) {
-        if (crosshairPos == null) return false;
-        Matrix4f mvp = new Matrix4f(camera.getProjection());
-        mvp.mul(camera.getViewMatrix());
-        Vector4f p = new Vector4f(crosshairPos.x, crosshairPos.y, crosshairPos.z, 1f).mul(mvp);
-        if (p.w <= 0) return false;
-        float sx = (p.x / p.w * 0.5f + 0.5f) * width;
-        float sy = (1f - (p.y / p.w * 0.5f + 0.5f)) * height;
-        float dx = sx - mx;
-        float dy = sy - my;
-        return dx * dx + dy * dy <= radiusPx * radiusPx;
     }
 
     public Vector3f unprojectAtDepth(float mx, float my, float ndcZ) {

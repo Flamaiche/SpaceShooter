@@ -22,7 +22,7 @@ public abstract class Overlay extends UIElement {
         visible = false;
         closeBtn = new Button(res, "X", x + w - 28, y + 4, 24, 24, null);
         closeBtn.showBackground = false;
-        closeBtn.textScale = 1.5f;
+        closeBtn.textScale = 1.2f;
         closeBtn.textR = 1f; closeBtn.textG = 0.3f; closeBtn.textB = 0.3f;
         deleteBtn = new Button(res, "Delete", x + 10, y + h - 38, w - 20, 28,
             () -> { if (deleteCallback != null) deleteCallback.run(); });

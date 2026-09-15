@@ -17,8 +17,8 @@ public class FilterPanel extends Panel {
     private float[] sliderMax = {20f, 10f, 1f, 5f};
     private float[] sliderStep = {1f, 0.5f, 0.05f, 0.1f};
 
-    public static final int CHECKBOX_H = 24;
-    public static final int SLIDER_H = 30;
+    public static final int CHECKBOX_H = 20;
+    public static final int SLIDER_H = 25;
     public static final int PANEL_GAP = 4;
     public static final float PANEL_W = 210;
     public static final float TRACK_W = 70;
@@ -105,7 +105,7 @@ public class FilterPanel extends Panel {
             String prefix = filterValues[i] ? "[x] " : "[ ] ";
             float brightness = filterValues[i] ? 1f : 0.6f;
             res.drawText(prefix + filterLabels[i],
-                x + 8, iy + 4, 1.5f, tR * brightness, tG * brightness, tB * brightness);
+                x + 8, iy + 3, 1.2f, tR * brightness, tG * brightness, tB * brightness);
         }
 
         for (int i = 0; i < sliderLabels.length; i++) {
@@ -113,13 +113,13 @@ public class FilterPanel extends Panel {
 
             String valStr = String.format("%." + SLIDER_DECIMALS + "f", sliderValues[i]);
             res.drawText(sliderLabels[i] + ":",
-                x + 8, iy + 2, 1.5f, tR, tG, tB);
+                x + 8, iy + 2, 1.2f, tR, tG, tB);
             res.drawText(valStr,
-                x + VAL_X, iy + 2, 1.5f, tR, tG, tB);
+                x + VAL_X, iy + 2, 1.2f, tR, tG, tB);
             res.drawText("[-]",
-                x + MINUS_X, iy + 2, 1.5f, tR, tG, tB);
+                x + MINUS_X, iy + 2, 1.2f, tR, tG, tB);
             res.drawText("[+]",
-                x + PLUS_X, iy + 2, 1.5f, tR, tG, tB);
+                x + PLUS_X, iy + 2, 1.2f, tR, tG, tB);
         }
     }
 

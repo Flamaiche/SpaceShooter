@@ -10,7 +10,7 @@ public class MenuUI extends Panel {
     private int width;
     private String[] shapes;
     private static final int PANEL_W = 480;
-    private static final int ITEM_H = 40;
+    private static final int ITEM_H = 32;
     private static final int ITEM_GAP = 4;
     private static final int PANEL_Y = 140;
     private static final float BTN_W = 180;
@@ -27,9 +27,9 @@ public class MenuUI extends Panel {
         setSize(w, h);
 
         paramBtn = new Button(res, "Parametres", 0, 0, BTN_W, BTN_H, onParams);
-        paramBtn.textScale = 2.2f;
+        paramBtn.textScale = 1.8f;
         quitBtn = new Button(res, "Quitter", 0, 0, BTN_W, BTN_H, onQuit);
-        quitBtn.textScale = 2.2f;
+        quitBtn.textScale = 1.8f;
         addChild(paramBtn);
         addChild(quitBtn);
     }
@@ -75,13 +75,13 @@ public class MenuUI extends Panel {
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         float cx = width / 2f;
-        res.drawTextCenteredX("MarkerShape", cx, 40, 4f, tR, tG, tB);
-        res.drawTextCenteredX("Editeur de modeles 3D", cx, 85, 1.8f, tR, tG, tB);
+        res.drawTextCenteredX("MarkerShape", cx, 40, 3.2f, tR, tG, tB);
+        res.drawTextCenteredX("Editeur de modeles 3D", cx, 80, 1.5f, tR, tG, tB);
 
         for (int i = 0; i < shapes.length; i++) {
             String name = shapes[i].replace(".json", "");
             float yy = y + 20 + i * (ITEM_H + ITEM_GAP);
-            res.drawTextCenteredX(name, cx, yy + 8, 2.2f, tR, tG, tB);
+            res.drawTextCenteredX(name, cx, yy + 8, 1.7f, tR, tG, tB);
         }
 
         positionButtons(tR, tG, tB);

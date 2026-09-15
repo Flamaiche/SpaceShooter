@@ -48,8 +48,8 @@
 - [x] Clic → fenêtre édition (ou sélection)
 - [x] Ajout point (clic 3D en mode Vertex)
 - [x] Modification coordonnées ([-]/[+])
-- [x] Suppression point (cascade arêtes + faces)
-- [x] Couleur par point ([-]/[+])
+- [x] Suppression point (cascade arêtes + faces, avec confirmation popup)
+- [ ] Couleur par point (obsolète → voir P6)
 - [x] Drag de sommet (écran → profondeur verrouillée)
 
 ## Interaction arêtes
@@ -125,9 +125,9 @@ doit devenir fluide à la souris. Réutiliser le moteur `learngl` :
       visible → drag (depth verrouillée `dragNdcZ`), move → update, release → end.
       Snap reste actif pendant le drag (`ctx.snapIfEnabled`).
       Seuil de distance (px) pour distinguer clic (sélection) vs drag (déplacement)
-- [x] Contrainte d'axe pendant le drag : maintenir `X`/`Y`/`Z` pendant le drag
-      → verrouille le déplacement le long de l'axe correspondant
-      (le delta χρlimited à l'axe, appliqué dans `DragAction.update`)
+- [x] Contrainte d'axe pendant le drag : panneau flottant (boutons X/Y/Z/Libre)
+      survolé pendant le drag → verrouille le déplacement le long de l'axe
+      (le delta limité à l'axe, appliqué dans `DragAction.update`)
 - [x] Saisie numérique dans les overlays : clic sur une valeur (X/Y/Z, R/G/B,
       épaisseur) → mode frappe (buffer + curseur clignotant) → Entrée = valider,
       Échap = annuler. Implémenté nativement dans `VertexOverlay`/`EdgeOverlay`
@@ -158,14 +158,17 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
       sommet au milieu, l'arête est remplacée par deux arêtes (faces subdivisées)
 - [x] Choisir la couleur au moment de la création (`defaultVertexColorR/G/B`
       dans parametres.json, appliquée aux sommets posés au clic)
+      NOTE: à supprimer dans P6 (la couleur passera aux arêtes/faces uniquement)
 - [x] Ctrl+D : dupliquer le(s) sommet(s) sélectionné(s) offsetés (copie + sélection
       de la copie)
 - [x] Weld/fusion : sélection de 2+ sommets → touche M → fusion en position
       moyenne (couleur moyennée) avec réunion des arêtes / retrait des loops
 - [ ] Snap/déplacement en chaque point du drag : afficher les coordonnées live dans
       l'overlay pendant le drag (pas seulement au release)
-- [x] Coordonnées live dans l'overlay PENDANT le drag (rendu temps réel) + G grab
-      (la sélection suit le curseur, axes X/Y/Z, LMB=valider, ESC=annuler)
+- [x] Coordonnées live dans l'overlay PENDANT le drag (rendu temps réel)
+- [x] Le grab direct (G) est supprimé : le drag de sommet + `Tab` (pendant le
+      drag) verrouille la sélection au curseur (relâcher le clic = marcher,
+      re-clic = valider, ESC = annuler) — rend le grab autonome inutile
 
 #### P4b. Arêtes & Faces (tracé multidés)
 - [x] Création d'arêtes à la volée pendant le placement de points : garder le mode
@@ -191,7 +194,8 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
 - [x] Marquee/boîte de sélection (cadre 2D → prend les sommets inclus à la vue)
 - [x] Déplacement groupé : drag d'un sommet sélectionné → tout le groupe suit
       (tous les sommets de la sélection, axes X/Y/Z toujours valables)
-- [x] Suppression groupée (Suppr/Backspace sur la sélection multiple)
+- [x] Suppression groupée (Suppr/Backspace sur la sélection multiple, avec
+      confirmation popup [Oui]/[Non])
 - [ ] Panel de sélection multi (liste en bas à gauche) : liste toutes les entités
       sélectionnées avec cocheboks, choix couleurs/modes en masse
 - [x] Copy/paste : Ctrl+C copie la sélection, Ctrl+V recolle offseté
@@ -219,11 +223,30 @@ d'arêtes doit devenir gestuelle, et toute modification rester accessible en 1-2
       - [x] `Ctrl+C` presse-papier (coleur Ctrl+D distinct) — `C` réservé clone MT
       - [x] `S` subdivise / `E` extrude / `F` fill (aretes selec) sinon front /
             `M` weld — conflits résolus (F double rôle + Ctrl+F front forcé)
-      - [ ] `G` move (grab) avec axes X/Y/Z comme Blender vs drag direct actuel
-      - [x] `G` grab (sélection suit le curseur, axes X/Y/Z, LMB=valider, ESC=cancel)
-            + `T` mode Tracé (face)
+      - [x] Grab via `Tab` pendant le drag (la sélection suit le curseur même
+            sans clic, LMB=valider, ESC=annuler) — le grab `G` autonome est retiré
+      - [x] `T` mode Tracé (face)
       - [x] `H` aide + tous les raccourcis affichables en jeu (HelpOverlay)
 - [x] Undo/redo par outil (chaque action d'outil fait un snapshot atomique)
+
+### P6. Simplification de la création des couleurs (RFC 14/09)
+Objectif : la couleur n'est plus portée par les points (auto-gérés), mais par les
+arêtes et les faces, choisies par l'utilisateur. Les points sont invisibles côté
+couleur : ils servent uniquement à structurer la géométrie.
+
+- [x] Couleur des points supprimée : plus de `defaultVertexColorR/G/B` pour le
+      placement ; l'édition de la couleur d'un point (overlay / pipette) est retirée
+- [x] Points auto-gérés : un point qui ne participe à aucune arête est supprimé
+      automatiquement (réutilise le nettoyage `K` déclenché en continu/à la volée)
+- [x] Couleur des arêtes : choisir la couleur d'une arête (overlay d'édition,
+      pipette clic-droit, échantillon de couleurs dans la palette Outils)
+- [x] Couleur des faces : une face créée (T tracé / F fill / E extrude / selection)
+      reçoit une couleur choisie par l'utilisateur (couleur de création courante)
+- [x] Créer une face par sélection : sélectionner N sommets et/ou arêtes → commande
+      "Créer face" → triangulation automatique (fan/ear-clip existant), contour
+      prévisualisé avant validation
+- [x] Migration du format JSON : `Vertex` sans couleur (ou couleur ignorée),
+      `Edge`/`Face` avec couleur persistée (`parametres.json`, `ShapeData`)
 
 ### P5. Vecteur « avant » = caméra par défaut / 1ère personne (RFC 13/09)
 Vision : le vecteur avant actuel (touche F / `frontYaw`/`frontPitch`) devient la

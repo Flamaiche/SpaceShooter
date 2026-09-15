@@ -4,7 +4,7 @@ import markershape.config.ConfigParametres;
 import markershape.editor.ui.Panel;
 import markershape.editor.ui.UIResources;
 
-public class ConfirmSavePopup extends Panel {
+public class ConfirmDeletePopup extends Panel {
     private int width, height;
     private Runnable confirmAction;
 
@@ -13,7 +13,7 @@ public class ConfirmSavePopup extends Panel {
     public static final float CONFIRM_BTN_W = 70;
     public static final float CONFIRM_BTN_H = 28;
 
-    public ConfirmSavePopup(UIResources res) {
+    public ConfirmDeletePopup(UIResources res) {
         super(res);
         visible = false;
     }
@@ -50,25 +50,17 @@ public class ConfirmSavePopup extends Panel {
     protected void renderContent() {
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
-        res.drawText("Sauvegarder ?",
-            x + CONFIRM_W / 2 - 40, y + 18, 1.2f, tR, tG, tB);
+        res.drawText("Supprimer ?",
+            x + CONFIRM_W / 2 - 36, y + 18, 1.2f, tR, tG, tB);
         res.drawText("[Oui]",
             x + 30, btnY() + 2, 1.2f, tR, tG, tB);
         res.drawText("[Non]",
             x + CONFIRM_W - 64, btnY() + 2, 1.2f, tR, tG, tB);
     }
 
-    private float btnY() {
-        return y + CONFIRM_H - CONFIRM_BTN_H - 12;
-    }
-
-    private float ouiX() {
-        return x + 20;
-    }
-
-    private float nonX() {
-        return x + CONFIRM_W - 20 - CONFIRM_BTN_W;
-    }
+    private float btnY() { return y + CONFIRM_H - CONFIRM_BTN_H - 12; }
+    private float ouiX() { return x + 20; }
+    private float nonX() { return x + CONFIRM_W - 20 - CONFIRM_BTN_W; }
 
     /** Returns 1=Oui, 2=Non, 0=click on popup (no btn), -1=not on popup. */
     public int clickBtn(float mx, float my) {

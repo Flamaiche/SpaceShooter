@@ -13,7 +13,7 @@ public class SiblingPicker extends UIElement {
     private int[] ids;
     private Vertex[] vertices;
     private static final float PW = 220;
-    private static final float ROW_H = 26;
+    private static final float ROW_H = 22;
     private Consumer<Integer> callback;
 
     public SiblingPicker(UIResources res) {
@@ -83,7 +83,7 @@ public class SiblingPicker extends UIElement {
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
-        res.drawText("Select vertex:", x + 8, y + 8, 1.5f, tR, tG, tB);
+        res.drawText("Select vertex:", x + 8, y + 8, 1.2f, tR, tG, tB);
 
         for (int i = 0; i < vertices.length; i++) {
             Vertex v = vertices[i];
@@ -92,7 +92,7 @@ public class SiblingPicker extends UIElement {
             float sw = 16;
             res.drawQuad(x + 8, ry, sw, sw, v.r, v.g, v.b, 1f);
             res.drawText("#" + v.id + " (" + String.format("%.2f,%.2f,%.2f", v.r, v.g, v.b) + ")",
-                x + 30, ry, 1.5f, tR, tG, tB);
+                x + 30, ry, 1.2f, tR, tG, tB);
         }
     }
 }

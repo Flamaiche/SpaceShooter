@@ -42,7 +42,7 @@ public class PointRenderer implements Renderer {
                 b.pquad(v.x, v.y, v.z,
                     cam.right.x, cam.right.y, cam.right.z,
                     cam.up.x, cam.up.y, cam.up.z,
-                    half, v.r, v.g, v.b);
+                    half, 0.9f, 0.9f, 0.9f);
             }
             tri.rebuild(b.isEmpty() ? null : b.toFloats());
             lastView = new Matrix4f(view);

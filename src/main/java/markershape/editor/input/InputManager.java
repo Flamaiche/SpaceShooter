@@ -4,7 +4,10 @@ import markershape.camera.EditorCamera;
 import markershape.config.ConfigParametres;
 import markershape.editor.Context;
 import markershape.editor.action.*;
+import markershape.editor.ui.DragAxisPanel;
+import markershape.editor.ui.UIResources;
 import markershape.shape.ShapeData;
+import markershape.shape.Edge;
 import markershape.shape.Vertex;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -22,6 +25,7 @@ public class InputManager {
     private final EdgeAction edge;
     private final ShapeTools tools;
     private final EditorCamera camera;
+    private final DragAxisPanel dragPanel;
     private final Set<Integer> pressedKeys = new HashSet<>();
     private boolean escDown, prevMouseLeft, mouseLeftDown;
     private boolean rightDown, middleDown, shiftDown;
@@ -44,7 +48,7 @@ public class InputManager {
 
     public InputManager(Context ctx, HoverManager hover, VertexAction vertex,
                         EdgeAction edge, DeleteAction del, ShapeIO io,
-                        ShapeTools tools, EditorCamera camera) {
+                        ShapeTools tools, EditorCamera camera, UIResources uiRes) {
         this.ctx = ctx;
         this.hover = hover;
         this.camera = camera;
@@ -52,7 +56,10 @@ public class InputManager {
         this.edge = edge;
         this.drag = new DragAction(ctx);
         this.clicks = new ClickHandler(ctx, hover, vertex, edge, del, io, tools);
+        this.dragPanel = new DragAxisPanel(uiRes);
     }
+
+    public DragAxisPanel getDragPanel() { return dragPanel; }
 
     public void setKeyState(int key, int action) {
         boolean press = action == GLFW.GLFW_PRESS;
@@ -69,8 +76,6 @@ public class InputManager {
                 case GLFW.GLFW_KEY_DOWN  -> camera.rotate(0f, -1f);
                 case GLFW.GLFW_KEY_LEFT  -> camera.rotate(1f, 0f);
                 case GLFW.GLFW_KEY_RIGHT -> camera.rotate(-1f, 0f);
-                case GLFW.GLFW_KEY_O     -> camera.zoom(1f);
-                case GLFW.GLFW_KEY_P     -> camera.zoom(-1f);
             }
         }
     }
@@ -140,8 +145,8 @@ public class InputManager {
                 rightDown = false;
                 if (!ctx.ui.isOverUI(mx, my) && !ctx.selection.isOverOverlay(mx, my)) {
                     float ddx = mx - rightPressX, ddy = my - rightPressY;
-                    if (ddx * ddx + ddy * ddy <= 36f && ctx.hoveredVertexId >= 0) {
-                        pickColor(ctx.hoveredVertexId);
+                    if (ddx * ddx + ddy * ddy <= 36f && ctx.hoveredEdgeId >= 0) {
+                        pickColor();
                     }
                 }
             }
@@ -158,7 +163,7 @@ public class InputManager {
         if (btn != GLFW.GLFW_MOUSE_BUTTON_LEFT) return;
         mouseLeftDown = action == GLFW.GLFW_PRESS;
         if (action == GLFW.GLFW_PRESS) {
-            if (ctx.ui.isConfirmSaveVisible()) {
+            if (ctx.ui.isConfirmSaveVisible() || ctx.ui.isConfirmDeleteVisible()) {
                 clicks.mouseClicked(mx, my);
                 return;
             }
@@ -195,25 +200,35 @@ public class InputManager {
         }
     }
 
-    /** Right-click tap on a vertex: its color becomes the creation color. */
-    private void pickColor(int vertexId) {
+    /** Right-click tap on an edge (or face): its color becomes the current creation color. */
+    private void pickColor() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
-        Vertex v = data.vertices.get(vertexId);
-        if (v == null) return;
         ConfigParametres cfg = ConfigParametres.get();
-        cfg.setFloat("defaultVertexColorR", v.r);
-        cfg.setFloat("defaultVertexColorG", v.g);
-        cfg.setFloat("defaultVertexColorB", v.b);
+        double r = 1, g = 1, b = 1;
+        String src = "defaut";
+        if (ctx.hoveredEdgeId >= 0) {
+            Edge e = data.edges.get(ctx.hoveredEdgeId);
+            if (e != null) {
+                r = e.r; g = e.g; b = e.bl;
+                src = "arete #" + e.id;
+            }
+        }
+        cfg.setFloat("createColorR", (float) r);
+        cfg.setFloat("createColorG", (float) g);
+        cfg.setFloat("createColorB", (float) b);
         ConfigParametres.sauvegarder();
-        System.out.printf("[MarkerShape] couleur pipette #%d -> (R=%.2f G=%.2f B=%.2f) (creation)%n",
-            vertexId, v.r, v.g, v.b);
+        System.out.printf("[MarkerShape] couleur pipette (%s) -> (R=%.2f G=%.2f B=%.2f) (creation)%n",
+            src, r, g, b);
     }
 
     private void processDrag(float mx, float my) {
         if (!mouseLeftDown && !grabMode) return;
         if (grabMode) {
-            if (drag.isDragging()) drag.update(mx, my);
+            if (drag.isDragging()) {
+                drag.update(mx, my);
+                updateDragAxisPanel(mx, my);
+            }
             return;
         }
         if (!mouseLeftDown) return;
@@ -223,6 +238,7 @@ public class InputManager {
         }
         if (drag.isDragging()) {
             drag.update(mx, my);
+            updateDragAxisPanel(mx, my);
             return;
         }
         if (marqueeActive) {
@@ -310,9 +326,18 @@ public class InputManager {
     private void endDrag() {
         pendingDragVertex = -1;
         grabMode = false;
+        dragPanel.update(0, 0, false);
         if (drag.isDragging()) { drag.end(); return; }
         if (rubberActive) { endRubber(); return; }
         if (marqueeActive) { endMarquee(); return; }
+    }
+
+    /** Positions the floating axis panel and applies the hovered button live. */
+    private void updateDragAxisPanel(float mx, float my) {
+        dragPanel.update(mx, my, drag.isDragging() || grabMode);
+        dragPanel.setAxis(drag.axis);
+        int ha = dragPanel.hoverAxis(mx, my);
+        if (ha >= 0) drag.axis = ha;
     }
 
     private final org.joml.Vector3f orbitPivot = new org.joml.Vector3f();
@@ -344,17 +369,6 @@ public class InputManager {
         return ctx.selection.selectedVertex >= 0 || !ctx.selection.multiVertices.isEmpty();
     }
 
-    /** G grab: the selection follows the cursor until LMB confirms / ESC cancels. */
-    private void startGrab() {
-        ShapeData d = ctx.renderer.getShapeData();
-        if (d == null) return;
-        int id = ctx.selection.selectedVertex;
-        if (id < 0 && !ctx.selection.multiVertices.isEmpty()) id = ctx.selection.multiVertices.first();
-        if (id < 0) return;
-        grabMode = true;
-        drag.start(id, lastMouseX, lastMouseY);
-    }
-
     private boolean hasEdgeSelection() {
         return ctx.selection.selectedEdge >= 0 || !ctx.selection.multiEdges.isEmpty();
     }
@@ -377,13 +391,12 @@ public class InputManager {
             if (key == GLFW.GLFW_KEY_C) { tools.copySelected(); return; }
             if (key == GLFW.GLFW_KEY_V) { tools.pasteSelected(); return; }
             if (key == GLFW.GLFW_KEY_A) { tools.selectAll(); return; }
-            if (key == GLFW.GLFW_KEY_F) {
-                camera.captureFront();
-                saveFrontToConfig();
-                System.out.printf("[MarkerShape] front capturé : yaw=%.1f pitch=%.1f%n",
-                    camera.getFrontYaw(), camera.getFrontPitch());
-                return;
-            }
+            if (key == GLFW.GLFW_KEY_P) { camera.zoom(1f); return; }
+        }
+
+        if (shift && key == GLFW.GLFW_KEY_P) {
+            camera.zoom(-1f);
+            return;
         }
 
         if (key == GLFW.GLFW_KEY_H) {
@@ -399,17 +412,17 @@ public class InputManager {
             clicks.closeTrace();
             return;
         }
-        if (key == GLFW.GLFW_KEY_G && !ctx.isInMode() && !ctx.creatingFace
-            && !drag.isDragging() && !grabMode) {
-            startGrab();
+        if (key == GLFW.GLFW_KEY_ENTER && ctx.faceSelectPending) {
+            tools.confirmFaceFromSelection();
             return;
         }
-
-        if (drag.isDragging()) {
-            if (key == GLFW.GLFW_KEY_X) { drag.axis = 1; return; }
-            if (key == GLFW.GLFW_KEY_Y) { drag.axis = 2; return; }
-            if (key == GLFW.GLFW_KEY_Z) { drag.axis = 3; return; }
-            if (key == GLFW.GLFW_KEY_G || key == GLFW.GLFW_KEY_ESCAPE) { drag.axis = 0; return; }
+        if (key == GLFW.GLFW_KEY_N && ctx.renderer.getShapeData() != null) {
+            tools.prepareFaceFromSelection();
+            return;
+        }
+        if (key == GLFW.GLFW_KEY_TAB && drag.isDragging()) {
+            grabMode = !grabMode;
+            return;
         }
 
         if (key == GLFW.GLFW_KEY_K) {
@@ -428,15 +441,8 @@ public class InputManager {
             tools.weldSelected();
             return;
         }
-        if (key == GLFW.GLFW_KEY_F) {
-            if (hasEdgeSelection() || alt) {
-                tools.fillSelection();
-                return;
-            }
-            camera.captureFront();
-            saveFrontToConfig();
-            System.out.printf("[MarkerShape] front capturé : yaw=%.1f pitch=%.1f%n",
-                camera.getFrontYaw(), camera.getFrontPitch());
+        if (key == GLFW.GLFW_KEY_F && (hasEdgeSelection() || alt)) {
+            tools.fillSelection();
             return;
         }
         if (key == GLFW.GLFW_KEY_R && !drag.isDragging()) {
@@ -444,8 +450,10 @@ public class InputManager {
             return;
         }
         if ((key == GLFW.GLFW_KEY_DELETE || key == GLFW.GLFW_KEY_BACKSPACE)
-            && (hasVertexSelection() || hasEdgeSelection()))
-            clicks.deleteSelected();
+            && (hasVertexSelection() || hasEdgeSelection())) {
+            ctx.ui.setConfirmDeleteAction(() -> clicks.deleteSelected());
+            ctx.ui.showConfirmDelete();
+        }
     }
 
     private void resetViewToFront() {
@@ -466,12 +474,5 @@ public class InputManager {
             minZ = Math.min(minZ, v.z); maxZ = Math.max(maxZ, v.z);
         }
         return new float[]{minX, minY, minZ, maxX, maxY, maxZ};
-    }
-
-    private void saveFrontToConfig() {
-        ConfigParametres cfg = ConfigParametres.get();
-        cfg.setFloat("frontYaw", camera.getFrontYaw());
-        cfg.setFloat("frontPitch", camera.getFrontPitch());
-        ConfigParametres.sauvegarder();
     }
 }

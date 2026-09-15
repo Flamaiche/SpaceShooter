@@ -1,5 +1,7 @@
 package markershape.shape.render;
 
+import markershape.shape.Face;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,12 +43,12 @@ public final class LOD {
      * Returns a reduced copy of the face list, keeping approximately
      * {@code factor(level)} of the original faces (stride-based selection).
      */
-    public static List<int[]> reduce(int[][] faces, int level) {
+    public static List<Face> reduce(Face[] faces, int level) {
         if (level <= 0 || faces.length == 0) return Arrays.asList(faces);
         float f = factor(level);
         int keep = Math.max(1, (int) (faces.length * f));
         int stride = Math.max(1, faces.length / keep);
-        List<int[]> out = new ArrayList<>();
+        List<Face> out = new ArrayList<>();
         for (int i = 0; i < faces.length; i += stride) {
             out.add(faces[i]);
         }

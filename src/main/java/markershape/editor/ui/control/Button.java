@@ -8,7 +8,7 @@ public class Button extends UIElement {
     public boolean showBackground = true;
     public float bgR = 0.3f, bgG = 0.3f, bgB = 0.3f, bgA = 0.8f;
     public float textR = 1f, textG = 1f, textB = 1f;
-    public float textScale = 1.5f;
+    public float textScale = 1.2f;
     public Runnable action;
 
     public Button(UIResources res, String text, float x, float y,

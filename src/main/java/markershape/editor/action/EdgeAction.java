@@ -1,5 +1,6 @@
 package markershape.editor.action;
 
+import markershape.config.ConfigParametres;
 import markershape.editor.Context;
 import markershape.shape.Edge;
 import markershape.shape.ShapeData;
@@ -24,12 +25,11 @@ public class EdgeAction {
             }
         }
         int newId = data.edges.isEmpty() ? 0 : data.edges.keySet().stream().max(Integer::compareTo).get() + 1;
-        Edge edge = new Edge();
-        edge.id = newId;
-        edge.a = a;
-        edge.b = b;
-        edge.mode = "stun";
-        edge.thickness = 0.02f;
+        ConfigParametres cfg = ConfigParametres.get();
+        Edge edge = new Edge(newId, a, b, "stun", 0.02f,
+            cfg.getFloat("createColorR"),
+            cfg.getFloat("createColorG"),
+            cfg.getFloat("createColorB"));
         data.addEdge(edge);
         faceUtils.detectAndCreateFaces(data, a, b);
         ctx.renderer.rebuild();
