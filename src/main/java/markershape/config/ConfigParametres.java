@@ -126,7 +126,7 @@ public class ConfigParametres {
         cp.valeurs.addProperty("zoomSpeed", 0.5);
         cp.valeurs.addProperty("orbitSpeed", 2.0);
         cp.valeurs.addProperty("frontYaw", 0f);
-        cp.valeurs.addProperty("frontPitch", -30f);
+        cp.valeurs.addProperty("frontPitch", 0f);
         cp.categories = defaultCategories();
         return cp;
     }

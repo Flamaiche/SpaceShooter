@@ -8,8 +8,8 @@ import markershape.editor.ui.menu.BlurBackground;
 public class FilterPanel extends Panel {
     private boolean filterOpen;
 
-    public String[] filterLabels = {"Faces", "Arêtes", "Points", "Axe X", "Axe Y", "Axe Z", "Snap", "Magnet"};
-    public boolean[] filterValues = {true, true, true, true, true, true, false, false};
+    public String[] filterLabels = {"Faces", "Arêtes", "Points", "Axe X", "Axe Y", "Axe Z", "Snap", "Magnet", "Vecteur avant"};
+    public boolean[] filterValues = {true, true, true, true, true, true, false, false, true};
 
     public String[] sliderLabels = {"Taille points", "Epaisseur", "Opacite", "Pas de snap"};
     public float[] sliderValues = {5f, 3f, 1f, 1f};
@@ -164,6 +164,8 @@ public class FilterPanel extends Panel {
     public float getMagnetRadius() { return magnetRadius; }
     public void setMagnetRadius(float v) { magnetRadius = v; }
     private float magnetRadius = 14f;
+    public boolean isFrontArrowEnabled() { return filterValues[8]; }
+    public void setFrontArrowEnabled(boolean v) { filterValues[8] = v; }
 
     private void fireCallback() { if (filterCallback != null) filterCallback.run(); }
 }

@@ -137,23 +137,35 @@ public class ClickHandler {
 
         if (ctx.creatingFace) {
             int v = ctx.pick.findVisibleVertexAt(mx, my);
+            if (v < 0) {
+                // Snap onto an existing vertex near the cursor (aimantation) so the
+                // trace reuses it instead of stacking a duplicate at the same spot.
+                float radius = ctx.ui != null && ctx.ui.isMagnetEnabled()
+                    ? ctx.ui.getMagnetRadius() : 8f;
+                markershape.shape.Vertex near = ctx.pick.findVertexNearCursor(mx, my, radius);
+                if (near != null) v = near.id;
+            }
             if (v >= 0) {
-                if (ctx.traceVertices.size() >= 3 && v == ctx.traceVertices.get(0)) {
-                    closeTrace();
-                }
+                appendTraceVertex(v);
+                ctx.renderer.setPlacementGhost(false, null);
                 return;
+            }
+            // No existing vertex matches: resolve the target position and only create
+            // a new vertex if no vertex already occupies it exactly.
+            org.joml.Vector3f pos = ctx.pick.getClickWorldPos(mx, my);
+            ctx.magnetIfEnabled(pos, mx, my);
+            ctx.snapIfEnabled(pos);
+            markershape.shape.ShapeData data = ctx.renderer.getShapeData();
+            for (markershape.shape.Vertex vo : data.vertices.values()) {
+                if (vo.x == pos.x && vo.y == pos.y && vo.z == pos.z) {
+                    appendTraceVertex(vo.id);
+                    ctx.renderer.setPlacementGhost(false, null);
+                    return;
+                }
             }
             vertex.create(mx, my);
             int nv = ctx.selection.selectedVertex;
-            if (nv >= 0) {
-                if (ctx.traceVertices.isEmpty()) {
-                    ctx.traceVertices.add(nv);
-                } else {
-                    int prev = ctx.traceVertices.get(ctx.traceVertices.size() - 1);
-                    edge.create(prev, nv);
-                    ctx.traceVertices.add(nv);
-                }
-            }
+            if (nv >= 0) appendTraceVertex(nv);
             ctx.renderer.setPlacementGhost(false, null);
             return;
         }
@@ -307,6 +319,28 @@ public class ClickHandler {
         ctx.ui.setActiveMode(-1);
         ctx.renderer.setTracePreview(null);
         System.out.println("[MarkerShape] Trace cloturee : " + n + " sommets, " + added + " faces");
+    }
+
+    /** Adds a traced point (reusing an existing vertex) to the current face loop,
+     *  connecting it to the previous one. Closes the loop when the first vertex
+     *  is clicked again with 3+ points. */
+    private void appendTraceVertex(int vid) {
+        if (vid < 0) return;
+        if (ctx.traceVertices.isEmpty()) {
+            ctx.traceVertices.add(vid);
+            ctx.selection.selectVertex(vid);
+            return;
+        }
+        int last = ctx.traceVertices.get(ctx.traceVertices.size() - 1);
+        if (vid == last) return;
+        if (ctx.traceVertices.size() >= 3 && vid == ctx.traceVertices.get(0)) {
+            closeTrace();
+            return;
+        }
+        edge.create(last, vid);
+        ctx.traceVertices.add(vid);
+        ctx.selection.selectVertex(vid);
+        ctx.renderer.setPlacementGhost(false, null);
     }
 
     private boolean hasVertexSelection() {

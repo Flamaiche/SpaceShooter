@@ -105,6 +105,7 @@ public class Editor {
         renderer.setShowAxisX(fv[3]);
         renderer.setShowAxisY(fv[4]);
         renderer.setShowAxisZ(fv[5]);
+        renderer.setShowFrontArrow(fv[8]);
         renderer.setPointSize(sv[0]);
         renderer.setLineWidth(sv[1]);
         renderer.setFaceAlpha(sv[2]);
@@ -144,6 +145,7 @@ public class Editor {
         renderer.setShowAxisX(fv[3]);
         renderer.setShowAxisY(fv[4]);
         renderer.setShowAxisZ(fv[5]);
+        renderer.setShowFrontArrow(fv[8]);
         renderer.setPointSize(sv[0]);
         renderer.setLineWidth(sv[1]);
         renderer.setFaceAlpha(sv[2]);
@@ -152,8 +154,9 @@ public class Editor {
     }
 
     /**
-     * Frames the camera onto the loaded shape (bounding box center + size),
-     * preserving the current orientation.
+     * Frames the camera onto the loaded shape using the fixed default camera
+     * vector (front): the camera always starts placed at the same base vector,
+     * whatever the shape. This is also where the game will place its camera.
      */
     public void frameToShape() {
         if (renderer.getShapeData() == null || renderer.getShapeData().vertices.isEmpty()) return;
@@ -161,7 +164,7 @@ public class Editor {
         org.joml.Vector3f center = new org.joml.Vector3f(
             (bb[0] + bb[3]) / 2f, (bb[1] + bb[4]) / 2f, (bb[2] + bb[5]) / 2f);
         float size = Math.max(bb[3] - bb[0], Math.max(bb[4] - bb[1], bb[5] - bb[2]));
-        camera.frame(center, size);
+        camera.resetToFront(center, size);
     }
 
 private float[] bounds(markershape.shape.ShapeData data) {
@@ -175,7 +178,23 @@ private float[] bounds(markershape.shape.ShapeData data) {
         return new float[]{minX, minY, minZ, maxX, maxY, maxZ};
     }
 
+    private void updateFrontArrow() {
+        org.joml.Vector3f center = null;
+        float size = 0f;
+        if (renderer.getShapeData() != null && !renderer.getShapeData().vertices.isEmpty()) {
+            float[] bb = bounds(renderer.getShapeData());
+            center = new org.joml.Vector3f(
+                (bb[0] + bb[3]) / 2f, (bb[1] + bb[4]) / 2f, (bb[2] + bb[5]) / 2f);
+            size = Math.max(bb[3] - bb[0], Math.max(bb[4] - bb[1], bb[5] - bb[2]));
+        }
+        boolean show = center != null;
+        float arrowLen = show ? Math.max(size * 0.35f, 0.5f) : 1f;
+        renderer.setFrontArrow(show, center == null ? new org.joml.Vector3f() : center,
+            camera.getFrontDirection(), arrowLen);
+    }
+
     public void render(Matrix4f view, Matrix4f projection) {
+        updateFrontArrow();
         renderer.render(view, projection);
         input.getDragPanel().render();
 
