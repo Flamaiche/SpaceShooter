@@ -194,10 +194,33 @@ public class EditorCamera {
         pose(frontYaw, frontPitch, fitRadius(size));
     }
 
-    /** Restores the captured "front" angles (fixed framing direction). */
+    /** Restores the fixed "front" angles (default camera framing direction). */
     public void setFront(float yawDeg, float pitchDeg) {
         frontYaw = yawDeg;
         frontPitch = pitchDeg;
+    }
+
+    /** Returns the fixed "front" yaw in degrees. */
+    public float getFrontYaw() { return frontYaw; }
+
+    /** Returns the fixed "front" pitch in degrees. */
+    public float getFrontPitch() { return frontPitch; }
+
+    /**
+     * Returns the normalized direction of the fixed default camera vector:
+     * the direction the camera looks at when placed at the "front" angles.
+     *
+     * @return a new normalized Vector3f
+     */
+    public Vector3f getFrontDirection() {
+        float ry = (float) Math.toRadians(frontYaw);
+        float rp = (float) Math.toRadians(frontPitch);
+        float opx = (float) Math.cos(rp) * (float) Math.sin(ry);
+        float opy = (float) Math.sin(rp);
+        float opz = (float) Math.cos(rp) * (float) Math.cos(ry);
+        Vector3f dir = new Vector3f(-opx, -opy, -opz);
+        if (dir.lengthSquared() < 1e-8f) return new Vector3f(0, 0, -1);
+        return dir.normalize();
     }
 
     private float fitRadius(float size) {

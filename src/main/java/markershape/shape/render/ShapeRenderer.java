@@ -35,6 +35,7 @@ public class ShapeRenderer {
     private final EdgeHighlightRenderer edgeHighlightRenderer = new EdgeHighlightRenderer();
     private final CrosshairRenderer crosshairRenderer = new CrosshairRenderer();
     private final GhostPointRenderer ghostPointRenderer = new GhostPointRenderer();
+    private final FrontArrowRenderer frontArrowRenderer = new FrontArrowRenderer();
     public final ShadowRenderer shadow = new ShadowRenderer();
     private final GridRenderer grid = new GridRenderer();
 
@@ -133,6 +134,7 @@ public class ShapeRenderer {
         shadow.cleanup();
         crosshairRenderer.cleanup();
         ghostPointRenderer.cleanup();
+        frontArrowRenderer.cleanup();
     }
 
     private void storeOriginalFaces(ShapeData data) {
@@ -276,9 +278,20 @@ public class ShapeRenderer {
     /** Hides the transient placement/arrow overlays (e.g. when the menu is shown). */
     public void hideTransientOverlays() {
         ghostPointRenderer.setVisible(false);
+        frontArrowRenderer.setVisible(false);
         crosshairRenderer.setVisible(false);
         pivotMarkerVisible = false;
     }
+
+    /** Sets the shape's fixed default camera vector (front) arrow. */
+    public void setFrontArrow(boolean visible, org.joml.Vector3f center, org.joml.Vector3f dir, float length) {
+        frontArrowRenderer.setVisible(visible && showFrontArrow);
+        if (!visible) return;
+        frontArrowRenderer.setArrow(center.x, center.y, center.z, dir, length);
+    }
+
+    private boolean showFrontArrow = true;
+    public void setShowFrontArrow(boolean v) { showFrontArrow = v; }
 
     /**
      * Shows/hides the orbit pivot "+" marker. Rendered as a small fixed-size
@@ -438,6 +451,7 @@ public class ShapeRenderer {
 
             crosshairRenderer.render(shader, shapeData, view, projection, screenW, screenH);
             ghostPointRenderer.render(shader, shapeData, view, projection, screenW, screenH);
+            frontArrowRenderer.render(shader, shapeData, view, projection, screenW, screenH);
 
             // Orbit pivot marker: small fixed-size 2D crosshair (like a game crosshair)
             if (pivotMarkerVisible) {

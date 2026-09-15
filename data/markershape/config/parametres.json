@@ -31,7 +31,7 @@
         "magnetEnabled": false,
         "magnetRadius": 14.0,
         "frontYaw": 0.0,
-        "frontPitch": -30.0
+        "frontPitch": 0.0
       },
       "categories": [
         {

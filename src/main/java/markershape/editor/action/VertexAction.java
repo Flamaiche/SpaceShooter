@@ -15,17 +15,30 @@ public class VertexAction {
     public void create(float mx, float my) {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
-        ctx.undoredo.snapshot(data);
         Vector3f pos = ctx.pick.getClickWorldPos(mx, my);
         ctx.magnetIfEnabled(pos, mx, my);
         ctx.snapIfEnabled(pos);
-        int newId = data.vertices.isEmpty() ? 0
-            : data.vertices.keySet().stream().max(Integer::compareTo).get() + 1;
+        createAt(pos);
+    }
+
+    /** Creates a vertex at an already-resolved position (magnet/snap applied by caller). */
+    public void createAt(Vector3f pos) {
+        ShapeData data = ctx.renderer.getShapeData();
+        if (data == null) return;
+        ctx.undoredo.snapshot(data);
+        int newId = nextVertexId(data);
         Vertex v = new Vertex(newId, pos.x, pos.y, pos.z, 1f, 1f, 1f);
         data.addVertex(v);
         ctx.selection.selectVertex(newId);
         ctx.renderer.rebuild();
         learngl.LogFile.logf("[MarkerShape] created vertex %d at (%.3f, %.3f, %.3f)", newId, pos.x, pos.y, pos.z);
+    }
+
+    private int nextVertexId(ShapeData data) {
+        if (data.vertices.isEmpty()) return 0;
+        int max = -1;
+        for (int id : data.vertices.keySet()) if (id > max) max = id;
+        return max + 1;
     }
 
     /** Creates a co-located sibling vertex at the same position as an existing one. */
@@ -35,8 +48,7 @@ public class VertexAction {
         Vertex src = data.vertices.get(sourceId);
         if (src == null) return;
         ctx.undoredo.snapshot(data);
-        int newId = data.vertices.isEmpty() ? 0
-            : data.vertices.keySet().stream().max(Integer::compareTo).get() + 1;
+        int newId = nextVertexId(data);
         Vertex v = new Vertex(newId, src.x, src.y, src.z, src.r, src.g, src.b);
         data.addVertex(v);
         ctx.selection.selectVertex(newId);

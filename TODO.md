@@ -112,13 +112,14 @@ doit devenir fluide à la souris. Réutiliser le moteur `learngl` :
 - [x] Touche `R` = reset de vue → revient devant l'« avant » de la shape
 
 ### P1b. Direction fixe « avant » de la shape + reset (RFC 13/09)
-- [x] Définir une direction d'« avant » : touche `F` capture la direction de la
-      caméra actuelle → devient « l'avant » de la shape (il se trouve dans ce sens)
-- [x] `R` cadre la caméra face à l'avant (la vue par défaut du reset pointe là)
-- [x] Sauvegarder l'avant dans `data/markershape/config/parametres.json`
-      (frontYaw/frontPitch ou vecteur avant) via `ConfigParametres`
-- [x] Afficher une flèche/repère du sens de l'avant dans la vue 3D
-      (renderer lignes réutilisant le pattern `CrosshairRenderer`/`Shader`)
+- [x] Le front n'est plus capturé par une touche : c'est un VECTEUR FIXE dans
+      parametres.json (frontYaw/frontPitch) utilisé comme placement caméra par défaut
+- [x] `R` cadre la caméra selon ce vecteur de base (défini en P5) — non modifiable
+- [x] Sauvegarder le vecteur dans `data/markershape/config/parametres.json`
+      (frontYaw/frontPitch) via `ConfigParametres`
+- [x] Afficher la flèche/repère du vecteur de base dans la vue 3D
+      (FrontArrowRenderer en triangles, réutilisant `Cam`/`TriBuilder`/`TriShape`)
+- [x] Au chargement d'une shape, la caméra part de ce vecteur (frameToShape → front)
 
 ### P2. Bouger les éléments (drag + axes + saisie)
 - [x] Câbler `DragAction` (déjà implémenté, jamais utilisé) : press sur un sommet
@@ -248,32 +249,26 @@ couleur : ils servent uniquement à structurer la géométrie.
 - [x] Migration du format JSON : `Vertex` sans couleur (ou couleur ignorée),
       `Edge`/`Face` avec couleur persistée (`parametres.json`, `ShapeData`)
 
-### P5. Vecteur « avant » = caméra par défaut / 1ère personne (RFC 13/09)
-Vision : le vecteur avant actuel (touche F / `frontYaw`/`frontPitch`) devient la
-position + direction par défaut de la caméra du jeu ET de l'initialisation de la
-caméra éditeur — c'est « là où l'on pose la caméra » en mode première personne.
-Il ne bouge pas pour l'instant ; un mode édition viendra plus tard.
+### P5. Vecteur de camera de base = placement caméra par défaut (RFC 13/09, simplifie 15/09)
+Vision : le front (frontYaw/frontPitch) est un VECTEUR CAMERA FIXE, le même partout
+dans tout l'éditeur. Il indique quelle est la base camera de la shape — le point d'où
+l'éditeur place la caméra par défaut au chargement (et R reset). C'est aussi là que se
+placera la camera du jeu (purement indicatif : le jeu gère lui-même ses formes, rien
+n'est exporté). Il n'est PAS modifiable dans l'éditeur (aucune capture F, aucun mode
+édition) — seule la flèche le rend visible en 3D.
 
-- [ ] Défaut par shape : au chargement d'une shape, un vecteur avant par défaut
-      existe (ex. devant le centre de la bounding box), réutilisé par `R` (reset)
-      et par l'initialisation de la caméra au chargement du fichier
-- [ ] Placement à la main (« 2 points + direction ») : réservé à la création d'une
-      nouvelle shape (non implémentée, voir plus tard) — poser un point A (position
-      caméra) puis un point B (cible/regard), la direction est déduite
-- [ ] Visibilité filtrée : le repère/vecteur avant n'apparaît QUE si la case
-      « Vecteur avant » est cochée dans le panneau Filtre (invisible par défaut,
-      comme les axes/grid)
-- [ ] Exporter pour le jeu : sauvegarder position + direction (ou yaw/pitch) dans
-      le shape/data → le jeu y place sa caméra première personne à l'ouverture
-- [ ] Mode édition du vecteur (plus tard, bloqué pour l'instant) :
-      - [ ] un mode dédié qui masque les faces (affichage points/arêtes/wireframe)
-      - [ ] déplacement du repère à la souris (translation position A + rotation
-            regard autour de B), pivot/ghost existants réutilisés
-      - [ ] prévisualisation en direct à la première personne via
-            `learngl.camera.Camera` + `CameraPhysics` + `GestionnaireVue`
-            (mêmes patterns que `PlayingState` : ZQSD + souris libre)
+- [x] Vecteur unique : `frontYaw`/`frontPitch` dans parametres.json, appliqués à la
+      caméra au chargement (frameToShape et reset R depuis le front)
+- [x] Flèche visuelle 3D du vecteur de base (FrontArrowRenderer, triangles) visible
+      dans la vue éditeur — purement indicatif
+- [x] Non éditable : capture F retirée (F = Remplir), aucun mode de placement/édition
+- [x] Aucun export vers le jeu (le jeu gère ses formes, toutes dans le même sens)
+- [x] Visibilité filtrée : la flèche est gérée par Filtre/affichage (masquée avec les
+      overlays transitoires quand le menu est ouvert)
 
-(lié à P1b actuel : capture F/R + flèche ; complète « Vue première personne » long terme)
+(remplace la vision P5 initiale : défaut par shape, placement 2 points, export jeu,
+mode édition — ces sous-item sont abandonnés car le vecteur est un simple repère
+visuel fixe, et les formes partagent toutes la même orientation)
 
 ### Affichages & diagnostics (long terme, réutiliser le moteur)
 - [ ] Afficher la taille de la shape (largeur/hauteur/profondeur de la `ShapeData`)

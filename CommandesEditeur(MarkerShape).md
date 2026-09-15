@@ -202,7 +202,7 @@ Fichier : `data/markershape/config/parametres.json`
 
 | Cle | Description |
 |-----|-------------|
-| `frontYaw` / `frontPitch` | Angles de la direction "front" (touches F / Ctrl+F) |
+| `frontYaw` / `frontPitch` | Vecteur de camera de base : angles du placement caméra par defaut (non modifiables dans l'editeur) |
 | `defaultVertexColorR` / `G` / `B` | Couleur des sommets crees au clic |
 | `zoomSpeed` | Sensibilite du zoom molette |
 | `orbitSpeed` | Sensibilite de l'orbite |
