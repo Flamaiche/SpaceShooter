@@ -19,8 +19,8 @@ public class EntityListPanel extends Panel {
     private int scrollOffset;
     private ShapeData data;
 
-    private static final int HEADER_H = 28;
-    private static final int ITEM_H = 22;
+    private static final int HEADER_H = 24;
+    private static final int ITEM_H = 18;
     private static final int NAV_W = 44;
 
     public EntityListPanel(UIResources res) {
@@ -170,7 +170,7 @@ public class EntityListPanel extends Panel {
             float tx = t == 0 ? x : midX;
             boolean act = (t == 0 && activeMode == MODE_VERTEX) || (t == 1 && activeMode == MODE_EDGE);
             String label = t == 0 ? "Sommets" : "Ar\u00EAtes";
-            res.drawText(label, tx + 10, y + 5, 1.5f,
+            res.drawText(label, tx + 10, y + 5, 1.2f,
                 tR * (act ? 1f : 0.6f), tG * (act ? 1f : 0.6f), tB * (act ? 1f : 0.6f));
         }
 
@@ -179,9 +179,9 @@ public class EntityListPanel extends Panel {
         int tot = totalItems();
         boolean canPrev = scrollOffset > 0;
         boolean canNext = scrollOffset + vis < tot;
-        res.drawText("<", navX + 10, y + 5, 1.5f,
+        res.drawText("<", navX + 10, y + 5, 1.2f,
             tR * (canPrev ? 1f : 0.4f), tG * (canPrev ? 1f : 0.4f), tB * (canPrev ? 1f : 0.4f));
-        res.drawText(">", navX + 28, y + 5, 1.5f,
+        res.drawText(">", navX + 28, y + 5, 1.2f,
             tR * (canNext ? 1f : 0.4f), tG * (canNext ? 1f : 0.4f), tB * (canNext ? 1f : 0.4f));
 
         if (data == null) return;
@@ -194,7 +194,7 @@ public class EntityListPanel extends Panel {
                 boolean hover = vs[i].id == hoveredId;
                 Vertex v = vs[i];
                 String label = "#" + v.id + "  (" + fmt(v.x) + ", " + fmt(v.y) + ", " + fmt(v.z) + ")";
-                res.drawText(label, x + 10, iy + 2, 1.5f,
+                res.drawText(label, x + 10, iy + 2, 1.2f,
                     tR * (hover ? 1f : 0.7f), tG * (hover ? 1f : 0.7f), tB * (hover ? 1f : 0.7f));
             }
         } else {
@@ -205,7 +205,7 @@ public class EntityListPanel extends Panel {
                 boolean hover = es[i].id == hoveredId;
                 Edge e = es[i];
                 String label = "#" + e.id + "  " + e.a + "\u2192" + e.b + "  [" + e.mode + "]";
-                res.drawText(label, x + 10, iy + 2, 1.5f,
+                res.drawText(label, x + 10, iy + 2, 1.2f,
                     tR * (hover ? 1f : 0.7f), tG * (hover ? 1f : 0.7f), tB * (hover ? 1f : 0.7f));
             }
         }

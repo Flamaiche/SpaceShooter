@@ -10,12 +10,9 @@
 | Pan | **Molette** maintenue + bouger la souris | Deplace le point de vue (la scene suit le curseur) |
 | Pan (alt.) | **MAJ + clic droit** maintenu + bouger la souris | Meme chose que molette |
 | Orbite clavier | **Fleches** ↑ ↓ ← → | Orbite par pas fixe autour du centre de la forme |
-| Zoom avant | **Molette vers le haut** | Zoom avant vers le point sous le curseur |
-| Zoom arriere | **Molette vers le bas** | Zoom arriere |
-| Zoom clavier | **O** / **P** | Zoom avant / arriere par pas clavier |
-| Cadrer la shape | **R** | Recadre automatiquement la caméra face a l'avant enregistre |
-| Capturer le front | **F** (sans arete selectionnee) | Enregistre la direction camera comme "avant" de la shape |
-| Capturer le front (force) | **Ctrl+F** | Meme chose, meme avec une selection active |
+| Zoom avant-arriere | **Molette haut-bas** | Zoom avant (molette haut) / arriere (molette bas), vers le point sous le curseur |
+| Zoom clavier | **Ctrl+P** / **Shift+P** | Zoom avant / arriere par pas clavier |
+| Cadrer la shape | **R** | Recadre automatiquement la camera face a l'avant (direction de cadrage fixe, non redefinissable) |
 
 > **Note :** le pan est prioritaire sur l'orbite : des qu'un geste de pan est actif, il reste en pan jusqu'a la fin du geste.
 
@@ -31,8 +28,7 @@
 | Tout selectionner | **Ctrl+A** | Selectionne tous les sommets |
 | Selection boite (marquee) | **Clic gauche maintenu** sur zone vide + deplacement | Cadre bleu ; tous les sommets visibles a l'interieur sont selectionnes |
 | Selectionner par la liste | **Clic** sur un element de la liste d'entites (bas a gauche) | Selectionne le sommet ou l'arete correspondant |
-| Deselectionner | **Clic gauche** sur zone vide, ou **Ctrl + clic** sur zone vide | Deselectionne tout |
-| Selection croisee | **Clic gauche** sur le crosshair (position exacte d'un sommet) | Selectionne le sommet a cette position |
+| Deselectionner | **Clic gauche** sur zone vide | Deselectionne tout |
 
 ---
 
@@ -40,13 +36,9 @@
 
 | Action | Activation | Description |
 |--------|-----------|-------------|
-| Drag sommet | **Clic gauche maintenu** sur un sommet (> 5 px) | Deplace le sommet ou toute la multi-selection (profondeur fixe, snap si actif) |
-| Contrainte axe X | **X** pendant le drag | Verrouille le deplacement selon X |
-| Contrainte axe Y | **Y** pendant le drag | Verrouille le deplacement selon Y |
-| Contrainte axe Z | **Z** pendant le drag | Verrouille le deplacement selon Z |
-| Liberer axe | **G** ou **ESC** pendant le drag | Supprime le verrou d'axe |
-| Grab (deplacement libre) | **G** (sans drag actif) | La selection suit le curseur ; clic gauche = valider, ESC = annuler |
-| Supprimer | **Suppr** ou **Backspace** | Supprime toute la selection (cascade sommets → aretes → faces) |
+| Drag sommet | **Clic gauche maintenu** sur un sommet (> 5 px) | Deplace le sommet ou la selection. Panneau flottant pour contraindre l'axe |
+| Tab pendant drag | **Tab** (durant le drag) | Passe en mode grab : relache le clic, la selection suit le curseur. Clic gauche ou ESC = valider/annuler |
+| Supprimer | **Suppr** ou **Backspace** | Ouvre une confirmation ([Oui] / [Non]) puis supprime la selection (cascade sommets → aretes → faces) |
 
 ---
 
@@ -54,7 +46,7 @@
 
 | Action | Activation | Description |
 |--------|-----------|-------------|
-| Mode Vertex | Bouton **New** → Vertex, ou bouton **Outils** → Sommet | Chaque clic pose un sommet (couleur par defaut) |
+| Mode Vertex | Bouton **New** → Vertex, ou bouton **Outils** → Sommet | Chaque clic pose un sommet (les points sont neutres, sans couleur) |
 | Chaine Vertex | Clic sur sommet existant pendant le mode Vertex | Cree une arete avec le dernier sommet pose et enchaine |
 | Sommet frere | **MAJ + clic** sur un sommet existant | Pose un sommet co-localise (meme position) |
 | Mode Edge | Bouton **New** → Edge, ou bouton **Outils** → Arete | Selectionnez 2 sommets pour creer une arete ; le mode enchaine |
@@ -81,7 +73,16 @@
 | Subdiviser | **S** (1 arete selectionnee) | Insere un sommet au milieu, remplace l'arete par deux, subdivise les faces |
 | Extruder | **E** (1 arete selectionnee) | Duplique et decale les 2 sommets, cree 3 aretes + 2 faces de raccord |
 | Remplir | **F** (3+ aretes en boucle fermee) | Cree les faces internes (triangulation eventail) |
+| Creer face (selection) | **N** (3+ sommets ou une boucle d'aretes selectionnes) | Previsualise un contour puis cree les faces (triangulation eventail) : **Entree** valide, **Echap** annule. Les aretes selectionnees sont remplacees par les aretes de la face (pas de doublon) |
 | Fusionner (weld) | **M** (2+ sommets selectionnes) | Regroupe sur position moyenne, reunie les aretes, supprime les doublons |
+
+---
+
+## Deplacement de l'origine
+
+| Action | Activation | Description |
+|--------|-----------|-------------|
+| Deplacer l'origine | Bouton **Origine** de la barre, puis **[-]** / **[+]** sur X, Y ou Z | Deplace TOUS les points du modele d'un pas de 0.1 dans la direction choisie (annulable avec Ctrl+Z, sauvegarde avec Ctrl+S) |
 
 ---
 
@@ -117,7 +118,7 @@
 
 | Action | Activation | Description |
 |--------|-----------|-------------|
-| Pipette | **Clic droit rapide** (tap) sur un sommet colore | Sa couleur devient la couleur courante de creation |
+| Pipette | **Clic droit rapide** (tap) sur une arete | Sa couleur devient la couleur courante de creation (appliquee aux nouvelles aretes et faces). Se regle aussi dans l'overlay Arete (champs RGB) |
 
 ---
 
@@ -173,6 +174,7 @@ Les outils de **modification** agissent sur la selection en cours :
 | Subdiviser | **S** | Insere un sommet au milieu de l'arete selectionnee |
 | Extruder | **E** | Duplique et decale les 2 sommets de l'arete + cree les faces |
 | Remplir | **F** | Cree les faces internes d'un contour de 3+ aretes |
+| Creer face (selection) | **N** | Triangule un contour previsualise a partir de la selection (Entree valide, Echap annule) |
 | Fusionner | **M** | Fusionne 2+ sommets selectionnes (position moyenne) |
 
 Les outils de **copie & nettoyage** :

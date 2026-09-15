@@ -3,6 +3,7 @@ package markershape.shape.render.face;
 import learngl.Shader;
 import learngl.shape.Shape;
 import learngl.VertexUtils;
+import markershape.shape.Face;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 import markershape.shape.render.Renderer;
@@ -20,19 +21,23 @@ public class FaceRenderer implements Renderer {
     }
 
     /** Builds a reduced face set (used by LOD). Vertices come from the shape data. */
-    public void build(HashMap<Integer, Vertex> vertices, List<int[]> faces, Shader shader) {
+    public void build(HashMap<Integer, Vertex> vertices, List<Face> faces, Shader shader) {
         cleanup();
         this.currentShader = shader;
         if (vertices.isEmpty()) return;
 
         List<Float> verts = new ArrayList<>();
-        for (int[] tri : faces) {
-            for (int idx : tri) {
-                Vertex v = vertices.get(idx);
-                if (v == null) continue;
-                verts.add(v.x); verts.add(v.y); verts.add(v.z);
-                verts.add(v.r); verts.add(v.g); verts.add(v.b);
-            }
+        for (Face tri : faces) {
+            Vertex va = vertices.get(tri.a);
+            Vertex vb = vertices.get(tri.b);
+            Vertex vc = vertices.get(tri.c);
+            if (va == null || vb == null || vc == null) continue;
+            verts.add(va.x); verts.add(va.y); verts.add(va.z);
+            verts.add(tri.r); verts.add(tri.g); verts.add(tri.bl);
+            verts.add(vb.x); verts.add(vb.y); verts.add(vb.z);
+            verts.add(tri.r); verts.add(tri.g); verts.add(tri.bl);
+            verts.add(vc.x); verts.add(vc.y); verts.add(vc.z);
+            verts.add(tri.r); verts.add(tri.g); verts.add(tri.bl);
         }
         if (verts.isEmpty()) return;
 

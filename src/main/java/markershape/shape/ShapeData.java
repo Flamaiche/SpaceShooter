@@ -14,7 +14,7 @@ public class ShapeData {
     public String shader;
     public HashMap<Integer, Vertex> vertices;
     public HashMap<Integer, Edge> edges;
-    public List<int[]> faces;
+    public List<Face> faces;
 
     public ShapeData() {
         vertices = new HashMap<>();
@@ -84,12 +84,30 @@ public class ShapeData {
         if (vb != null) vb.edgeIds.remove(id);
     }
 
+    /** Removes vertices that have no edges and are not referenced by any face. */
+    public int purgeOrphanVertices() {
+        java.util.Set<Integer> faceVerts = new java.util.HashSet<>();
+        for (Face f : faces) {
+            faceVerts.add(f.a);
+            faceVerts.add(f.b);
+            faceVerts.add(f.c);
+        }
+        java.util.List<Integer> orphans = new ArrayList<>();
+        for (Vertex v : vertices.values()) {
+            if (v.edgeIds.isEmpty() && !faceVerts.contains(v.id)) {
+                orphans.add(v.id);
+            }
+        }
+        for (int id : orphans) vertices.remove(id);
+        return orphans.size();
+    }
+
     /** Deep copy of this shape data. */
     public ShapeData copy() {
         ShapeData c = new ShapeData(name, shader);
         for (Vertex v : vertices.values()) c.vertices.put(v.id, v.copy());
         for (Edge e : edges.values()) c.edges.put(e.id, e.copy());
-        for (int[] f : faces) c.faces.add(new int[]{f[0], f[1], f[2]});
+        for (Face f : faces) c.faces.add(f.copy());
         return c;
     }
 }

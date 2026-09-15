@@ -15,9 +15,9 @@ public class ParametresUI extends Panel {
     private int width, height;
     private static final int MENU_X = 440;
     private static final int MENU_W = 400;
-    private static final int CAT_H = 42;
+    private static final int CAT_H = 34;
     private static final int CAT_GAP = 6;
-    private static final int ROW_H = 32;
+    private static final int ROW_H = 26;
     private static final int ROW_GAP = 4;
 
     private int currentMenu = -1;
@@ -47,9 +47,9 @@ public class ParametresUI extends Panel {
         this.floatField = new EditableTextField("0", EditableTextField.ValueType.FLOAT, 0, 0);
 
         saveBtn = new Button(res, "", 0, 0, 200, 38, null);
-        saveBtn.textScale = 2f;
+        saveBtn.textScale = 1.6f;
         backBtn = new Button(res, "", 0, 0, 200, 38, null);
-        backBtn.textScale = 2f;
+        backBtn.textScale = 1.6f;
         addChild(saveBtn);
         addChild(backBtn);
     }
@@ -100,7 +100,7 @@ public class ParametresUI extends Panel {
         float[] c = res.menuColor();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         res.drawText("Parametres",
-            width / 2f - res.getTextExtent("Parametres", 3f)[0] / 2f, 50, 3f, tR, tG, tB);
+            width / 2f - res.getTextExtent("Parametres", 2.4f)[0] / 2f, 50, 2.4f, tR, tG, tB);
 
         float sy = 130;
         float contentH = visible.size() * (CAT_H + CAT_GAP);
@@ -112,7 +112,7 @@ public class ParametresUI extends Panel {
             ConfigParametres.Categorie cat = cats.get(visible.get(vi));
             float y = sy + vi * (CAT_H + CAT_GAP);
             res.drawQuad(MENU_X, y, MENU_W, CAT_H, c[0], c[1], c[2], rowAlpha);
-            res.drawText(cat.label + "  >", MENU_X + 16, y + 10, 2f, tR, tG, tB);
+            res.drawText(cat.label + "  >", MENU_X + 16, y + 8, 1.6f, tR, tG, tB);
         }
 
         setupButtons("Sauvegarder", "Retour", btnY, cfg.hasChanges(), tR, tG, tB);
@@ -129,7 +129,7 @@ public class ParametresUI extends Panel {
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
 
         res.drawText(cat.label,
-            width / 2f - res.getTextExtent(cat.label, 3f)[0] / 2f, 50, 3f, tR, tG, tB);
+            width / 2f - res.getTextExtent(cat.label, 2.4f)[0] / 2f, 50, 2.4f, tR, tG, tB);
 
         float sy = 110;
         boolean isArriere = "arriereplan".equals(cat.id);
@@ -192,10 +192,10 @@ public class ParametresUI extends Panel {
         ConfigParametres cfg = ConfigParametres.get();
         res.drawQuad(MENU_X + 30, y, MENU_W - 60, 70, r / 255f, g / 255f, b / 255f, 1f);
         String hex = String.format("#%02X%02X%02X", r, g, b);
-        float hx = width / 2f - res.getTextExtent(hex, 2f)[0] / 2f;
+        float hx = width / 2f - res.getTextExtent(hex, 1.6f)[0] / 2f;
         field.setText(hex);
         field.setPosition(hx, y + 26);
-        field.setScale(2f);
+        field.setScale(1.6f);
         field.setColor(r / 255f, g / 255f, b / 255f);
         field.setOnConfirm(newHex -> {
             int nr = Integer.parseInt(newHex.substring(1, 3), 16);
@@ -224,7 +224,7 @@ public class ParametresUI extends Panel {
         ConfigParametres cfg = ConfigParametres.get();
         float val = cfg.getFloat(p.key);
         float vx = MENU_X + MENU_W / 2f + 20;
-        float[] ext = res.getTextExtent(fmtNum(val), 1.7f);
+        float[] ext = res.getTextExtent(fmtNum(val), 1.3f);
         if (mx >= vx - 30 && mx <= vx - 6 && my >= y && my <= y + ROW_H) {
             if (val > p.min) { cfg.setFloat(p.key, val - p.step); editingFloatKey = null; }
             return true;
@@ -238,7 +238,7 @@ public class ParametresUI extends Panel {
                 editingFloatKey = p.key;
                 floatField.setText(fmtNum(val));
                 floatField.setPosition(vx + 2, y + 6);
-                floatField.setScale(1.7f);
+                floatField.setScale(1.3f);
                 floatField.setBounds(p.min, p.max);
                 floatField.setOnConfirm(newVal -> {
                     try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
@@ -318,7 +318,7 @@ public class ParametresUI extends Panel {
         String display = fmtNum(val);
         floatField.setText(display);
         floatField.setPosition(vx + 2, y + 6);
-        floatField.setScale(1.7f);
+        floatField.setScale(1.3f);
         floatField.setBounds(p.min, p.max);
         floatField.setColor(tr, tg, tb);
         floatField.setOnConfirm(newVal -> {
@@ -499,10 +499,10 @@ public class ParametresUI extends Panel {
         res.drawQuad(0, 0, width, height, c[0], c[1], c[2], BlurBackground.dimAlpha());
         res.drawQuad(cx, cy, CONFIRM_W, CONFIRM_H, c[0], c[1], c[2], BlurBackground.boxAlpha());
         res.drawText("Sauvegarder ?",
-            cx + CONFIRM_W / 2 - res.getTextExtent("Sauvegarder ?", 1.5f)[0] / 2f, cy + 18, 1.5f, tR, tG, tB);
+            cx + CONFIRM_W / 2 - res.getTextExtent("Sauvegarder ?", 1.2f)[0] / 2f, cy + 18, 1.2f, tR, tG, tB);
         float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
-        res.drawText("Oui", cx + 30, btnY + 2, 1.5f, tR, tG, tB);
-        res.drawText("Non", cx + CONFIRM_W - 60, btnY + 2, 1.5f, tR, tG, tB);
+        res.drawText("Oui", cx + 30, btnY + 2, 1.2f, tR, tG, tB);
+        res.drawText("Non", cx + CONFIRM_W - 60, btnY + 2, 1.2f, tR, tG, tB);
     }
 
     private void handleConfirmClick(float mx, float my) {
@@ -530,7 +530,7 @@ public class ParametresUI extends Panel {
         boolean val = cfg.getBool(p.key);
         String prefix = val ? "[x] " : "[ ] ";
         float brightness = val ? 1f : 0.5f;
-        res.drawText(prefix + p.label, MENU_X + 8, y + 6, 1.8f,
+        res.drawText(prefix + p.label, MENU_X + 8, y + 5, 1.4f,
             tr * brightness, tg * brightness, tb * brightness);
     }
 
@@ -538,14 +538,14 @@ public class ParametresUI extends Panel {
         ConfigParametres cfg = ConfigParametres.get();
         float val = cfg.getFloat(p.key);
 
-        res.drawText(p.label + ":", MENU_X + 8, y + 6, 1.6f, tr, tg, tb);
+        res.drawText(p.label + ":", MENU_X + 8, y + 5, 1.2f, tr, tg, tb);
 
         float vx = MENU_X + MENU_W / 2f + 20;
-        res.drawText("[-]", vx - 26, y + 6, 1.7f,
+        res.drawText("[-]", vx - 26, y + 5, 1.3f,
             val > p.min ? tr : tr * 0.3f, val > p.min ? tg : tg * 0.3f, val > p.min ? tb : tb * 0.3f);
-        res.drawText(fmtNum(val), vx + 2, y + 6, 1.7f, tr, tg, tb);
-        float[] ext = res.getTextExtent(fmtNum(val), 1.7f);
-        res.drawText("[+]", vx + ext[0] + 8, y + 6, 1.7f,
+        res.drawText(fmtNum(val), vx + 2, y + 5, 1.3f, tr, tg, tb);
+        float[] ext = res.getTextExtent(fmtNum(val), 1.3f);
+        res.drawText("[+]", vx + ext[0] + 8, y + 5, 1.3f,
             val < p.max ? tr : tr * 0.3f, val < p.max ? tg : tg * 0.3f, val < p.max ? tb : tb * 0.3f);
     }
 

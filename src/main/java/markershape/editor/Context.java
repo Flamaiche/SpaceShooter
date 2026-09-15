@@ -29,6 +29,10 @@ public class Context {
     /** Vertex ids placed during a "Tracé (face)" session, in placement order. */
     public final java.util.ArrayList<Integer> traceVertices = new java.util.ArrayList<>();
 
+    /** Ordered contour of a pending "face by selection" creation, awaiting validation. */
+    public final java.util.ArrayList<Integer> faceSelectLoop = new java.util.ArrayList<>();
+    public boolean faceSelectPending;
+
     public Runnable onGoToMenu;
 
     public Context(ShapeRenderer renderer, EditorUI ui, UndoRedo undoredo,
@@ -46,6 +50,9 @@ public class Context {
         creatingFace = false;
         edgeFirstVertex = -1;
         traceVertices.clear();
+        faceSelectPending = false;
+        faceSelectLoop.clear();
+        renderer.clearFaceSelectPreview();
     }
 
     public boolean isInMode() { return creatingVertex || creatingEdge; }

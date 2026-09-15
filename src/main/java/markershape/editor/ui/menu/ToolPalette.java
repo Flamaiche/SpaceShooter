@@ -14,7 +14,7 @@ public class ToolPalette extends Panel {
     private int activeMode = -1; // -1=selection, 0=vertex, 1=edge, 2=trace
 
     public static final float PAL_W = 200;
-    public static final float ITEM_H = 25;
+    public static final float ITEM_H = 22;
 
     // Row codes (returned by clickItem). Values MUST stay aligned with LABELS/KEYS.
     public static final int TOOL_SELECT = 0;
@@ -24,27 +24,30 @@ public class ToolPalette extends Panel {
     public static final int TOOL_SPLIT = 4;
     public static final int TOOL_EXTRUDE = 5;
     public static final int TOOL_FILL = 6;
-    public static final int TOOL_WELD = 7;
-    public static final int TOOL_CLEAN = 8;
-    public static final int TOOL_DUPLICATE = 9;
-    public static final int TOOL_COPY = 10;
-    public static final int TOOL_PASTE = 11;
-    public static final int TOOL_HELP = 12;
+    public static final int TOOL_CREATE_FACE = 7;
+    public static final int TOOL_WELD = 8;
+    public static final int TOOL_CLEAN = 9;
+    public static final int TOOL_DUPLICATE = 10;
+    public static final int TOOL_COPY = 11;
+    public static final int TOOL_PASTE = 12;
+    public static final int TOOL_HELP = 13;
 
     private static final String[] LABELS = {
         "Selection", "Sommet", "Arete", "Tracé (face)",
-        "Subdiviser", "Extruder", "Remplir", "Fusionner",
-        "Nettoyer", "Dupliquer", "Copier", "Coller", "Aide"
+        "Subdiviser", "Extruder", "Remplir", "Créer face (sélection)",
+        "Fusionner", "Nettoyer",
+        "Dupliquer", "Copier", "Coller", "Aide"
     };
 
     private static final String[] KEYS = {
         "", "", "", "T",
-        "S", "E", "F", "M",
-        "K", "Ctrl+D", "Ctrl+C", "Ctrl+V", "H"
+        "S", "E", "F", "N",
+        "M", "K",
+        "Ctrl+D", "Ctrl+C", "Ctrl+V", "H"
     };
 
     // index of the last row of each group (a divider is drawn after it)
-    private static final int[] GROUP_END = {3, 8, 11};
+    private static final int[] GROUP_END = {3, 9, 12};
 
     public ToolPalette(UIResources res) {
         super(res);
@@ -109,15 +112,15 @@ public class ToolPalette extends Panel {
         int activeRow = activeMode + 1;
         for (int i = 0; i < LABELS.length; i++) {
             float iy = y + i * ITEM_H;
-            float scale = 1.45f;
+            float scale = 1.2f;
             boolean active = i == activeRow;
             res.drawText((active ? "> " : "  ") + LABELS[i], x + 8, iy + 4, scale,
                 active ? Math.min(1f, tR * 1.3f) : tR,
                 active ? Math.min(1f, tG * 1.3f) : tG,
                 active ? Math.min(1f, tB * 1.3f) : tB);
             if (!KEYS[i].isEmpty()) {
-                float[] ext = res.getTextExtent(KEYS[i], 1.2f);
-                res.drawText(KEYS[i], x + PAL_W - 8 - ext[0], iy + 5, 1.2f,
+                float[] ext = res.getTextExtent(KEYS[i], 1.0f);
+                res.drawText(KEYS[i], x + PAL_W - 8 - ext[0], iy + 5, 1.0f,
                     tR * 0.75f, tG * 0.75f, tB * 0.75f);
             }
         }

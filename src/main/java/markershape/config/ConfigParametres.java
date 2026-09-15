@@ -117,9 +117,9 @@ public class ConfigParametres {
         cp.valeurs.addProperty("snapStep", 1.0);
         cp.valeurs.addProperty("magnetEnabled", false);
         cp.valeurs.addProperty("magnetRadius", 14f);
-        cp.valeurs.addProperty("defaultVertexColorR", 1f);
-        cp.valeurs.addProperty("defaultVertexColorG", 1f);
-        cp.valeurs.addProperty("defaultVertexColorB", 1f);
+        cp.valeurs.addProperty("createColorR", 1f);
+        cp.valeurs.addProperty("createColorG", 1f);
+        cp.valeurs.addProperty("createColorB", 1f);
         cp.valeurs.addProperty("axisX", true);
         cp.valeurs.addProperty("axisY", true);
         cp.valeurs.addProperty("axisZ", true);

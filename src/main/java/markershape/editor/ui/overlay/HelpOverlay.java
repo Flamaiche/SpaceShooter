@@ -8,23 +8,24 @@ import markershape.editor.ui.UIResources;
 public class HelpOverlay extends UIElement {
     private static final float PW = 660;
     private static final float PAD = 10;
-    private static final float LINE_H = 21;
+    private static final float LINE_H = 18;
     private static final String[] LINES = {
         "Raccourcis MarkerShape",
         "Gauche      : selectionner (Ctrl = multi, vide = deselec)",
         "Vide+glisse : marquee (selection en boite)",
         "Shift+glisse sommet : rubber-band (creation d'arete)",
-        "Droit       : orbite | Tap droit sur un sommet : pipette couleur",
-        "Drag sommet : deplacement (X / Y / Z / G / Echap = contraintes)",
+        "Droit       : orbite | Tap droit sur une arete : pipette couleur",
+        "Drag sommet : deplacement (panneau Axe flottant pour contraintes)",
         "Molette : zoom | Milieu / Shift+Droit : panoramique",
         "Ctrl+Z / Ctrl+Shift+Z : annuler / refaire | Ctrl+S : sauver",
-        "Suppr/Backspace : supprimer | Ctrl+A : tout selectionner",
-        "G           : grab - la selection suit le curseur (LMB=valider)",
+        "Suppr/Backspace : supprimer (confirme) | Ctrl+A : tout selectionner",
+        "Tab pendant drag : lock le grab (relache le clic, suit le curseur)",
         "S : subdiviser | E : extruder | M : fusionner les sommets",
-        "F           : remplir la boucle d'aretes (sinon capture front)",
+        "F           : remplir la boucle d'aretes",
+        "N           : creer une face par selection (Entree valide, Echap annule)",
         "T           : mode Trace (face) - 1er point / Entree ferme",
         "Ctrl+D      : dupliquer | Ctrl+C : copier | Ctrl+V : coller",
-        "Ctrl+F      : capturer le vecteur avant | K : nettoyage",
+        "K           : nettoyage",
         "R           : vue de face | H : cette aide",
         "Mode Vertex : MAJ+clic sur un sommet = frere co-localise",
         "Echap       : sortir du mode / fermer les fenetres",
@@ -55,7 +56,7 @@ public class HelpOverlay extends UIElement {
 
         for (int i = 0; i < LINES.length; i++) {
             float ly = y + PAD + i * LINE_H;
-            float scale = (i == 0) ? 1.8f : 1.25f;
+            float scale = (i == 0) ? 1.5f : 1.1f;
             float col = (i == 0) ? 1f : 0.9f;
             res.drawText(LINES[i], x + PAD, ly, scale, tR * col, tG * col, tB * col);
         }

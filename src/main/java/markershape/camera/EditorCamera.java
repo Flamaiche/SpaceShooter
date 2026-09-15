@@ -194,39 +194,10 @@ public class EditorCamera {
         pose(frontYaw, frontPitch, fitRadius(size));
     }
 
-    /** Captures the current camera direction as the shape's "front". */
-    public void captureFront() {
-        frontYaw = getYaw();
-        frontPitch = getPitch();
-    }
-
-    /** Returns the captured "front" yaw in degrees. */
-    public float getFrontYaw() { return frontYaw; }
-
-    /** Returns the captured "front" pitch in degrees. */
-    public float getFrontPitch() { return frontPitch; }
-
-    /** Restores the captured "front" angles. */
+    /** Restores the captured "front" angles (fixed framing direction). */
     public void setFront(float yawDeg, float pitchDeg) {
         frontYaw = yawDeg;
         frontPitch = pitchDeg;
-    }
-
-    /**
-     * Returns the normalized direction the camera looks at when positioned at
-     * the captured "front" angles. This is the direction the shape's front points.
-     *
-     * @return a new normalized Vector3f
-     */
-    public Vector3f getFrontDirection() {
-        float ry = (float) Math.toRadians(frontYaw);
-        float rp = (float) Math.toRadians(frontPitch);
-        float opx = (float) Math.cos(rp) * (float) Math.sin(ry);
-        float opy = (float) Math.sin(rp);
-        float opz = (float) Math.cos(rp) * (float) Math.cos(ry);
-        Vector3f dir = new Vector3f(-opx, -opy, -opz);
-        if (dir.lengthSquared() < 1e-8f) return new Vector3f(0, 0, -1);
-        return dir.normalize();
     }
 
     private float fitRadius(float size) {

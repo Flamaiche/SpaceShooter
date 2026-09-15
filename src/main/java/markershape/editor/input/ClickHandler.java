@@ -4,7 +4,6 @@ import markershape.editor.Context;
 import markershape.editor.action.*;
 import markershape.editor.ui.control.EntityListPanel;
 import markershape.shape.ShapeData;
-import markershape.shape.Vertex;
 import org.lwjgl.glfw.GLFW;
 
 public class ClickHandler {
@@ -56,6 +55,17 @@ public class ClickHandler {
             }
             return;
         }
+        if (ctx.ui.isConfirmDeleteVisible()) {
+            int cs = ctx.ui.clickConfirmDelete(mx, my);
+            if (cs == 1) {
+                ctx.ui.closeConfirmDelete();
+                Runnable action = ctx.ui.getConfirmDeleteAction();
+                if (action != null) action.run();
+            } else if (cs == 2) {
+                ctx.ui.closeConfirmDelete();
+            }
+            return;
+        }
         if (ctx.ui.isOverUI(mx, my)) {
             handleUIClick(mx, my);
             return;
@@ -90,6 +100,21 @@ public class ClickHandler {
         else if (newResult == -2) return;
 
         ctx.ui.clickFilter(mx, my);
+
+        int originResult = ctx.ui.clickOrigin(mx, my);
+        if (originResult != 0) {
+            if (ctx.renderer.getShapeData() != null && !ctx.renderer.getShapeData().vertices.isEmpty()) {
+                float step = markershape.editor.ui.control.OriginPanel.STEP;
+                float sign = originResult > 0 ? step : -step;
+                int axis = Math.abs(originResult) - 1;
+                float dx = axis == 0 ? sign : 0f;
+                float dy = axis == 1 ? sign : 0f;
+                float dz = axis == 2 ? sign : 0f;
+                ctx.ui.origin.addOffset(dx, dy, dz);
+                tools.translateAll(dx, dy, dz);
+            }
+            return;
+        }
 
         int toolResult = ctx.ui.clickTools(mx, my);
         if (toolResult == -2) return;
@@ -190,42 +215,19 @@ public class ClickHandler {
             return;
         }
 
-        // 3. Click near crosshair → select vertex at that position
-        if (ctx.selection.crosshairValid && !isCtrlDown()) {
-            ShapeData data = ctx.renderer.getShapeData();
-            if (data != null) {
-                for (Vertex v : data.vertices.values()) {
-                    if (v.x == ctx.selection.crosshairPos.x
-                        && v.y == ctx.selection.crosshairPos.y
-                        && v.z == ctx.selection.crosshairPos.z) {
-                        if (ctx.pick.isNearCrosshair(mx, my, ctx.selection.crosshairPos, 40f)) {
-                            ctx.selection.selectVertex(v.id);
-                            return;
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
-        // 4. Empty space: clear the selection
-        if (isCtrlDown()) {
-            ctx.selection.multiVertices.clear();
-            ctx.selection.multiEdges.clear();
-            ctx.selection.selectedVertex = -1;
-            ctx.selection.selectedEdge = -1;
-            ctx.selection.refreshSelectionVisual();
-        } else {
-            ctx.selection.reset();
-        }
+        // 3. Empty space: clear the selection
+        ctx.selection.reset();
     }
 
     public void handleEscape() {
         if (ctx.ui.isConfirmSaveVisible()) { ctx.ui.closeConfirmSave(); return; }
+        if (ctx.ui.isConfirmDeleteVisible()) { ctx.ui.closeConfirmDelete(); return; }
         if (ctx.help != null && ctx.help.isVisible()) { ctx.help.hide(); return; }
         if (ctx.ui.newMenu.isOpen()) { ctx.ui.newMenu.close(); return; }
         if (ctx.ui.isToolsOpen()) { ctx.ui.closeToolsPal(); return; }
         if (ctx.ui.filter.isOpen()) { ctx.ui.filter.setOpen(false); return; }
+        if (ctx.ui.isOriginOpen()) { ctx.ui.closeOrigin(); return; }
+        if (ctx.faceSelectPending) { tools.cancelFaceFromSelection(); return; }
         if (ctx.creatingVertex || ctx.creatingEdge) { ctx.exitModes(); ctx.ui.setActiveMode(-1); ctx.renderer.setTracePreview(null); return; }
         if (ctx.selection.selectedVertex >= 0 || ctx.selection.selectedEdge >= 0) {
             ctx.selection.reset();
@@ -318,6 +320,9 @@ public class ClickHandler {
     /** Dispatches a tool palette row to the corresponding action. */
     private void handleTool(int tool) {
         if (ctx.renderer.getShapeData() == null) return;
+        if (ctx.faceSelectPending && tool != markershape.editor.ui.menu.ToolPalette.TOOL_CREATE_FACE) {
+            tools.cancelFaceFromSelection();
+        }
         switch (tool) {
             case markershape.editor.ui.menu.ToolPalette.TOOL_SELECT -> {
                 ctx.exitModes();
@@ -337,6 +342,7 @@ public class ClickHandler {
             }
             case markershape.editor.ui.menu.ToolPalette.TOOL_EXTRUDE -> tools.extrudeSelectedEdge();
             case markershape.editor.ui.menu.ToolPalette.TOOL_FILL -> tools.fillSelection();
+            case markershape.editor.ui.menu.ToolPalette.TOOL_CREATE_FACE -> tools.prepareFaceFromSelection();
             case markershape.editor.ui.menu.ToolPalette.TOOL_WELD -> tools.weldSelected();
             case markershape.editor.ui.menu.ToolPalette.TOOL_DUPLICATE -> tools.duplicateSelected();
             case markershape.editor.ui.menu.ToolPalette.TOOL_COPY -> tools.copySelected();

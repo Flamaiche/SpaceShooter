@@ -21,9 +21,7 @@ public class VertexAction {
         ctx.snapIfEnabled(pos);
         int newId = data.vertices.isEmpty() ? 0
             : data.vertices.keySet().stream().max(Integer::compareTo).get() + 1;
-        markershape.config.ConfigParametres cfg = markershape.config.ConfigParametres.get();
-        Vertex v = new Vertex(newId, pos.x, pos.y, pos.z,
-            cfg.getFloat("defaultVertexColorR"), cfg.getFloat("defaultVertexColorG"), cfg.getFloat("defaultVertexColorB"));
+        Vertex v = new Vertex(newId, pos.x, pos.y, pos.z, 1f, 1f, 1f);
         data.addVertex(v);
         ctx.selection.selectVertex(newId);
         ctx.renderer.rebuild();

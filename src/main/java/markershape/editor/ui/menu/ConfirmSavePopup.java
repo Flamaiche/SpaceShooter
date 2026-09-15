@@ -51,11 +51,11 @@ public class ConfirmSavePopup extends Panel {
         ConfigParametres cfg = ConfigParametres.get();
         float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
         res.drawText("Sauvegarder ?",
-            x + CONFIRM_W / 2 - 50, y + 18, 1.5f, tR, tG, tB);
+            x + CONFIRM_W / 2 - 40, y + 18, 1.2f, tR, tG, tB);
         res.drawText("[Oui]",
-            x + 30, btnY() + 2, 1.5f, tR, tG, tB);
+            x + 30, btnY() + 2, 1.2f, tR, tG, tB);
         res.drawText("[Non]",
-            x + CONFIRM_W - 70, btnY() + 2, 1.5f, tR, tG, tB);
+            x + CONFIRM_W - 64, btnY() + 2, 1.2f, tR, tG, tB);
     }
 
     private float btnY() {
