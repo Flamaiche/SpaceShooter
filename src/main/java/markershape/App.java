@@ -16,6 +16,10 @@ import org.lwjgl.opengl.GL;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
+/**
+ * Application entry point for the MarkerShape shape editor: creates the window
+ * and drives the main loop between the menu and the editor.
+ */
 public class App {
     private long window;
     private Editor editor;
@@ -27,16 +31,19 @@ public class App {
     private float bgR = 0.1f, bgG = 0.1f, bgB = 0.12f;
     private UIResources uiResources;
 
+    /** Entry point: launches the MarkerShape editor application. */
     public static void main(String[] args) {
         new App().start();
     }
 
+    /** Runs the application lifecycle: init, main loop, then cleanup. */
     private void start() {
         init();
         loop();
         cleanup();
     }
 
+    /** Initializes GLFW/OpenGL, creates the window, wires input callbacks and builds the UI. */
     private void init() {
         glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err));
         if (!glfwInit()) {
@@ -157,6 +164,7 @@ public class App {
         inMenu = true;
     }
 
+    /** Applies the current configuration values to the renderer, camera, editor and menu. */
     private void applyConfig() {
         ConfigParametres cfg = ConfigParametres.get();
 
@@ -191,6 +199,7 @@ public class App {
         if (editor != null) editor.editorUI.syncFromConfig();
     }
 
+    /** Main application loop: clears, renders the editor or menu, polls events and swaps buffers. */
     private void loop() {
         Matrix4f view = new Matrix4f();
         Matrix4f projection = new Matrix4f();
@@ -222,6 +231,7 @@ public class App {
         }
     }
 
+    /** Releases all resources and shuts down GLFW. */
     private void cleanup() {
         if (editor != null) editor.cleanup();
         if (uiResources != null) uiResources.cleanup();

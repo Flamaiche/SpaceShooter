@@ -11,10 +11,13 @@ import java.util.List;
 public final class TriBuilder {
     private final List<Float> verts = new ArrayList<>();
 
+    /** Returns true if no vertices have been accumulated. */
     public boolean isEmpty() { return verts.isEmpty(); }
 
+    /** Returns the number of accumulated vertices (6 floats each). */
     public int vertexCount() { return verts.size() / 6; }
 
+    /** Appends a single triangle defined by three positions and one shared colour. */
     public void tri(float x0, float y0, float z0,
              float x1, float y1, float z1,
              float x2, float y2, float z2,

@@ -24,13 +24,17 @@ public class OriginPanel extends Panel {
     private final String[] axisLabels = {"X", "Y", "Z"};
     private final float[] offsets = {0f, 0f, 0f};
 
+    /** Creates the origin panel, initially hidden. */
     public OriginPanel(UIResources res) {
         super(res);
         visible = false;
     }
 
+    /** @return true if the panel is open. */
     public boolean isOpen() { return open; }
+    /** Opens or closes the panel. */
     public void setOpen(boolean v) { open = v; visible = v; }
+    /** Toggles the panel open/closed state. */
     public void toggle() { open = !open; visible = open; }
 
     /** Tracks the accumulated translation (the displaced "origin"). */
@@ -40,22 +44,26 @@ public class OriginPanel extends Panel {
         offsets[2] += dz;
     }
 
+    /** Resets all accumulated offsets back to zero. */
     public void resetOffsets() {
         offsets[0] = 0f;
         offsets[1] = 0f;
         offsets[2] = 0f;
     }
 
+    /** @return the total panel height for the three axis rows. */
     public float panelHeight() {
         return ROW_GAP + axisLabels.length * ROW_H;
     }
 
+    /** @return true if the point is inside the visible panel. */
     @Override
     public boolean contains(float mx, float my) {
         return visible && mx >= x && mx <= x + PANEL_W
             && my >= y && my <= y + panelHeight();
     }
 
+    /** Positions the panel below its toggle button. */
     public void setPosition(float btnX, float btnY) {
         x = btnX + (130 - PANEL_W) / 2;
         y = btnY;
@@ -63,6 +71,7 @@ public class OriginPanel extends Panel {
         h = panelHeight();
     }
 
+    /** Draws the axis labels, offsets and [-]/[+] buttons. */
     @Override
     protected void renderText() {
         ConfigParametres cfg = ConfigParametres.get();

@@ -4,6 +4,9 @@ import markershape.config.ConfigParametres;
 import markershape.editor.ui.UIResources;
 import markershape.shape.Edge;
 
+/**
+ * Overlay for editing an edge: its mode (stun/move), thickness and RGB color.
+ */
 public class EdgeOverlay extends Overlay {
     private Edge edge;
     private int vertexA, vertexB;
@@ -20,6 +23,7 @@ public class EdgeOverlay extends Overlay {
     private static final int MODE_ROWS = 4;
     private static final float[] COLOR_Y = {150, 176, 202};
 
+    /** Creates the edge overlay with its fixed size. */
     public EdgeOverlay(UIResources res) {
         super(res, 280, 270);
     }
@@ -29,6 +33,7 @@ public class EdgeOverlay extends Overlay {
     private final StringBuilder typedBuf = new StringBuilder();
     private long editStart;
 
+    /** Shows the overlay for the given edge and its endpoint vertex ids. */
     public void show(Edge e, int va, int vb) {
         edge = e;
         vertexA = va;
@@ -38,11 +43,16 @@ public class EdgeOverlay extends Overlay {
         typing = false;
     }
 
+    /** Hides the overlay and clears the referenced edge. */
     @Override public void hide() { super.hide(); edge = null; typing = false; }
+    /** @return the edge currently being edited, or null. */
     public Edge getEdge() { return edge; }
+    /** @return true when an edge is being edited. */
     @Override protected boolean hasEntity() { return edge != null; }
+    /** @return true if a text field is being edited. */
     public boolean isTyping() { return visible && typing; }
 
+    /** Starts in-place typing for the given field. */
     private void beginTyping(int field) {
         selectedField = field;
         typing = true;
@@ -51,6 +61,7 @@ public class EdgeOverlay extends Overlay {
         editStart = System.currentTimeMillis();
     }
 
+    /** Appends a digit/sign codepoint to the ongoing typed input, if any. */
     public void charTyped(int codepoint) {
         if (!isTyping()) return;
         char c = (char) codepoint;
@@ -60,6 +71,7 @@ public class EdgeOverlay extends Overlay {
         }
     }
 
+    /** Handles ENTER/ESCAPE/BACKSPACE while typing, @return true if consumed. */
     public boolean keyTyped(int key, int action) {
         if (!isTyping() || action != 1) return false;
         if (key == 257) { confirmTyping(); return true; }
@@ -72,6 +84,7 @@ public class EdgeOverlay extends Overlay {
         return false;
     }
 
+    /** Commits the typed value to the selected field. */
     private void confirmTyping() {
         if (!typing) return;
         String s = typedBuf.toString();
@@ -87,11 +100,17 @@ public class EdgeOverlay extends Overlay {
         selectedField = -1;
     }
 
+    /** Restores the previous value of the field being edited. */
     private void cancelTyping() {
+        if (typing && selectedField >= 0 && typedOld != null) {
+            setFieldValue(selectedField, Float.parseFloat(typedOld));
+            if (editCallback != null) editCallback.run();
+        }
         typing = false;
         selectedField = -1;
     }
 
+    /** @return the current value of the edge field with the given index. */
     private float getFieldValue(int field) {
         if (edge == null) return 0;
         return switch (field) {
@@ -103,6 +122,7 @@ public class EdgeOverlay extends Overlay {
         };
     }
 
+    /** Sets the edge field value, clamped to its allowed range. */
     private void setFieldValue(int field, float v) {
         if (edge == null) return;
         switch (field) {
@@ -113,6 +133,11 @@ public class EdgeOverlay extends Overlay {
         }
     }
 
+    /**
+     * Handles a click inside the overlay.
+     * @return -1 if nothing was hit, 10 for the delete button, 0 for the mode
+     *         switch, 1 for thickness, or 2-4 for the R/G/B fields.
+     */
     public int clickField(float mx, float my) {
         if (!visible || edge == null) return -1;
 
@@ -187,6 +212,7 @@ public class EdgeOverlay extends Overlay {
         return -1;
     }
 
+    /** Draws the selection highlight, separator line and color swatch. */
     @Override
     protected void renderContent() {
         if (edge == null) return;
@@ -205,6 +231,7 @@ public class EdgeOverlay extends Overlay {
         res.drawQuad(x + SWATCH_X, y + 146, SWATCH_W, 16, edge.r, edge.g, edge.bl, 1f);
     }
 
+    /** Renders the edge id, endpoints, mode, thickness and RGB values. */
     @Override
     protected void renderText() {
         ConfigParametres cfg = ConfigParametres.get();

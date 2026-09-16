@@ -5,6 +5,7 @@ import markershape.editor.ui.EditorUI;
 import markershape.editor.ui.overlay.HelpOverlay;
 import org.joml.Vector3f;
 
+/** Shared mutable state for the editor: renderer, selection, picking, interaction modes, and undo/redo. */
 public class Context {
     public final ShapeRenderer renderer;
     public EditorUI ui;
@@ -35,6 +36,7 @@ public class Context {
 
     public Runnable onGoToMenu;
 
+    /** Stores the shared collaborators of the editor. */
     public Context(ShapeRenderer renderer, EditorUI ui, UndoRedo undoredo,
                    SelectionManager selection, PickUtils pick) {
         this.renderer = renderer;
@@ -44,6 +46,7 @@ public class Context {
         this.pick = pick;
     }
 
+    /** Leaves every creation mode and clears their pending state. */
     public void exitModes() {
         creatingVertex = false;
         creatingEdge = false;
@@ -55,8 +58,10 @@ public class Context {
         renderer.clearFaceSelectPreview();
     }
 
-    public boolean isInMode() { return creatingVertex || creatingEdge; }
+    /** Returns whether a vertex/edge/face creation mode is active. */
+    public boolean isInMode() { return creatingVertex || creatingEdge || creatingFace; }
 
+    /** Snaps the given position to the grid step when grid snapping is enabled. */
     public void snapIfEnabled(Vector3f pos) {
         if (ui != null && ui.isSnapEnabled()) {
             float step = ui.getSnapStep();

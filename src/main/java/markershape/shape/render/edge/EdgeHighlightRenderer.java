@@ -16,6 +16,7 @@ import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.*;
 
+/** Highlights hovered/selected edges and edge subsets as 2D screen-space lines. */
 public class EdgeHighlightRenderer implements Renderer {
     private final ShadowRenderer shadow = new ShadowRenderer();
     private int hoveredEdgeId = -1;
@@ -24,19 +25,27 @@ public class EdgeHighlightRenderer implements Renderer {
     private int selectedVertexId = -1;
     private Set<Integer> hoveredPositionIds;
 
+    /** Sets the hovered edge ID. */
     public void setHoveredEdge(int id) { hoveredEdgeId = id; }
+    /** Sets the selected edge ID. */
     public void setSelectedEdge(int id) { selectedEdgeId = id; }
+    /** Sets the hovered vertex ID. */
     public void setHoveredVertex(int id) { hoveredVertexId = id; }
+    /** Sets the selected vertex ID. */
     public void setSelectedVertex(int id) { selectedVertexId = id; }
+    /** Sets the edge subset connected to a hovered vertex. */
     public void setHoveredPositionIds(Set<Integer> ids) { hoveredPositionIds = ids; }
 
+    /** Updates the screen size used by the shadow renderer. */
     public void setScreenSize(int w, int h) { shadow.setScreenSize(w, h); }
 
+    /** Placeholder for the 3D shader path; the actual highlighting is done in render2D. */
     @Override
     public void render(Shader shader, ShapeData data, org.joml.Matrix4f view, org.joml.Matrix4f projection, int screenW, int screenH) {
         // 3D shader path — used as stub; actual work done by render2D
     }
 
+    /** Draws the hovered/selected/hovered-connection edge highlights as 2D lines. */
     public void render2D(ShapeData data, Matrix4f view, Matrix4f projection, int w, int h) {
         shadow.setScreenSize(w, h);
         if (data == null) return;
@@ -77,6 +86,7 @@ public class EdgeHighlightRenderer implements Renderer {
         }
     }
 
+    /** Draws a single edge as a 2D screen-space line. */
     private void drawSingle2D(ShapeData data, int edgeId, Matrix4f mvp, int w, int h,
                                float r, float g, float b, float a) {
         Edge e = data.edges.get(edgeId);
@@ -99,6 +109,7 @@ public class EdgeHighlightRenderer implements Renderer {
         shadow.drawEdge(ax, ay, bx, by, r, g, b, a, 3f);
     }
 
+    /** Draws a batch of edges as 2D screen-space lines. */
     private void drawBatch2D(ShapeData data, ArrayList<Edge> edges, Matrix4f mvp, int w, int h,
                               float r, float g, float b, float a) {
         if (edges.isEmpty()) return;
@@ -126,6 +137,7 @@ public class EdgeHighlightRenderer implements Renderer {
         if (vertCount > 0) shadow.drawEdgeBatch(buf, vertCount, r, g, b, a, 1.5f);
     }
 
+    /** Releases the shadow renderer resources. */
     @Override
     public void cleanup() {
         shadow.cleanup();

@@ -3,12 +3,31 @@ package markershape.editor.action;
 import markershape.editor.Context;
 import markershape.shape.ShapeLoader;
 import markershape.shape.ShapeData;
+import markershape.shape.render.ShapeRenderer;
 
+/** Loads and saves shape files, and applies shared render-filter settings. */
 public class ShapeIO {
     private final Context ctx;
 
+    /** Creates the shape I/O bound to the given editor context. */
     public ShapeIO(Context ctx) { this.ctx = ctx; }
 
+    /** Applies the UI filter/slider settings to the renderer (shared by load paths). */
+    public static void applyFilters(ShapeRenderer renderer, boolean[] fv, float[] sv) {
+        renderer.setShowFaces(fv[0]);
+        renderer.setShowEdges(fv[1]);
+        renderer.setShowPoints(fv[2]);
+        renderer.setShowAxisX(fv[3]);
+        renderer.setShowAxisY(fv[4]);
+        renderer.setShowAxisZ(fv[5]);
+        renderer.setShowFrontArrow(fv[8]);
+        renderer.setPointSize(sv[0]);
+        renderer.setLineWidth(sv[1]);
+        renderer.setFaceAlpha(sv[2]);
+        renderer.setGridStep(sv[3]);
+    }
+
+    /** Saves the current shape under the context's current filename, if any. */
     public void save() {
         if (ctx.currentFilename == null || !ctx.renderer.hasShape()) return;
         ShapeData data = ctx.renderer.getShapeData();
@@ -19,6 +38,7 @@ public class ShapeIO {
             ctx.currentFilename, data.vertices.size(), data.edges.size(), data.faces.size());
     }
 
+    /** Loads an already-parsed shape into the renderer and resets the edit state. */
     public void loadShapeData(ShapeData data) {
         ctx.renderer.setShapeData(data);
         ctx.renderer.rebuild();
@@ -27,6 +47,7 @@ public class ShapeIO {
         ctx.ui.setActiveMode(-1);
     }
 
+    /** Loads a shape from disk and applies the current UI filter settings. */
     public void load(String filename) {
         ctx.currentFilename = filename;
         boolean ok = ctx.renderer.loadShape(filename);
@@ -35,15 +56,6 @@ public class ShapeIO {
         }
         boolean[] fv = ctx.ui.getFilterValues();
         float[] sv = ctx.ui.getSliderValues();
-        ctx.renderer.setShowFaces(fv[0]);
-        ctx.renderer.setShowEdges(fv[1]);
-        ctx.renderer.setShowPoints(fv[2]);
-        ctx.renderer.setShowAxisX(fv[3]);
-        ctx.renderer.setShowAxisY(fv[4]);
-        ctx.renderer.setShowAxisZ(fv[5]);
-        ctx.renderer.setPointSize(sv[0]);
-        ctx.renderer.setLineWidth(sv[1]);
-        ctx.renderer.setFaceAlpha(sv[2]);
-        ctx.renderer.setGridStep(sv[3]);
+        applyFilters(ctx.renderer, fv, sv);
     }
 }

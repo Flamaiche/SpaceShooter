@@ -9,6 +9,10 @@ import markershape.shape.Vertex;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Overlay for editing a vertex's X/Y/Z coordinates and adjacent angle
+ * constraints, plus badges to switch to co-located (sibling) vertices.
+ */
 public class VertexOverlay extends Overlay {
     private Vertex vertex;
     private int edgeCount;
@@ -53,16 +57,24 @@ public class VertexOverlay extends Overlay {
     private List<AngleUtils.AdjacentAngle> angleRows;
     private int angleRowCount;
 
+    /** Creates the vertex overlay with its fixed size. */
     public VertexOverlay(UIResources res) {
         super(res, 280, 320);
     }
 
+    /** Sets the callback fired when a sibling badge is clicked. */
     public void setSwitchCallback(Consumer<Integer> cb) { switchCallback = cb; }
 
+    /** Shows the overlay for the given vertex and edge count, with no siblings. */
     public void show(Vertex v, int edges) { show(v, edges, new int[0], null); }
 
+    /** Shows the overlay for the given vertex, edge count and sibling ids. */
     public void show(Vertex v, int edges, int[] siblingIds) { show(v, edges, siblingIds, null); }
 
+    /**
+     * Shows the overlay for the given vertex; the shape data is used to
+     * compute the adjacent angles when editing.
+     */
     public void show(Vertex v, int edges, int[] siblingIds, ShapeData data) {
         vertex = v;
         edgeCount = edges;
@@ -78,6 +90,7 @@ public class VertexOverlay extends Overlay {
         updateHeight();
     }
 
+    /** Hides the overlay and clears the referenced entity data. */
     @Override public void hide() {
         super.hide();
         vertex = null;
@@ -90,10 +103,14 @@ public class VertexOverlay extends Overlay {
         selectedAngle = -1;
     }
 
+    /** @return the vertex currently being edited, or null. */
     public Vertex getVertex() { return vertex; }
+    /** @return true when a vertex is being edited. */
     @Override protected boolean hasEntity() { return vertex != null; }
+    /** @return true if a text field is being edited. */
     public boolean isTyping() { return visible && typing; }
 
+    /** Recomputes the list of adjacent-angle rows for the current vertex. */
     private void recomputeAngles() {
         angleRows = null;
         angleRowCount = 0;
@@ -104,21 +121,25 @@ public class VertexOverlay extends Overlay {
         angleRowCount = fan.size();
     }
 
+    /** @return the number of angle rows that fit in the overlay. */
     private int angleRowsShown() {
         return Math.min(Math.max(0, angleRowCount), MAX_ANGLE_ROWS);
     }
 
+    /** @return the rows to reserve for the angle block, plus its "+n" footer. */
     private int angleBlockRows() {
         int shown = angleRowsShown();
         return angleRowCount > shown ? shown + 1 : shown;
     }
 
+    /** @return the Y offset of the first sibling badge row. */
     private float sibTop() {
         return (angleRowCount > 0)
             ? ANGLE_ROW_START + angleBlockRows() * ANGLE_ROW_H + SIB_PAD
             : SIB_BASE_Y + SIB_PAD;
     }
 
+    /** @return the number of lines needed to lay out the sibling badges. */
     private int layoutSiblingLines() {
         if (siblingIds == null || siblingIds.length == 0) return 0;
         String also = "Also:";
@@ -138,6 +159,7 @@ public class VertexOverlay extends Overlay {
         return row + 1;
     }
 
+    /** Recomputes the overlay height based on angle rows and sibling badges. */
     private void updateHeight() {
         float contentEnd = (angleRowCount > 0)
             ? ANGLE_ROW_START + angleBlockRows() * ANGLE_ROW_H
@@ -147,6 +169,7 @@ public class VertexOverlay extends Overlay {
         h = contentEnd + sibH + BOTTOM_PAD;
     }
 
+    /** Starts in-place typing for the given coordinate field. */
     protected void beginTyping(int field) {
         selectedField = field;
         selectedAngle = -1;
@@ -156,6 +179,7 @@ public class VertexOverlay extends Overlay {
         editStart = System.currentTimeMillis();
     }
 
+    /** Starts in-place typing for the given angle row. */
     private void beginAngleTyping(int row) {
         if (angleRows == null || row >= angleRows.size()) return;
         selectedField = -1;
@@ -166,6 +190,7 @@ public class VertexOverlay extends Overlay {
         editStart = System.currentTimeMillis();
     }
 
+    /** Appends a digit/sign codepoint to the ongoing typed input, if any. */
     public void charTyped(int codepoint) {
         if (!isTyping()) return;
         char c = (char) codepoint;
@@ -175,6 +200,7 @@ public class VertexOverlay extends Overlay {
         }
     }
 
+    /** Handles ENTER/ESCAPE/BACKSPACE while typing, @return true if consumed. */
     public boolean keyTyped(int key, int action) {
         if (!isTyping() || action != 1) return false;
         if (key == 257) { confirmTyping(); return true; }          // ENTER
@@ -187,6 +213,7 @@ public class VertexOverlay extends Overlay {
         return false;
     }
 
+    /** Commits the typed value to the selected field or angle. */
     private void confirmTyping() {
         if (!typing) return;
         String s = typedBuf.toString();
@@ -212,12 +239,26 @@ public class VertexOverlay extends Overlay {
         selectedAngle = -1;
     }
 
+    /** Restores the previous value of the field or angle being edited. */
     private void cancelTyping() {
+        if (typing) {
+            if (selectedField >= 0 && typedOld != null) {
+                setFieldValue(selectedField, Float.parseFloat(typedOld));
+                if (editCallback != null) editCallback.run();
+            } else if (selectedAngle >= 0 && typedOld != null && angleRows != null
+                       && vertex != null && data != null) {
+                AngleUtils.AdjacentAngle a = angleRows.get(selectedAngle);
+                AngleUtils.setAngle(data, vertex.id, a.otherA(), a.otherB(), Float.parseFloat(typedOld));
+                if (editCallback != null) editCallback.run();
+                recomputeAngles();
+            }
+        }
         typing = false;
         selectedField = -1;
         selectedAngle = -1;
     }
 
+    /** Steps the given angle row by 1 degree in the given direction. */
     private void stepAngle(int row, int dir) {
         if (angleRows == null || row >= angleRows.size() || vertex == null || data == null) return;
         AngleUtils.AdjacentAngle a = angleRows.get(row);
@@ -229,6 +270,11 @@ public class VertexOverlay extends Overlay {
         recomputeAngles();
     }
 
+    /**
+     * Handles a click inside the overlay.
+     * @return the selected field index (0-2), 30 + the angle row index, 10 for
+     *         a sibling badge, 20 for the delete button, or -1 if nothing.
+     */
     public int clickField(float mx, float my) {
         if (!visible || vertex == null) return -1;
 
@@ -303,6 +349,7 @@ public class VertexOverlay extends Overlay {
         return -1;
     }
 
+    /** @return the current value of the field with the given index. */
     private float getFieldValue(int i) {
         return switch (i) {
             case 0 -> vertex.x; case 1 -> vertex.y; case 2 -> vertex.z;
@@ -310,6 +357,7 @@ public class VertexOverlay extends Overlay {
         };
     }
 
+    /** Sets the field value, clamped to +/-100. */
     private void setFieldValue(int i, float v) {
         switch (i) {
             case 0 -> vertex.x = clamp(v, -100f, 100f);
@@ -318,10 +366,12 @@ public class VertexOverlay extends Overlay {
         }
     }
 
+    /** @return v clamped between min and max. */
     private static float clamp(float v, float min, float max) {
         return Math.max(min, Math.min(max, v));
     }
 
+    /** Draws the selection highlight and the separator line. */
     @Override
     protected void renderContent() {
         recomputeAngles();
@@ -339,6 +389,7 @@ public class VertexOverlay extends Overlay {
         res.drawLine(x + 10, sepY, x + w - 10, sepY, c[0] + 0.15f, c[1] + 0.15f, c[2] + 0.2f, 0.9f);
     }
 
+    /** Renders the vertex fields, edge count, angle rows and sibling badges. */
     @Override
     protected void renderText() {
         ConfigParametres cfg = ConfigParametres.get();

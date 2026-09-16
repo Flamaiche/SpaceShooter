@@ -21,9 +21,12 @@ public class FrontArrowRenderer implements Renderer {
     private Matrix4f lastView;
     private boolean dirty = true;
 
+    /** Shows/hides the arrow. */
     public void setVisible(boolean v) { visible = v; }
+    /** Returns true if the arrow is currently shown. */
     public boolean isVisible() { return visible; }
 
+    /** Sets the arrow origin, direction and length (rebuilds it on the next render). */
     public void setArrow(float cx, float cy, float cz, Vector3f direction, float arrowLength) {
         this.cx = cx; this.cy = cy; this.cz = cz;
         this.dir = new Vector3f(direction);
@@ -32,6 +35,7 @@ public class FrontArrowRenderer implements Renderer {
         dirty = true;
     }
 
+    /** Rebuilds and draws the arrow when the view or arrow state changed. */
     @Override
     public void render(Shader shader, ShapeData data, Matrix4f view, Matrix4f projection, int screenW, int screenH) {
         if (!visible) return;
@@ -77,6 +81,7 @@ public class FrontArrowRenderer implements Renderer {
         glDepthMask(true);
     }
 
+    /** Releases the arrow geometry. */
     @Override
     public void cleanup() {
         tri.release();

@@ -13,6 +13,7 @@ public class Vertex {
     public float r, g, b;
     public final Set<Integer> edgeIds = new HashSet<>();
 
+    /** Default constructor (leaves fields at their default values). */
     public Vertex() {}
 
     /**
@@ -32,6 +33,7 @@ public class Vertex {
         this.r = r;  this.g = g;  this.b = b;
     }
 
+    /** Returns a copy of this vertex, including its incident edge IDs. */
     public Vertex copy() {
         Vertex c = new Vertex(id, x, y, z, r, g, b);
         c.edgeIds.addAll(edgeIds);

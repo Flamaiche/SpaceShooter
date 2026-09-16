@@ -5,13 +5,17 @@ import markershape.editor.ui.Panel;
 import markershape.editor.ui.UIResources;
 import markershape.editor.ui.menu.BlurBackground;
 
+/**
+ * Panel listing the view/filter toggles (checkboxes) and the display sliders,
+ * opened below the filter button.
+ */
 public class FilterPanel extends Panel {
     private boolean filterOpen;
 
-    public String[] filterLabels = {"Faces", "Arêtes", "Points", "Axe X", "Axe Y", "Axe Z", "Snap", "Magnet", "Vecteur avant"};
+    public String[] filterLabels = {"Faces", "Arêtes", "Sommets", "Axe X", "Axe Y", "Axe Z", "Accrochage grille", "Aimantation", "Flèche avant"};
     public boolean[] filterValues = {true, true, true, true, true, true, false, false, true};
 
-    public String[] sliderLabels = {"Taille points", "Epaisseur", "Opacite", "Pas de snap"};
+    public String[] sliderLabels = {"Taille des points", "Épaisseur des lignes", "Opacité des faces", "Pas de l'accrochage"};
     public float[] sliderValues = {5f, 3f, 1f, 1f};
     private float[] sliderMin = {1f, 1f, 0f, 0.1f};
     private float[] sliderMax = {20f, 10f, 1f, 5f};
@@ -31,35 +35,45 @@ public class FilterPanel extends Panel {
 
     private Runnable filterCallback;
 
+    /** Creates the filter panel, initially hidden. */
     public FilterPanel(UIResources res) {
         super(res);
         visible = false;
     }
 
+    /** Sets the window size used for rendering. */
     public void setSize(int w, int h) {
         res.setSize(w, h);
     }
 
+    /** @return true if the panel is open. */
     public boolean isOpen() { return filterOpen; }
+    /** Opens or closes the panel. */
     public void setOpen(boolean v) { filterOpen = v; visible = v; }
+    /** Toggles the panel open/closed state. */
     public void toggle() { filterOpen = !filterOpen; visible = filterOpen; }
 
+    /** Sets the callback fired whenever a filter or slider value changes. */
     public void setFilterCallback(Runnable cb) { filterCallback = cb; }
 
+    /** @return the total panel height for the checkboxes and sliders. */
     public float panelHeight() {
         return filterLabels.length * CHECKBOX_H + PANEL_GAP + sliderLabels.length * SLIDER_H;
     }
 
+    /** @return the Y offset of the given slider row. */
     public float sliderItemY(int i) {
         return y + filterLabels.length * CHECKBOX_H + PANEL_GAP + i * SLIDER_H;
     }
 
+    /** @return true if the point is inside the visible panel. */
     @Override
     public boolean contains(float mx, float my) {
         return visible && mx >= x && mx <= x + PANEL_W
             && my >= y && my <= y + panelHeight();
     }
 
+    /** Positions the panel below the filter button. */
     public void setPosition(float btnX, float btnY) {
         x = btnX + (130 - PANEL_W) / 2;
         y = btnY;
@@ -67,34 +81,12 @@ public class FilterPanel extends Panel {
         h = panelHeight();
     }
 
+    /** No extra content is drawn for this panel. */
     @Override
     protected void renderContent() {
-        float mr = BlurBackground.menuR, mg = BlurBackground.menuG, mb = BlurBackground.menuB;
-
-        for (int i = 0; i < sliderLabels.length; i++) {
-            float iy = sliderItemY(i);
-            float trackY = iy + (SLIDER_H - 8) * 0.5f + 4;
-            float trackX = x + TRACK_X;
-            float val = sliderValues[i];
-            float frac = (val - sliderMin[i]) / (sliderMax[i] - sliderMin[i]);
-
-            float trackA = BlurBackground.transparentUI ? 0.6f : 1f;
-            float trackR = Math.min(1f, mr * 0.75f), trackG = Math.min(1f, mg * 0.75f), trackB = Math.min(1f, mb * 0.75f);
-            float fillR = Math.min(1f, mr + 0.35f), fillG = Math.min(1f, mg + 0.35f), fillB = Math.min(1f, mb + 0.45f);
-            float thumbR = Math.min(1f, mr + 0.6f), thumbG = Math.min(1f, mg + 0.6f), thumbB = Math.min(1f, mb + 0.6f);
-
-            float tx = trackX, ty = trackY, tw = TRACK_W, th = 6;
-            res.drawQuad(tx, ty, tw, th, trackR, trackG, trackB, trackA);
-
-            float fw = Math.max(2, frac * tw);
-            res.drawQuad(tx, ty, fw, th, fillR, fillG, fillB, 1f);
-
-            float thumbX = tx + frac * tw - 3;
-            float thumbY = ty - 1;
-            res.drawQuad(thumbX, thumbY, 6, 8, thumbR, thumbG, thumbB, 1f);
-        }
     }
 
+    /** Draws the checkbox labels and the slider labels/values. */
     @Override
     protected void renderText() {
         ConfigParametres cfg = ConfigParametres.get();
@@ -123,6 +115,11 @@ public class FilterPanel extends Panel {
         }
     }
 
+    /**
+     * Handles a click on a checkbox or slider.
+     * @return the checkbox index (0-8) or 3 + the slider index (3-6),
+     *         or -1 if nothing was hit.
+     */
     public int clickFilter(float mx, float my) {
         if (!visible) return -1;
 
@@ -155,17 +152,28 @@ public class FilterPanel extends Panel {
         return -1;
     }
 
+    /** @return true if grid snapping is enabled. */
     public boolean isSnapEnabled() { return filterValues[6]; }
+    /** @return the grid snap step. */
     public float getSnapStep() { return sliderValues[3]; }
+    /** Enables or disables grid snapping. */
     public void setSnapEnabled(boolean v) { filterValues[6] = v; }
+    /** Sets the grid snap step. */
     public void setSnapStep(float v) { sliderValues[3] = v; }
+    /** @return true if vertex magnet capture is enabled. */
     public boolean isMagnetEnabled() { return filterValues[7]; }
+    /** Enables or disables vertex magnet capture. */
     public void setMagnetEnabled(boolean v) { filterValues[7] = v; }
+    /** @return the magnet capture radius. */
     public float getMagnetRadius() { return magnetRadius; }
+    /** Sets the magnet capture radius. */
     public void setMagnetRadius(float v) { magnetRadius = v; }
     private float magnetRadius = 14f;
+    /** @return true if the front arrow is displayed. */
     public boolean isFrontArrowEnabled() { return filterValues[8]; }
+    /** Shows or hides the front arrow. */
     public void setFrontArrowEnabled(boolean v) { filterValues[8] = v; }
 
+    /** Runs the filter callback when one is set. */
     private void fireCallback() { if (filterCallback != null) filterCallback.run(); }
 }

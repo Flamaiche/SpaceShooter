@@ -21,6 +21,7 @@ public class AngleUtils {
      *  and their outer endpoints are {@code otherA}/{@code otherB}. */
     public record AdjacentAngle(int edgeA, int edgeB, int otherA, int otherB, float degrees) {}
 
+    /** Utility class — not instantiable. */
     private AngleUtils() {}
 
     /** Angle in degrees [0..180] between the two arms starting at {@code v}. */
@@ -105,6 +106,7 @@ public class AngleUtils {
         b.z = nb.z;
     }
 
+    /** Computes the average face normal at the vertex from consecutive edge-pair cross products. */
     private static Vector3f averageNormal(ShapeData data, int vertexId, List<int[]> rays) {
         Vector3f normal = new Vector3f();
         int n = rays.size();
@@ -119,12 +121,14 @@ public class AngleUtils {
         return normal;
     }
 
+    /** Projects the reference direction {@code init} onto the plane perpendicular to {@code n} and returns a unit vector. */
     private static Vector3f basisU(Vector3f n, Vector3f init) {
         Vector3f u = new Vector3f(init).sub(new Vector3f(n).mul(init.dot(n)));
         if (u.lengthSquared() < 1e-6f) u.set(0, 0, 1);
         return u.normalize();
     }
 
+    /** Direction vector from {@code vertexId} to {@code otherId}. */
     private static Vector3f dirOf(ShapeData data, int vertexId, int otherId) {
         Vertex v = data.vertices.get(vertexId);
         Vertex o = data.vertices.get(otherId);
@@ -132,10 +136,12 @@ public class AngleUtils {
         return new Vector3f(vec(o)).sub(vec(v));
     }
 
+    /** Extracts a new Vector3f from a vertex's coordinates. */
     private static Vector3f vec(Vertex v) {
         return new Vector3f(v.x, v.y, v.z);
     }
 
+    /** Clamps v into [min, max]. */
     private static float clamp(float v, float min, float max) {
         return Math.max(min, Math.min(max, v));
     }

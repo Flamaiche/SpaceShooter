@@ -6,7 +6,9 @@ import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 import learngl.LogFile;
 
+/** Utilities for testing connectivity between vertices and auto-creating/cleaning triangular faces. */
 public class FaceUtils {
+    /** Returns whether two vertices are directly linked by an edge. */
     public boolean connectedBetween(ShapeData data, int x, int y) {
         Vertex vx = data.vertices.get(x);
         if (vx == null) return false;
@@ -16,12 +18,14 @@ public class FaceUtils {
         return false;
     }
 
+    /** Returns the vertex at the other end of the edge, or -1 if edges/vertices are missing. */
     public int edgeOther(ShapeData data, int edgeId, int vertexId) {
         Edge e = data.edges.get(edgeId);
         if (e == null) return -1;
         return e.a == vertexId ? e.b : (e.b == vertexId ? e.a : -1);
     }
 
+    /** Returns whether a triangle with the given three vertex ids already exists in the shape. */
     public boolean triExists(ShapeData data, int a, int b, int c) {
         for (Face tri : data.faces) {
             if (tri.contains(a) && tri.contains(b) && tri.contains(c)) return true;
@@ -29,6 +33,7 @@ public class FaceUtils {
         return false;
     }
 
+    /** After a new edge [a,b], auto-creates a triangular face for every vertex linked to both endpoints. */
     public void detectAndCreateFaces(ShapeData data, int a, int b) {
         if (data == null) return;
         Vertex va = data.vertices.get(a);
@@ -57,6 +62,7 @@ public class FaceUtils {
             cfg.getFloat("createColorB"));
     }
 
+    /** Removes every face whose three boundary edges are no longer all present. */
     public void cleanupFaces(ShapeData data) {
         if (data == null) return;
         data.faces.removeIf(tri -> {

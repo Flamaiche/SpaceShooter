@@ -12,10 +12,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/** Renders the triangle faces of the mesh via a single engine Shape. */
 public class FaceRenderer implements Renderer {
     private Shape shape;
     private Shader currentShader;
 
+    /** Builds face geometry from the whole shape data. */
     public void build(ShapeData data, Shader shader) {
         build(data.vertices, data.faces, shader);
     }
@@ -48,11 +50,13 @@ public class FaceRenderer implements Renderer {
         shape.setShader(shader);
     }
 
+    /** Replaces the shader used to draw the face geometry. */
     public void setShader(Shader shader) {
         currentShader = shader;
         if (shape != null) shape.setShader(shader);
     }
 
+    /** Draws the built face geometry. */
     @Override
     public void render(Shader shader, ShapeData data, org.joml.Matrix4f view, org.joml.Matrix4f projection, int screenW, int screenH) {
         if (shape != null && currentShader != null) {
@@ -60,6 +64,7 @@ public class FaceRenderer implements Renderer {
         }
     }
 
+    /** Releases the face geometry. */
     @Override
     public void cleanup() {
         if (shape != null) { shape.cleanup(); shape = null; }

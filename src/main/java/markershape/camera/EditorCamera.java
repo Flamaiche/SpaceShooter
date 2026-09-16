@@ -33,9 +33,13 @@ public class EditorCamera {
     private float frontYaw;
     private float frontPitch;
 
+    /** Sets the zoom speed factor (multiplier applied to zoom deltas). */
     public void setZoomSpeed(float v) { zoomSpeed = v; }
+    /** Sets the orbit rotation speed factor. */
     public void setOrbitSpeed(float v) { orbitSpeed = v; }
+    /** Returns the zoom speed factor. */
     public float getZoomSpeed() { return zoomSpeed; }
+    /** Returns the orbit rotation speed factor. */
     public float getOrbitSpeed() { return orbitSpeed; }
 
     /** Constructs an orbital camera with default position and radius. */
@@ -223,11 +227,13 @@ public class EditorCamera {
         return dir.normalize();
     }
 
+    /** Computes a radius that fits the given bounding size, clamped to [0.5, 50] units. */
     private float fitRadius(float size) {
         float fit = (size <= 0f) ? 3f : size * 1.1f;
         return Math.max(0.5f, Math.min(50f, fit));
     }
 
+    /** Recomputes the front/right/up axes from the current position and target. */
     private void updateAxes() {
         AxesCalculator.fromTarget(position, target, WORLD_UP, front, right, up);
     }
@@ -300,6 +306,7 @@ public class EditorCamera {
         return (float) Math.toDegrees(Math.asin(rel.y / r));
     }
 
+    /** Returns the current orbit radius. */
     public float getRadius() { return radius; }
 
     /** Returns the world point under the cursor at the depth of the target. */

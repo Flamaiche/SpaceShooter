@@ -17,6 +17,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * Central input dispatcher: routes keyboard shortcuts, mouse clicks,
+ * drag operations, camera navigation, and marquee / rubber-band
+ * selection each frame.
+ */
 public class InputManager {
     private final Context ctx;
     private final HoverManager hover;
@@ -46,6 +51,20 @@ public class InputManager {
     private int rubberVertex = -1;
     private int rubberTarget = -1;
 
+    /**
+     * Creates the input manager and its helpers (drag, click handling,
+     * axis panel).
+     *
+     * @param ctx    the shared editor context
+     * @param hover  the hover manager to feed
+     * @param vertex vertex action used for clicks
+     * @param edge   edge action used for clicks
+     * @param del    delete action used for clicks
+     * @param io     shape I/O used for save
+     * @param tools  shape tools used for clicks
+     * @param camera the editor camera
+     * @param uiRes  UI resources for the axis panel
+     */
     public InputManager(Context ctx, HoverManager hover, VertexAction vertex,
                         EdgeAction edge, DeleteAction del, ShapeIO io,
                         ShapeTools tools, EditorCamera camera, UIResources uiRes) {
@@ -59,8 +78,10 @@ public class InputManager {
         this.dragPanel = new DragAxisPanel(uiRes);
     }
 
+    /** Returns the floating drag-axis panel widget. */
     public DragAxisPanel getDragPanel() { return dragPanel; }
 
+    /** Tracks pressed/released modifier keys in the internal key set. */
     public void setKeyState(int key, int action) {
         boolean press = action == GLFW.GLFW_PRESS;
         if (key == GLFW.GLFW_KEY_LEFT_SHIFT || key == GLFW.GLFW_KEY_RIGHT_SHIFT) shiftDown = press;
@@ -68,6 +89,7 @@ public class InputManager {
         else if (action == GLFW.GLFW_RELEASE) pressedKeys.remove(key);
     }
 
+    /** Applies held arrow keys each frame to rotate the camera (skipped while an overlay is typing). */
     public void processFrameKeys() {
         if (ctx.selection.vertexOverlay.isTyping() || ctx.selection.edgeOverlay.isTyping()) return;
         for (int k : pressedKeys) {
@@ -80,6 +102,13 @@ public class InputManager {
         }
     }
 
+    /**
+     * Main per-frame input update: camera navigation, gesture processing,
+     * hover refresh, and Escape handling.
+     *
+     * @param mx mouse X in screen coordinates
+     * @param my mouse Y in screen coordinates
+     */
     public void process(float mx, float my) {
         if (ctx.ui.isConfirmSaveVisible()) {
             prevMouseLeft = mouseLeftDown;
@@ -135,6 +164,16 @@ public class InputManager {
         escDown = escDownNow;
     }
 
+    /**
+     * Handles a mouse button press or release: starts a marquee, a
+     * rubber-band, or a pending vertex drag, and forwards clicks to the
+     * appropriate handler.
+     *
+     * @param btn    the GLFW mouse button
+     * @param action GLFW_PRESS or GLFW_RELEASE
+     * @param mx     mouse X in screen coordinates
+     * @param my     mouse Y in screen coordinates
+     */
     public void onMouseButton(int btn, int action, float mx, float my) {
         if (btn == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             if (action == GLFW.GLFW_PRESS) {
@@ -222,6 +261,7 @@ public class InputManager {
             src, r, g, b);
     }
 
+    /** Drives the active gesture each frame: vertex drag, rubber-band, or marquee, updating the drag-axis panel. */
     private void processDrag(float mx, float my) {
         if (!mouseLeftDown && !grabMode) return;
         if (grabMode) {
@@ -257,6 +297,7 @@ public class InputManager {
         }
     }
 
+    /** Updates the rubber-band preview line between the source vertex and the current target under the cursor. */
     private void updateRubber(float mx, float my) {
         ShapeData d = ctx.renderer.getShapeData();
         if (d == null) return;
@@ -285,6 +326,7 @@ public class InputManager {
         ctx.renderer.setRubberBand(sx, sy, tx, ty);
     }
 
+    /** Ends the rubber-band gesture and creates an edge between the two involved vertices. */
     private void endRubber() {
         rubberActive = false;
         ctx.renderer.clearRubberBand();
@@ -295,6 +337,7 @@ public class InputManager {
         rubberTarget = -1;
     }
 
+    /** Ends the marquee selection and selects all visible vertices inside the dragged rectangle. */
     private void endMarquee() {
         marqueeActive = false;
         ctx.renderer.setMarquee(false, 0f, 0f, 0f, 0f);
@@ -323,6 +366,7 @@ public class InputManager {
         ctx.selection.refreshSelectionVisual();
     }
 
+    /** Ends the current gesture (vertex drag, rubber-band, or marquee). */
     private void endDrag() {
         pendingDragVertex = -1;
         grabMode = false;
@@ -343,6 +387,7 @@ public class InputManager {
     private final org.joml.Vector3f orbitPivot = new org.joml.Vector3f();
     private boolean orbitPivotSet;
 
+    /** Begins a camera orbit around the point under the cursor and shows the pivot marker. */
     private void beginOrbit(float mx, float my) {
         orbitPivot.set(ctx.pick.getClickWorldPos(mx, my));
         orbitPivotSet = true;
@@ -351,6 +396,7 @@ public class InputManager {
         updateOrbitMarkerAxes();
     }
 
+    /** Updates the orbit pivot marker's axis indicators from the current camera orientation. */
     private void updateOrbitMarkerAxes() {
         if (!orbitPivotSet) return;
         org.joml.Vector3f right = camera.getRight();
@@ -358,6 +404,7 @@ public class InputManager {
         ctx.renderer.setOrbitPivotMarkerAxes(right.x, right.y, right.z, up.x, up.y, up.z);
     }
 
+    /** Ends the camera orbit and hides the pivot marker. */
     private void endOrbit() {
         if (orbitPivotSet) {
             orbitPivotSet = false;
@@ -365,14 +412,25 @@ public class InputManager {
         }
     }
 
+    /** Returns whether any vertex (single or multi) is currently selected. */
     private boolean hasVertexSelection() {
         return ctx.selection.selectedVertex >= 0 || !ctx.selection.multiVertices.isEmpty();
     }
 
+    /** Returns whether any edge (single or multi) is currently selected. */
     private boolean hasEdgeSelection() {
         return ctx.selection.selectedEdge >= 0 || !ctx.selection.multiEdges.isEmpty();
     }
 
+    /**
+     * Handles a key press: keyboard shortcuts for undo/redo, save,
+     * editing, view reset, and tool activation.
+     *
+     * @param key      the GLFW key code
+     * @param scancode platform-specific scan code
+     * @param action   GLFW_PRESS, GLFW_RELEASE, or GLFW_REPEAT
+     * @param mods     modifier bit-mask (Ctrl, Shift, Alt)
+     */
     public void handleKey(int key, int scancode, int action, int mods) {
         if (action != GLFW.GLFW_PRESS) return;
         boolean ctrl = (mods & GLFW.GLFW_MOD_CONTROL) != 0;
@@ -456,6 +514,7 @@ public class InputManager {
         }
     }
 
+    /** Resets the camera to a front view framed on the shape's bounding box. */
     private void resetViewToFront() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null || data.vertices.isEmpty()) return;
@@ -465,6 +524,7 @@ public class InputManager {
         camera.resetToFront(new org.joml.Vector3f(cx, cy, cz), size);
     }
 
+    /** Returns the bounding box [minX, minY, minZ, maxX, maxY, maxZ] of all vertices. */
     private float[] bounds(ShapeData data) {
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
         float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;

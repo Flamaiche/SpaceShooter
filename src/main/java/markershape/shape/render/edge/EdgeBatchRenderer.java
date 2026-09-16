@@ -24,8 +24,10 @@ public class EdgeBatchRenderer implements Renderer {
     private Matrix4f lastView;
     private float lastWidth = -1f;
 
+    /** Sets the edge line width in screen pixels. */
     public void setLineWidth(float w) { lineWidth = w; }
 
+    /** Rebuilds the quad geometry when the view or width changed, then draws all edges. */
     @Override
     public void render(Shader shader, ShapeData data, Matrix4f view, Matrix4f projection, int screenW, int screenH) {
         if (data == null || data.edges.isEmpty()) return;
@@ -59,6 +61,7 @@ public class EdgeBatchRenderer implements Renderer {
         glDepthMask(true);
     }
 
+    /** Releases the edge geometry. */
     @Override
     public void cleanup() {
         tri.release();

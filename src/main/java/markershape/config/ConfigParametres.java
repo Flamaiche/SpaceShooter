@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Configuration de l'application chargée depuis un fichier JSON, avec des
+ * catégories de paramètres destinées à l'interface.
+ */
 public class ConfigParametres {
     public String name;
     public JsonObject valeurs;
@@ -15,6 +19,7 @@ public class ConfigParametres {
     private static ConfigParametres instance;
     private boolean dirty;
 
+    /** Retourne l'unique instance, en la chargeant depuis le fichier JSON ou en la créant par défaut. */
     public static ConfigParametres get() {
         if (instance == null) {
             List<ConfigParametres> list = GetDonnee.readJson("markershape/config/parametres.json");
@@ -29,6 +34,7 @@ public class ConfigParametres {
         return instance;
     }
 
+    /** Ajoute les valeurs manquantes par rapport à la configuration par défaut. */
     private void ensureDefaults() {
         JsonObject defaults = defaultConfig().valeurs;
         for (String key : defaults.keySet()) {
@@ -38,12 +44,14 @@ public class ConfigParametres {
         }
     }
 
+    /** Recharge la configuration depuis le disque en réinitialisant l'instance. */
     public static void recharger() {
         instance = null;
         get();
         if (instance != null) instance.dirty = false;
     }
 
+    /** Sauvegarde l'instance courante dans le fichier JSON. */
     public static void sauvegarder() {
         if (instance == null) return;
         ArrayList<ConfigParametres> list = new ArrayList<>();
@@ -52,34 +60,41 @@ public class ConfigParametres {
         instance.dirty = false;
     }
 
+    /** Remet à faux l'indicateur de modification de la configuration. */
     public static void resetDirty() {
         if (instance != null) instance.dirty = false;
     }
 
+    /** Retourne la valeur flottante de la clé donnée (0 si absente). */
     public float getFloat(String key) {
         if (valeurs == null || !valeurs.has(key)) return 0;
         return valeurs.get(key).getAsFloat();
     }
 
+    /** Retourne la valeur booléenne de la clé donnée (false si absente). */
     public boolean getBool(String key) {
         if (valeurs == null || !valeurs.has(key)) return false;
         return valeurs.get(key).getAsBoolean();
     }
 
+    /** Enregistre une valeur flottante et marque la configuration comme modifiée. */
     public void setFloat(String key, float val) {
         if (valeurs == null) valeurs = new JsonObject();
         valeurs.addProperty(key, val);
         dirty = true;
     }
 
+    /** Enregistre une valeur booléenne et marque la configuration comme modifiée. */
     public void setBool(String key, boolean val) {
         if (valeurs == null) valeurs = new JsonObject();
         valeurs.addProperty(key, val);
         dirty = true;
     }
 
+    /** Indique si la configuration a été modifiée depuis la dernière sauvegarde. */
     public boolean hasChanges() { return dirty; }
 
+    /** Compare deux configurations par leur nom. */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -87,28 +102,30 @@ public class ConfigParametres {
         return Objects.equals(name, that.name);
     }
 
+    /** Code de hachage basé sur le nom de la configuration. */
     @Override
     public int hashCode() {
         return Objects.hashCode(name);
     }
 
+    /** Construit la configuration par défaut avec toutes les valeurs initiales. */
     private static ConfigParametres defaultConfig() {
         ConfigParametres cp = new ConfigParametres();
         cp.name = "default";
         cp.valeurs = new JsonObject();
-        cp.valeurs.addProperty("pointSize", 5);
-        cp.valeurs.addProperty("lineWidth", 3);
+        cp.valeurs.addProperty("pointSize", 7.0);
+        cp.valeurs.addProperty("lineWidth", 4.0);
         cp.valeurs.addProperty("faceAlpha", 1.0);
         cp.valeurs.addProperty("transparentUI", true);
-        cp.valeurs.addProperty("menuR", 13);
-        cp.valeurs.addProperty("menuG", 31);
-        cp.valeurs.addProperty("menuB", 46);
-        cp.valeurs.addProperty("bgR", 26);
-        cp.valeurs.addProperty("bgG", 26);
-        cp.valeurs.addProperty("bgB", 31);
-        cp.valeurs.addProperty("textR", 51);
-        cp.valeurs.addProperty("textG", 33);
-        cp.valeurs.addProperty("textB", 15);
+        cp.valeurs.addProperty("menuR", 1);
+        cp.valeurs.addProperty("menuG", 228);
+        cp.valeurs.addProperty("menuB", 186);
+        cp.valeurs.addProperty("bgR", 0);
+        cp.valeurs.addProperty("bgG", 100);
+        cp.valeurs.addProperty("bgB", 255);
+        cp.valeurs.addProperty("textR", 255);
+        cp.valeurs.addProperty("textG", 255);
+        cp.valeurs.addProperty("textB", 0);
         cp.valeurs.addProperty("refBgR", 255);
         cp.valeurs.addProperty("refBgG", 255);
         cp.valeurs.addProperty("refBgB", 0);
@@ -123,7 +140,7 @@ public class ConfigParametres {
         cp.valeurs.addProperty("axisX", true);
         cp.valeurs.addProperty("axisY", true);
         cp.valeurs.addProperty("axisZ", true);
-        cp.valeurs.addProperty("zoomSpeed", 0.5);
+        cp.valeurs.addProperty("zoomSpeed", 0.1);
         cp.valeurs.addProperty("orbitSpeed", 2.0);
         cp.valeurs.addProperty("frontYaw", 0f);
         cp.valeurs.addProperty("frontPitch", 0f);
@@ -131,6 +148,7 @@ public class ConfigParametres {
         return cp;
     }
 
+    /** Construit la liste des catégories de paramètres affichées dans l'interface. */
     private static List<Categorie> defaultCategories() {
         List<Categorie> cats = new ArrayList<>();
 
@@ -143,42 +161,42 @@ public class ConfigParametres {
         cats.add(aff);
 
         Categorie menuCat = new Categorie();
-        menuCat.id = "menu"; menuCat.label = "Barre de menu";
+        menuCat.id = "menu"; menuCat.label = "Interface";
         menuCat.params = new ArrayList<>();
-        menuCat.params.add(param("transparentUI", "Fond du menu transparent", "bool", 0, 0, 0));
-        Param menuR = param("menuR", "Barre de menu R", "float", 0, 255, 1);
+        menuCat.params.add(param("transparentUI", "Fond transparent", "bool", 0, 0, 0));
+        Param menuR = param("menuR", "Couleur de l'interface (rouge)", "float", 0, 255, 1);
         menuR.showIf = new ShowIf("transparentUI", false);
         menuCat.params.add(menuR);
-        Param menuG = param("menuG", "Barre de menu V", "float", 0, 255, 1);
+        Param menuG = param("menuG", "Couleur de l'interface (vert)", "float", 0, 255, 1);
         menuG.showIf = new ShowIf("transparentUI", false);
         menuCat.params.add(menuG);
-        Param menuB = param("menuB", "Barre de menu B", "float", 0, 255, 1);
+        Param menuB = param("menuB", "Couleur de l'interface (bleu)", "float", 0, 255, 1);
         menuB.showIf = new ShowIf("transparentUI", false);
         menuCat.params.add(menuB);
         cats.add(menuCat);
 
         Categorie arriere = new Categorie();
-        arriere.id = "arriereplan"; arriere.label = "Arriere-plan";
+        arriere.id = "arriereplan"; arriere.label = "Couleurs fond et texte";
         arriere.params = new ArrayList<>();
-        arriere.params.add(param("bgR", "Couleur de fond R", "float", 0, 255, 1));
-        arriere.params.add(param("bgG", "Couleur de fond V", "float", 0, 255, 1));
-        arriere.params.add(param("bgB", "Couleur de fond B", "float", 0, 255, 1));
-        arriere.params.add(param("textR", "Couleur du texte R", "float", 0, 255, 1));
-        arriere.params.add(param("textG", "Couleur du texte V", "float", 0, 255, 1));
-        arriere.params.add(param("textB", "Couleur du texte B", "float", 0, 255, 1));
+        arriere.params.add(param("bgR", "Fond - rouge", "float", 0, 255, 1));
+        arriere.params.add(param("bgG", "Fond - vert", "float", 0, 255, 1));
+        arriere.params.add(param("bgB", "Fond - bleu", "float", 0, 255, 1));
+        arriere.params.add(param("textR", "Texte - rouge", "float", 0, 255, 1));
+        arriere.params.add(param("textG", "Texte - vert", "float", 0, 255, 1));
+        arriere.params.add(param("textB", "Texte - bleu", "float", 0, 255, 1));
         cats.add(arriere);
 
         Categorie grille = new Categorie();
-        grille.id = "grille"; grille.label = "Grille";
+        grille.id = "grille"; grille.label = "Grille et axes";
         grille.params = new ArrayList<>();
-        grille.params.add(param("gridVisible", "Grille visible", "bool", 0, 0, 0));
-        grille.params.add(param("snapEnabled", "Accrochage actif", "bool", 0, 0, 0));
-        grille.params.add(param("snapStep", "Pas de snap", "float", 0.1f, 5, 0.1f));
-        grille.params.add(param("magnetEnabled", "Aimantation actif", "bool", 0, 0, 0));
-        grille.params.add(param("magnetRadius", "Rayon aimantation", "float", 1f, 60f, 1f));
-        grille.params.add(param("axisX", "Axe X", "bool", 0, 0, 0));
-        grille.params.add(param("axisY", "Axe Y", "bool", 0, 0, 0));
-        grille.params.add(param("axisZ", "Axe Z", "bool", 0, 0, 0));
+        grille.params.add(param("gridVisible", "Afficher la grille", "bool", 0, 0, 0));
+        grille.params.add(param("snapEnabled", "Accrochage a la grille", "bool", 0, 0, 0));
+        grille.params.add(param("snapStep", "Pas de l'accrochage", "float", 0.1f, 5, 0.1f));
+        grille.params.add(param("magnetEnabled", "Aimantation active", "bool", 0, 0, 0));
+        grille.params.add(param("magnetRadius", "Rayon d'aimantation", "float", 1f, 60f, 1f));
+        grille.params.add(param("axisX", "Afficher l'axe X", "bool", 0, 0, 0));
+        grille.params.add(param("axisY", "Afficher l'axe Y", "bool", 0, 0, 0));
+        grille.params.add(param("axisZ", "Afficher l'axe Z", "bool", 0, 0, 0));
         cats.add(grille);
 
         Categorie camera = new Categorie();
@@ -191,6 +209,7 @@ public class ConfigParametres {
         return cats;
     }
 
+    /** Crée un paramètre d'interface avec ses métadonnées (clé, libellé, type, bornes, pas). */
     private static Param param(String key, String label, String type, float min, float max, float step) {
         Param p = new Param();
         p.key = key; p.label = label; p.type = type;
@@ -198,11 +217,13 @@ public class ConfigParametres {
         return p;
     }
 
+    /** Catégorie de paramètres regroupés pour l'affichage dans l'interface. */
     public static class Categorie {
         public String id, label;
         public List<Param> params;
         public ShowIf showIf;
 
+        /** Indique si la catégorie doit être affichée selon sa condition de visibilité. */
         public boolean isVisible(ConfigParametres cfg) {
             if (showIf == null) return true;
             boolean current = cfg.getBool(showIf.key);
@@ -210,11 +231,13 @@ public class ConfigParametres {
         }
     }
 
+    /** Paramètre configurable avec ses métadonnées et sa condition de visibilité. */
     public static class Param {
         public String key, label, type;
         public float min, max, step;
         public ShowIf showIf;
 
+        /** Indique si le paramètre doit être affiché selon sa condition de visibilité. */
         public boolean isVisible(ConfigParametres cfg) {
             if (showIf == null) return true;
             boolean current = cfg.getBool(showIf.key);
@@ -222,11 +245,14 @@ public class ConfigParametres {
         }
     }
 
+    /** Condition de visibilité (clé de paramètre et valeur attendue). */
     public static class ShowIf {
         public String key;
         public Object eq;
 
+        /** Constructeur par défaut. */
         public ShowIf() {}
+        /** Construit une condition de visibilité sur une clé et une valeur attendue. */
         public ShowIf(String key, Object eq) { this.key = key; this.eq = eq; }
     }
 }

@@ -9,13 +9,28 @@ import org.joml.Vector3f;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Manages hover detection for vertices and edges in the 3D viewport,
+ * updating the crosshair position and trace preview each frame.
+ */
 public class HoverManager {
     private final Context ctx;
 
+    /**
+     * @param ctx the shared editor context
+     */
     public HoverManager(Context ctx) {
         this.ctx = ctx;
     }
 
+    /**
+     * Refreshes hover state each frame: picks the element under the cursor,
+     * updates the crosshair and placement ghost, and calls
+     * {@link #updateTracePreview}.
+     *
+     * @param mx mouse X in screen coordinates
+     * @param my mouse Y in screen coordinates
+     */
     public void update(float mx, float my) {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -63,10 +78,11 @@ public class HoverManager {
         ctx.renderer.setHoveredPositionIds(ctx.hoveredPositionIds);
 
         if (vertId >= 0) {
-            ctx.selection.crosshairPos.set(data.vertices.get(vertId).x,
-                data.vertices.get(vertId).y,
-                data.vertices.get(vertId).z);
-            ctx.selection.crosshairValid = true;
+            Vertex hv = data.vertices.get(vertId);
+            if (hv != null) {
+                ctx.selection.crosshairPos.set(hv.x, hv.y, hv.z);
+                ctx.selection.crosshairValid = true;
+            }
         } else if (ctx.creatingVertex) {
             if (ctx.ui.isOverUI(mx, my) || ctx.selection.isOverOverlay(mx, my)) {
                 ctx.renderer.setPlacementGhost(false, null);
@@ -88,6 +104,13 @@ public class HoverManager {
         ctx.renderer.setCrosshair(ctx.selection.crosshairValid, ctx.selection.crosshairPos);
     }
 
+    /**
+     * Projects the in-progress trace vertices onto screen space and
+     * passes the polyline to the renderer for preview.
+     *
+     * @param mx mouse X in screen coordinates
+     * @param my mouse Y in screen coordinates
+     */
     private void updateTracePreview(float mx, float my) {
         if (ctx.creatingFace && ctx.renderer.getShapeData() != null) {
             if (ctx.ui.isOverUI(mx, my) || ctx.selection.isOverOverlay(mx, my)) {

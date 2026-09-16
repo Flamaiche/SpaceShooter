@@ -9,6 +9,10 @@ import markershape.shape.Vertex;
 
 import java.util.function.Consumer;
 
+/**
+ * Popup listing the co-located (sibling) vertices of a selected vertex,
+ * letting the user pick one to switch the selection toward it.
+ */
 public class SiblingPicker extends UIElement {
     private int[] ids;
     private Vertex[] vertices;
@@ -16,11 +20,13 @@ public class SiblingPicker extends UIElement {
     private static final float ROW_H = 22;
     private Consumer<Integer> callback;
 
+    /** Creates the picker popup, initially hidden. */
     public SiblingPicker(UIResources res) {
         super(res);
         visible = false;
     }
 
+    /** Shows the picker near the mouse position, listing the sibling vertices. */
     public void show(ShapeData data, int[] siblingIds, float mx, float my,
                      int screenW, int screenH, Consumer<Integer> cb) {
         ids = siblingIds;
@@ -36,14 +42,23 @@ public class SiblingPicker extends UIElement {
         visible = true;
     }
 
+    /** Hides the picker and clears its callback. */
     @Override
     public void hide() { visible = false; callback = null; }
 
+    /** @return the popup X position. */
     public float getX() { return x; }
+    /** @return the popup Y position. */
     public float getY() { return y; }
+    /** @return the popup width. */
     public float getW() { return w; }
+    /** @return the popup height. */
     public float getH() { return h; }
 
+    /**
+     * Handles a click, firing the callback with the picked sibling id.
+     * @return the picked vertex id, or -1 if the click hit nothing.
+     */
     public int clickItem(float mx, float my) {
         if (!visible) return -1;
         if (mx < x || mx > x + w || my < y || my > y + h) {
@@ -62,6 +77,7 @@ public class SiblingPicker extends UIElement {
         return -1;
     }
 
+    /** Renders the picker panel, the colored vertex rows and their labels. */
     @Override
     public void render() {
         if (!visible || vertices == null) return;

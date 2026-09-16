@@ -5,15 +5,18 @@ import markershape.editor.Context;
 import markershape.shape.Edge;
 import markershape.shape.ShapeData;
 
+/** Creates edges between vertices and auto-detects triangular faces formed by the new edge. */
 public class EdgeAction {
     private final Context ctx;
     private final FaceUtils faceUtils;
 
+    /** Creates the edge action with the shared context and face utilities. */
     public EdgeAction(Context ctx, FaceUtils faceUtils) {
         this.ctx = ctx;
         this.faceUtils = faceUtils;
     }
 
+    /** Creates an edge between two vertex ids (skipped if equal or duplicate), then auto-detects faces. */
     public void create(int a, int b) {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null || a == b) return;
@@ -36,6 +39,7 @@ public class EdgeAction {
         learngl.LogFile.logf("[MarkerShape] created edge %d: %d-%d", newId, a, b);
     }
 
+    /** Handles a vertex pick during edge-creation mode: picks the first endpoint, then creates the edge. */
     public void onVertexPicked(int vertexId) {
         if (ctx.edgeFirstVertex < 0) {
             ctx.edgeFirstVertex = vertexId;
