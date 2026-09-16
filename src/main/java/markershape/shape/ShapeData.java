@@ -16,6 +16,7 @@ public class ShapeData {
     public HashMap<Integer, Edge> edges;
     public List<Face> faces;
 
+    /** Initializes empty vertex, edge and face collections. */
     public ShapeData() {
         vertices = new HashMap<>();
         edges = new HashMap<>();
@@ -84,7 +85,11 @@ public class ShapeData {
         if (vb != null) vb.edgeIds.remove(id);
     }
 
-    /** Removes vertices that have no edges and are not referenced by any face. */
+    /**
+     * Removes vertices that have no edges and are not referenced by any face.
+     *
+     * @return the number of removed vertices
+     */
     public int purgeOrphanVertices() {
         java.util.Set<Integer> faceVerts = new java.util.HashSet<>();
         for (Face f : faces) {

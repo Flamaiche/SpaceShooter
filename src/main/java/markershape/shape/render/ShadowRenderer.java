@@ -11,6 +11,10 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
+/**
+ * 2D overlay renderer drawing screen-space points and lines with a dedicated
+ * orthographic UI shader (used for selection highlights, marquee, etc.).
+ */
 public class ShadowRenderer {
     private Shader uiShader;
     private int pointVao = -1, pointVbo = -1;
@@ -18,6 +22,7 @@ public class ShadowRenderer {
     private int batchVao = -1, batchVbo = -1;
     private final Matrix4f ortho = new Matrix4f();
 
+    /** Lazily creates the orthographic UI shader. */
     private void ensureShader() {
         if (uiShader == null) {
             uiShader = new Shader("shaders/markershape/ui_Vertex.glsl",
@@ -25,10 +30,12 @@ public class ShadowRenderer {
         }
     }
 
+    /** Sets the orthographic projection to the given window size (origin top-left). */
     public void setScreenSize(int w, int h) {
         ortho.setOrtho2D(0, w, h, 0);
     }
 
+    /** Draws a single screen-space point with colour, alpha and size. */
     public void drawPoint(float sx, float sy, float r, float g, float b, float a, float size) {
         if (pointVao < 0) buildPoint();
         ensureShader();
@@ -59,6 +66,7 @@ public class ShadowRenderer {
         glDisable(GL_BLEND);
     }
 
+    /** Draws a single screen-space line segment with colour, alpha and width. */
     public void drawEdge(float ax, float ay, float bx, float by,
                          float r, float g, float b, float a, float width) {
         if (edgeVao < 0) buildEdge();
@@ -88,6 +96,7 @@ public class ShadowRenderer {
         glEnable(GL_DEPTH_TEST);
     }
 
+    /** Draws a batch of screen-space line segments from a shared FloatBuffer. */
     public void drawEdgeBatch(FloatBuffer buf, int vertCount, float r, float g, float b, float a, float width) {
         if (vertCount < 2) return;
         if (batchVao < 0) buildBatch();
@@ -112,6 +121,7 @@ public class ShadowRenderer {
         glEnable(GL_DEPTH_TEST);
     }
 
+    /** Allocates the GL resources for drawing single points. */
     private void buildPoint() {
         pointVao = glGenVertexArrays();
         pointVbo = glGenBuffers();
@@ -126,6 +136,7 @@ public class ShadowRenderer {
         glBindVertexArray(0);
     }
 
+    /** Allocates the GL resources for drawing single line segments. */
     private void buildEdge() {
         edgeVao = glGenVertexArrays();
         edgeVbo = glGenBuffers();
@@ -140,6 +151,7 @@ public class ShadowRenderer {
         glBindVertexArray(0);
     }
 
+    /** Allocates the GL resources for drawing batched line segments. */
     private void buildBatch() {
         batchVao = glGenVertexArrays();
         batchVbo = glGenBuffers();
@@ -154,6 +166,7 @@ public class ShadowRenderer {
         glBindVertexArray(0);
     }
 
+    /** Deletes the GL resources owned by this renderer. */
     public void cleanup() {
         if (uiShader != null) { uiShader.cleanup(); uiShader = null; }
         if (pointVao >= 0) { glDeleteVertexArrays(pointVao); pointVao = -1; }

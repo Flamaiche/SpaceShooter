@@ -24,6 +24,7 @@ public final class LOD {
     private static final float[] THRESHOLDS = { 8f, 18f, 35f };
     private static final float[] FACTORS    = { 1f, 0.5f, 0.25f, 0.12f };
 
+    /** Utility class, not instantiable. */
     private LOD() {}
 
     /** Returns the LOD level (0–3) for the given camera distance. */

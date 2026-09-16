@@ -23,6 +23,7 @@ public class DragAxisPanel extends UIElement {
 
     private static final String[] LABELS = {"Libre", "X", "Y", "Z"};
 
+    /** @param res the shared UI resources used to render the panel */
     public DragAxisPanel(UIResources res) {
         super(res);
         visible = false;
@@ -39,6 +40,7 @@ public class DragAxisPanel extends UIElement {
         y = my - PANEL_H - 8;
     }
 
+    /** Sets the currently active axis (0=Libre, 1=X, 2=Y, 3=Z). */
     public void setAxis(int axis) { this.axis = axis; }
 
     /**
@@ -56,6 +58,7 @@ public class DragAxisPanel extends UIElement {
         return -1;
     }
 
+    /** Draws the panel background, the axis buttons (highlighting the active one), and the Axis label. */
     @Override
     public void render() {
         if (!visible) return;

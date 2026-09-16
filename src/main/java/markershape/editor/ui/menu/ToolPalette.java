@@ -49,20 +49,28 @@ public class ToolPalette extends Panel {
     // index of the last row of each group (a divider is drawn after it)
     private static final int[] GROUP_END = {3, 9, 12};
 
+    /** Creates the palette dropdown, initially hidden. */
     public ToolPalette(UIResources res) {
         super(res);
         visible = false;
     }
 
+    /** @return true if the palette is open. */
     public boolean isOpen() { return open; }
+    /** Opens or closes the palette. */
     public void setOpen(boolean v) { open = v; visible = v; }
+    /** Toggles the palette open/closed state. */
     public void toggle() { open = !open; visible = open; }
+    /** Closes the palette. */
     public void close() { open = false; visible = false; }
 
+    /** Sets the active mode, which highlights the matching row. */
     public void setActiveMode(int mode) { activeMode = mode; }
 
+    /** Sets the window size used for rendering. */
     public void setSize(int w, int h) { res.setSize(w, h); }
 
+    /** Positions the palette below the "Outils" button. */
     public void setBtnPos(float btnX, float btnY) {
         x = btnX + (130 - PAL_W) / 2f;
         y = btnY + 36;
@@ -70,11 +78,13 @@ public class ToolPalette extends Panel {
         h = LABELS.length * ITEM_H;
     }
 
+    /** @return true if the point is inside the open palette. */
     @Override
     public boolean contains(float mx, float my) {
         return open && my >= y && my <= y + h && mx >= x && mx <= x + PAL_W;
     }
 
+    /** Draws the palette's outer panel with a small border. */
     @Override
     protected void drawBackground() {
         float border = 1f;
@@ -83,11 +93,13 @@ public class ToolPalette extends Panel {
             c[0], c[1], c[2], BlurBackground.panelAlpha());
     }
 
+    /** @return true if a divider line is drawn after the given row. */
     private boolean isGroupEnd(int i) {
         for (int g : GROUP_END) if (g == i) return true;
         return false;
     }
 
+    /** Highlights the active row and draws the group dividers. */
     @Override
     protected void renderContent() {
         float[] c = res.menuColor();
@@ -105,6 +117,7 @@ public class ToolPalette extends Panel {
         }
     }
 
+    /** Draws the tool labels and their shortcut keys. */
     @Override
     protected void renderText() {
         ConfigParametres cfg = ConfigParametres.get();

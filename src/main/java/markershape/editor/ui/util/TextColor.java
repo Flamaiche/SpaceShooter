@@ -1,12 +1,18 @@
 package markershape.editor.ui.util;
 
+/**
+ * Utility helpers for computing text colors: contrast selection,
+ * alpha compositing, and adjusting text luminance against a reference.
+ */
 public class TextColor {
 
+    /** Returns 0 (black) or 1 (white) depending on the background luminance. */
     public static float contrast(float r, float g, float b) {
         float lum = 0.299f * r + 0.587f * g + 0.114f * b;
         return lum > 0.5f ? 0f : 1f;
     }
 
+    /** Alpha-composites a foreground color over a background color, returning [R, G, B]. */
     public static float[] composite(float[] fg, float[] bg) {
         float fgA = fg.length >= 4 ? fg[3] : 1f;
         float bgA = bg.length >= 4 ? bg[3] : 1f;
@@ -18,15 +24,18 @@ public class TextColor {
         return new float[]{r, g, b};
     }
 
+    /** Convenience overload of {@link #composite(float[], float[])} taking separate component values. */
     public static float[] composite(float r1, float g1, float b1, float a1,
                                      float r2, float g2, float b2, float a2) {
         return composite(new float[]{r1, g1, b1, a1}, new float[]{r2, g2, b2, a2});
     }
 
+    /** Convenience overload of {@link #composite(float[], float[])} with a scalar foreground color. */
     public static float[] composite(float r, float g, float b, float a, float[] bg) {
         return composite(new float[]{r, g, b, a}, bg);
     }
 
+    /** Adjusts the text color until it reaches a contrast ratio equal to a reference against the background. */
     public static float[] menuText(float textR, float textG, float textB,
                                     float bgR, float bgG, float bgB,
                                     float refR, float refG, float refB) {

@@ -23,23 +23,41 @@ public class ShapeTools {
     private static ArrayList<Vertex> clipVerts = new ArrayList<>();
     private static ArrayList<Edge> clipEdges = new ArrayList<>();
 
+    /** Creates the toolkit with the shared context and face utilities. */
     public ShapeTools(Context ctx, FaceUtils faceUtils) {
         this.ctx = ctx;
         this.faceUtils = faceUtils;
     }
 
-    private int nextVertexId(ShapeData d) {
-        if (d.vertices.isEmpty()) return 0;
+    private int vertexSeq = Integer.MIN_VALUE;
+    private int edgeSeq = Integer.MIN_VALUE;
+
+    /** Returns the largest vertex id in the shape, or -1. */
+    private int maxVertexId(ShapeData d) {
         int max = -1;
+        if (d == null) return max;
         for (int id : d.vertices.keySet()) if (id > max) max = id;
-        return max + 1;
+        return max;
     }
 
-    private int nextEdgeId(ShapeData d) {
-        if (d.edges.isEmpty()) return 0;
+    /** Returns the largest edge id in the shape, or -1. */
+    private int maxEdgeId(ShapeData d) {
         int max = -1;
+        if (d == null) return max;
         for (int id : d.edges.keySet()) if (id > max) max = id;
-        return max + 1;
+        return max;
+    }
+
+    /** Returns a unique vertex ID, monotonic across calls even before insertion. */
+    private int nextVertexId(ShapeData d) {
+        vertexSeq = Math.max(vertexSeq, maxVertexId(d));
+        return ++vertexSeq;
+    }
+
+    /** Returns a unique edge ID, monotonic across calls even before insertion. */
+    private int nextEdgeId(ShapeData d) {
+        edgeSeq = Math.max(edgeSeq, maxEdgeId(d));
+        return ++edgeSeq;
     }
 
     /** Face with the colour of the seed face but new indices. */
@@ -55,6 +73,7 @@ public class ShapeTools {
             markershape.config.ConfigParametres.get().getFloat("createColorB"));
     }
 
+    /** Edge with the current creation colour and a fresh id. */
     private Edge newEdgeWithCurrentColor(int a, int b) {
         markershape.config.ConfigParametres cfg = markershape.config.ConfigParametres.get();
         return new Edge(nextEdgeId(ctx.renderer.getShapeData()), a, b, "stun", 0.02f,
@@ -63,18 +82,21 @@ public class ShapeTools {
             cfg.getFloat("createColorB"));
     }
 
+    /** Returns the active vertex selection (multi-selection, or the single selected vertex). */
     private TreeSet<Integer> activeVertices() {
         TreeSet<Integer> set = new TreeSet<>(ctx.selection.multiVertices);
         if (set.isEmpty() && ctx.selection.selectedVertex >= 0) set.add(ctx.selection.selectedVertex);
         return set;
     }
 
+    /** Returns the active edge selection (multi-selection, or the single selected edge). */
     private TreeSet<Integer> activeEdges() {
         TreeSet<Integer> set = new TreeSet<>(ctx.selection.multiEdges);
         if (set.isEmpty() && ctx.selection.selectedEdge >= 0) set.add(ctx.selection.selectedEdge);
         return set;
     }
 
+    /** Returns the largest extent of the model's bounding box, or 1f when empty. */
     private float bboxSize(ShapeData data) {
         if (data == null || data.vertices.isEmpty()) return 1f;
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
@@ -87,6 +109,7 @@ public class ShapeTools {
         return Math.max(maxX - minX, Math.max(maxY - minY, maxZ - minZ));
     }
 
+    /** Duplicates the selected vertices (with their internal edges) offset by 5% of the model size. */
     public void duplicateSelected() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -123,6 +146,7 @@ public class ShapeTools {
         learngl.LogFile.logf("[MarkerShape] duplicated %d vertices", map.size());
     }
 
+    /** Welds the selected vertices into a single average-position vertex, merging edges and faces. */
     public void weldSelected() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -174,6 +198,7 @@ public class ShapeTools {
         learngl.LogFile.logf("[MarkerShape] welded %d vertices into %d", count, keep);
     }
 
+    /** Removes edges that connect the same pair of vertices more than once. */
     private void removeDuplicateEdges(ShapeData data) {
         HashMap<String, Integer> seen = new HashMap<>();
         for (Edge e : new ArrayList<>(data.edges.values())) {
@@ -227,6 +252,7 @@ public class ShapeTools {
         learngl.LogFile.logf("[MarkerShape] split edge %d -> vertex %d", edgeId, mid);
     }
 
+    /** Extrudes the selected edge into a quad, pushing copies of its endpoints along the local normal. */
     public void extrudeSelectedEdge() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -274,6 +300,7 @@ public class ShapeTools {
         learngl.LogFile.logf("[MarkerShape] extruded edge %d", edgeId);
     }
 
+    /** Computes the extrusion direction: averaged adjacent-face normal, falling back to a perpendicular. */
     private Vector3f extrudeDirection(ShapeData data, Edge e) {
         Vertex va = data.vertices.get(e.a);
         Vertex vb = data.vertices.get(e.b);
@@ -356,15 +383,13 @@ public class ShapeTools {
         return added;
     }
 
-    /** Orders N selected vertices into a contour loop: it uses the selected
-     * edges to build the loop when they form a single closed circuit, otherwise
-     * it falls back to an angular ordering around the selection centroid.
-     */
     /**
      * Orders the selection into a contour loop. A face can be built from points,
      * from edges, or from any mix: the vertices of each selected edge are
      * automatically added to the loop (so there is no need to select the edge
-     * endpoints separately, and each edge is only used once).
+     * endpoints separately, and each edge is only used once). When the selected
+     * edges already form a single closed circuit that order is used, otherwise
+     * the vertices are ordered angularly around the selection centroid.
      */
     public List<Integer> orderSelectionIntoLoop() {
         ShapeData data = ctx.renderer.getShapeData();
@@ -535,6 +560,7 @@ public class ShapeTools {
         learngl.LogFile.logf("[MarkerShape] origine deplacee de (%.2f, %.2f, %.2f)", dx, dy, dz);
     }
 
+    /** Selects every vertex of the model as a multi-selection. */
     public void selectAll() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null || data.vertices.isEmpty()) return;
@@ -547,6 +573,7 @@ public class ShapeTools {
         learngl.LogFile.logf("[MarkerShape] selected all %d vertices", ctx.selection.multiVertices.size());
     }
 
+    /** Copies the selected vertices (and edges linking them) into the internal clipboard. */
     public void copySelected() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -579,6 +606,7 @@ public class ShapeTools {
         learngl.LogFile.logf("[MarkerShape] copied %d vertices, %d edges", clipVerts.size(), clipEdges.size());
     }
 
+    /** Pastes the clipboard contents, offset like a duplicate, and selects the new vertices. */
     public void pasteSelected() {
         if (clipVerts.isEmpty()) {
             System.out.println("[MarkerShape] presse-papier vide (Ctrl+C d'abord)");
@@ -641,6 +669,7 @@ public class ShapeTools {
         return report;
     }
 
+    /** Removes vertices that are not referenced by any edge, returning the count. */
     private int removeOrphanVertices(ShapeData data) {
         List<Integer> remove = new ArrayList<>();
         for (Vertex v : data.vertices.values()) {
@@ -650,6 +679,7 @@ public class ShapeTools {
         return remove.size();
     }
 
+    /** Counts pairs of distinct vertices that share the same position. */
     private int countDuplicatePositions(ShapeData data) {
         int dup = 0;
         List<Vertex> list = new ArrayList<>(data.vertices.values());

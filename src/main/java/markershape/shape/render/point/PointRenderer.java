@@ -22,9 +22,12 @@ public class PointRenderer implements Renderer {
     private Matrix4f lastView;
     private float lastSize = -1f;
 
+    /** Sets the on-screen point size in pixels. */
     public void setPointSize(float s) { pointSize = s; }
+    /** Returns the current point size in pixels. */
     public float getPointSize() { return pointSize; }
 
+    /** Rebuilds camera-facing point quads when the view or size changed, then draws them. */
     @Override
     public void render(Shader shader, ShapeData data, Matrix4f view, Matrix4f projection, int screenW, int screenH) {
         if (data == null || data.vertices.isEmpty()) return;
@@ -59,6 +62,7 @@ public class PointRenderer implements Renderer {
         glDisable(GL_BLEND);
     }
 
+    /** Releases the point geometry. */
     @Override
     public void cleanup() {
         tri.release();

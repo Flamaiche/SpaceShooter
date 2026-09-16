@@ -12,6 +12,11 @@ import markershape.editor.ui.menu.ConfirmSavePopup;
 import markershape.editor.ui.menu.NewMenu;
 import markershape.editor.ui.menu.ToolPalette;
 
+/**
+ * Top-level UI panel for the shape editor: renders the top bar with
+ * save/quit/new/filter/tools/origin buttons, manages the filter panel,
+ * tool palette, entity list, and confirm popups.
+ */
 public class EditorUI extends Panel {
     private int width, height;
     public static final int BAR_H = 36;
@@ -36,6 +41,7 @@ public class EditorUI extends Panel {
     private float hudLodDistance = 0f;
     private boolean hudHasMesh = false;
 
+    /** Stores LOD statistics for the on-screen HUD. */
     public void setLodStats(int level, float dist, int rendered, int total) {
         hudLodLevel = level;
         hudLodDistance = dist;
@@ -44,6 +50,15 @@ public class EditorUI extends Panel {
         hudHasMesh = total > 0;
     }
 
+    /**
+     * Builds the top bar, its buttons, and all attached panels/popups.
+     *
+     * @param res    the shared UI resources
+     * @param w      window width in pixels
+     * @param h      window height in pixels
+     * @param onSave callback fired when the save button is clicked
+     * @param onQuit callback fired when the quit button is clicked
+     */
     public EditorUI(UIResources res, int w, int h,
                     Runnable onSave, Runnable onQuit) {
         super(res);
@@ -105,6 +120,7 @@ public class EditorUI extends Panel {
         setSize(w, h);
     }
 
+    /** Resizes the UI to the given window dimensions and re-lays-out all panels and buttons. */
     public void setSize(int w, int h) {
         width = w;
         height = h;
@@ -135,6 +151,7 @@ public class EditorUI extends Panel {
         syncFromConfig();
     }
 
+    /** Syncs button colors and transparency from the current configuration. */
     public void syncFromConfig() {
         transparentBar = BlurBackground.transparentUI;
         boolean opaque = !BlurBackground.transparentUI;
@@ -169,6 +186,7 @@ public class EditorUI extends Panel {
         }
     }
 
+    /** Updates the view with the current file name, re-syncing colors when needed, then renders the bar. */
     public void render(String currentFile) {
         if (BlurBackground.menuR != lastMenuR || BlurBackground.menuG != lastMenuG || BlurBackground.menuB != lastMenuB
             || BlurBackground.transparentUI != lastTransparentUI) {
@@ -180,12 +198,14 @@ public class EditorUI extends Panel {
         render();
     }
 
+    /** Draws the semi-transparent top bar background. */
     @Override
     protected void drawBackground() {
         float[] c = res.menuColor();
         res.drawQuad(0, 0, width, BAR_H, c[0], c[1], c[2], BlurBackground.panelAlpha());
     }
 
+    /** Renders the title label and the LOD HUD, and positions the sub-panels under their buttons. */
     @Override
     protected void renderContent() {
         String label = currentFile != null ? currentFile.replace(".json", "") : "[no shape]";
@@ -193,13 +213,8 @@ public class EditorUI extends Panel {
         res.drawText("MarkerShape - " + label, 10, 11, 1.2f, t[0], t[1], t[2]);
 
         if (hudHasMesh) {
-            float tr, tg, tb;
-            switch (hudLodLevel) {
-                case 0: tr = 0.5f; tg = 0.9f; tb = 0.5f; break;
-                case 1: tr = 1f; tg = 0.85f; tb = 0.3f; break;
-                case 2: tr = 1f; tg = 0.6f; tb = 0.2f; break;
-                default: tr = 1f; tg = 0.35f; tb = 0.25f; break;
-            }
+            float[] tc = res.textColor();
+            float tr = tc[0], tg = tc[1], tb = tc[2];
             String s = String.format("LOD %d  %d/%d faces  d=%.1f",
                 hudLodLevel, hudRenderedFaces, hudTotalFaces, hudLodDistance);
             float[] ext = res.getTextExtent(s, 1.2f);
@@ -207,15 +222,17 @@ public class EditorUI extends Panel {
         }
 
         newMenu.setBtnPos(newBtn.x, newBtn.y);
-        toolsPal.setBtnPos(outilsBtn.x, newBtn.y);
+        toolsPal.setBtnPos(outilsBtn.x, outilsBtn.y);
         filter.setPosition(filterBtn.x, BAR_H);
         origin.setPosition(origineBtn.x, BAR_H);
     }
 
+    /** Renders the entity list panel (drawn separately from the top bar). */
     public void renderEntityList() {
         entityList.render();
     }
 
+    /** Returns whether the given point lies over any UI element that should consume mouse events. */
     public boolean isOverUI(float mx, float my) {
         if (my < BAR_H) return true;
         if (filter.contains(mx, my)) return true;
@@ -228,14 +245,17 @@ public class EditorUI extends Panel {
         return false;
     }
 
+    /** Returns whether the given point is over the save button. */
     public boolean isSaveClicked(float mx, float my) {
         return saveBtn.contains(mx, my);
     }
 
+    /** Returns whether the given point is over the quit button. */
     public boolean isQuitClicked(float mx, float my) {
         return quitBtn.contains(mx, my);
     }
 
+    /** Handles a click on the New button or one of its menu items. */
     public int clickNew(float mx, float my) {
         if (newBtn.contains(mx, my)) {
             newBtn.click(mx, my);
@@ -244,6 +264,7 @@ public class EditorUI extends Panel {
         return newMenu.clickItem(mx, my);
     }
 
+    /** Handles a click on the Tools button or one of its tool palette items. */
     public int clickTools(float mx, float my) {
         if (outilsBtn.contains(mx, my)) {
             outilsBtn.click(mx, my);
@@ -252,20 +273,25 @@ public class EditorUI extends Panel {
         return toolsPal.clickItem(mx, my);
     }
 
+    /** Returns whether the tool palette is currently open. */
     public boolean isToolsOpen() { return toolsPal.isOpen(); }
+    /** Closes the tool palette. */
     public void closeToolsPal() { toolsPal.close(); }
 
+    /** Handles a click on the entity list and returns the result code. */
     public int clickEntityList(float mx, float my) {
         return entityList.clickList(mx, my);
     }
 
+    /** Propagates the active creation mode to the New menu and tool palette for highlighting. */
     public void setActiveMode(int mode) {
         newMenu.setActiveMode(mode);
         toolsPal.setActiveMode(mode);
         if (BlurBackground.transparentUI) {
-            newBtn.textR = 1f; newBtn.textG = 1f; newBtn.textB = 1f;
-            if (mode == 0) { newBtn.textR = 1f; newBtn.textG = 0.7f; newBtn.textB = 0.3f; }
-            else if (mode == 1) { newBtn.textR = 1f; newBtn.textG = 0.3f; newBtn.textB = 0.3f; }
+            ConfigParametres cfg = ConfigParametres.get();
+            newBtn.textR = cfg.getFloat("textR") / 255f;
+            newBtn.textG = cfg.getFloat("textG") / 255f;
+            newBtn.textB = cfg.getFloat("textB") / 255f;
         } else {
             if (mode == 0) {
                 newBtn.bgR = 0.4f; newBtn.bgG = 0.25f; newBtn.bgB = 0.15f;
@@ -279,46 +305,75 @@ public class EditorUI extends Panel {
         }
     }
 
+    /** Closes the New menu. */
     public void closeNewMenu() { newMenu.close(); }
 
+    /** Shows the save-confirmation popup. */
     public void showConfirmSave() { confirmSave.show(); }
+    /** Closes the save-confirmation popup. */
     public void closeConfirmSave() { confirmSave.close(); }
+    /** Returns whether the save-confirmation popup is visible. */
     public boolean isConfirmSaveVisible() { return confirmSave.isVisible(); }
+    /** Sets the action to run when the save-confirmation popup is confirmed. */
     public void setConfirmSaveAction(Runnable r) { confirmSave.setConfirmAction(r); }
+    /** Returns the action stored on the save-confirmation popup. */
     public Runnable getConfirmSaveAction() { return confirmSave.getConfirmAction(); }
+    /** Handles a click on the save-confirmation popup buttons. */
     public int clickConfirmSave(float mx, float my) { return confirmSave.clickBtn(mx, my); }
 
+    /** Shows the delete-confirmation popup. */
     public void showConfirmDelete() { confirmDelete.show(); }
+    /** Closes the delete-confirmation popup. */
     public void closeConfirmDelete() { confirmDelete.close(); }
+    /** Returns whether the delete-confirmation popup is visible. */
     public boolean isConfirmDeleteVisible() { return confirmDelete.isVisible(); }
+    /** Sets the action to run when the delete-confirmation popup is confirmed. */
     public void setConfirmDeleteAction(Runnable r) { confirmDelete.setConfirmAction(r); }
+    /** Returns the action stored on the delete-confirmation popup. */
     public Runnable getConfirmDeleteAction() { return confirmDelete.getConfirmAction(); }
+    /** Handles a click on the delete-confirmation popup buttons. */
     public int clickConfirmDelete(float mx, float my) { return confirmDelete.clickBtn(mx, my); }
 
+    /** Handles a click on the filter button or the filter panel. */
     public int clickFilter(float mx, float my) {
         if (filterBtn.contains(mx, my)) { filterBtn.click(mx, my); newMenu.close(); return -2; }
         return filter.clickFilter(mx, my);
     }
 
+    /** Handles a click on the origin button or the origin offset panel. */
     public int clickOrigin(float mx, float my) {
         if (origineBtn.contains(mx, my)) { origineBtn.click(mx, my); newMenu.close(); return 0; }
         return origin.clickOrigin(mx, my);
     }
 
+    /** Closes the origin panel. */
     public void closeOrigin() { origin.setOpen(false); }
+    /** Returns whether the origin panel is open. */
     public boolean isOriginOpen() { return origin.isOpen(); }
 
+    /** Returns whether the filter panel is open. */
     public boolean isFilterOpen() { return filter.isOpen(); }
+    /** Returns the filter panel's vertex/edge visibility flags. */
     public boolean[] getFilterValues() { return filter.filterValues; }
+    /** Returns the filter panel's slider values. */
     public float[] getSliderValues() { return filter.sliderValues; }
+    /** Returns whether snapping is enabled in the filter panel. */
     public boolean isSnapEnabled() { return filter.isSnapEnabled(); }
+    /** Returns the configured snap step. */
     public float getSnapStep() { return filter.getSnapStep(); }
+    /** Enables or disables grid snapping. */
     public void setSnapEnabled(boolean v) { filter.setSnapEnabled(v); }
+    /** Sets the grid snap step. */
     public void setSnapStep(float v) { filter.setSnapStep(v); }
+    /** Returns whether vertex magnetizing is enabled. */
     public boolean isMagnetEnabled() { return filter.isMagnetEnabled(); }
+    /** Enables or disables vertex magnetizing. */
     public void setMagnetEnabled(boolean v) { filter.setMagnetEnabled(v); }
+    /** Returns the magnet snap radius in pixels. */
     public float getMagnetRadius() { return filter.getMagnetRadius(); }
+    /** Sets the magnet snap radius in pixels. */
     public void setMagnetRadius(float v) { filter.setMagnetRadius(v); }
 
+    /** Registers a callback invoked whenever the filter panel settings change. */
     public void setFilterCallback(Runnable cb) { filter.setFilterCallback(cb); }
 }

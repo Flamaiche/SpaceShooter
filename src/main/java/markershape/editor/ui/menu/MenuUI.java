@@ -6,6 +6,10 @@ import markershape.editor.ui.UIResources;
 import markershape.editor.ui.control.Button;
 import markershape.shape.ShapeLoader;
 
+/**
+ * Main menu screen listing the available shapes, plus the "Parametres" and
+ * "Quitter" buttons.
+ */
 public class MenuUI extends Panel {
     private int width;
     private String[] shapes;
@@ -19,6 +23,7 @@ public class MenuUI extends Panel {
     private Button paramBtn, quitBtn;
     private Runnable onQuit, onParams;
 
+    /** Builds the menu with the shape list and the two action buttons. */
     public MenuUI(UIResources res, int w, int h, Runnable onQuit, Runnable onParams) {
         super(res);
         this.onQuit = onQuit;
@@ -34,24 +39,29 @@ public class MenuUI extends Panel {
         addChild(quitBtn);
     }
 
+    /** Reloads the list of available shape files. */
     public void refresh() {
         shapes = ShapeLoader.listShapes();
         if (shapes == null) shapes = new String[0];
     }
 
+    /** Sets the window size used for the menu layout. */
     public void setSize(int w, int h) {
         width = w;
         res.setSize(w, h);
     }
 
+    /** @return the total height of the shape list. */
     private float listH() {
         return shapes.length * (ITEM_H + ITEM_GAP);
     }
 
+    /** @return the height of the shape-list panel (list plus padding). */
     private float panelH() {
         return listH() + 40;
     }
 
+    /** Positions the panel and draws the background quads behind the list. */
     @Override
     protected void drawBackground() {
         x = width / 2f - PANEL_W / 2f;
@@ -70,6 +80,7 @@ public class MenuUI extends Panel {
         }
     }
 
+    /** Draws the title, subtitle and shape names, then positions the buttons. */
     @Override
     protected void renderContent() {
         ConfigParametres cfg = ConfigParametres.get();
@@ -87,6 +98,7 @@ public class MenuUI extends Panel {
         positionButtons(tR, tG, tB);
     }
 
+    /** Positions and styles the parametres/quitter buttons. */
     private void positionButtons(float tR, float tG, float tB) {
         float by = y + panelH() + 16;
         float totalW = BTN_W * 2 + BTN_GAP;
@@ -106,6 +118,7 @@ public class MenuUI extends Panel {
         quitBtn.textR = tR; quitBtn.textG = tG; quitBtn.textB = tB;
     }
 
+    /** @return the clicked shape file name, or null if no item was clicked. */
     public String clickShape(float mx, float my) {
         float px = width / 2f - PANEL_W / 2f;
         if (mx < px + 10 || mx > px + PANEL_W - 10) return null;
@@ -117,11 +130,13 @@ public class MenuUI extends Panel {
         return null;
     }
 
+    /** @return true if the parametres button was clicked. */
     public boolean isParametresClicked(float mx, float my) {
         if (paramBtn.contains(mx, my)) { paramBtn.click(mx, my); return true; }
         return false;
     }
 
+    /** @return true if the quitter button was clicked. */
     public boolean isQuitterClicked(float mx, float my) {
         if (quitBtn.contains(mx, my)) { quitBtn.click(mx, my); return true; }
         return false;

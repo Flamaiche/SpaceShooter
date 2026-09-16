@@ -16,6 +16,7 @@ import org.lwjgl.BufferUtils;
 
 import static org.lwjgl.opengl.GL11.*;
 
+/** Mouse picking helpers: finds vertices/edges under the cursor and unprojects screen points to world space. */
 public class PickUtils {
     private ShapeRenderer renderer;
     private EditorCamera camera;
@@ -23,21 +24,30 @@ public class PickUtils {
 
     private final FloatBuffer depthBuf = BufferUtils.createFloatBuffer(1);
 
+    /** Sets the renderer used to access shape data. */
     public void setRenderer(ShapeRenderer r) { this.renderer = r; }
+    /** Sets the camera used for view/projection transforms. */
     public void setCamera(EditorCamera c) { this.camera = c; }
+    /** Sets the screen size in pixels used for coordinate conversions. */
     public void setSize(int w, int h) { width = w; height = h; }
+    /** Returns the editor camera in use. */
     public EditorCamera getCamera() { return camera; }
+    /** Returns the camera's projection matrix. */
     public Matrix4f getProjection() { return camera.getProjection(); }
+    /** Returns the camera's view matrix. */
     public Matrix4f getView() { return camera.getViewMatrix(); }
 
+    /** Finds the nearest vertex to the cursor, ignoring depth, or -1. */
     public int findVertexAt(float mx, float my) {
         return findVertexAtImpl(mx, my, false);
     }
 
+    /** Finds the nearest vertex to the cursor that is not occluded, or -1. */
     public int findVisibleVertexAt(float mx, float my) {
         return findVertexAtImpl(mx, my, true);
     }
 
+    /** Shared implementation of vertex picking; optionally checks occlusion against the depth buffer. */
     private int findVertexAtImpl(float mx, float my, boolean checkVisibility) {
         if (!renderer.hasShape()) return -1;
         ShapeData data = renderer.getShapeData();
@@ -81,6 +91,7 @@ public class PickUtils {
         return bestId;
     }
 
+    /** Reads the depth-buffer value at the given screen pixel (1f if out of bounds). */
     private float readDepth(float mx, float my) {
         int px = Math.round(mx);
         int py = height - Math.round(my) - 1;
@@ -90,14 +101,17 @@ public class PickUtils {
         return depthBuf.get(0);
     }
 
+    /** Picks the edge nearest to the cursor, ignoring depth, or -1. */
     public int pickEdge(float mx, float my) {
         return pickEdgeImpl(mx, my, false);
     }
 
+    /** Picks the edge nearest to the cursor that is not occluded, or -1. */
     public int pickVisibleEdge(float mx, float my) {
         return pickEdgeImpl(mx, my, true);
     }
 
+    /** Shared implementation of edge picking; optionally checks occlusion against the depth buffer. */
     private int pickEdgeImpl(float mx, float my, boolean checkVisibility) {
         if (!renderer.hasShape()) return -1;
         ShapeData data = renderer.getShapeData();
@@ -155,6 +169,7 @@ public class PickUtils {
         return bestId;
     }
 
+    /** Returns the distance in pixels from a point to the segment [a,b]. */
     private float pointToSegDist(float px, float py, float ax, float ay, float bx, float by) {
         float dx = bx - ax, dy = by - ay;
         float lenSq = dx * dx + dy * dy;
@@ -164,6 +179,7 @@ public class PickUtils {
         return (float) Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
     }
 
+    /** Returns the world-space point under the cursor: a face intersection, or nearest point on the camera plane otherwise. */
     public Vector3f getClickWorldPos(float mx, float my) {
         Matrix4f invProjView = new Matrix4f(camera.getProjection());
         invProjView.mul(camera.getViewMatrix());
@@ -229,6 +245,7 @@ public class PickUtils {
         return new Vector3f(rayOrig).add(rayDir.mul(t));
     }
 
+    /** Unprojects a screen point at a given NDC depth into world space. */
     public Vector3f unprojectAtDepth(float mx, float my, float ndcZ) {
         Matrix4f invProjView = new Matrix4f(camera.getProjection());
         invProjView.mul(camera.getViewMatrix());

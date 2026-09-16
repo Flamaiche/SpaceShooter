@@ -3,6 +3,7 @@ package markershape.editor.ui.control;
 import markershape.editor.ui.UIElement;
 import markershape.editor.ui.UIResources;
 
+/** A simple clickable text button with configurable colors and a runnable action. */
 public class Button extends UIElement {
     public String text;
     public boolean showBackground = true;
@@ -11,6 +12,7 @@ public class Button extends UIElement {
     public float textScale = 1.2f;
     public Runnable action;
 
+    /** Creates a button at the given position/size with the given label and action. */
     public Button(UIResources res, String text, float x, float y,
                   float w, float h, Runnable action) {
         super(res);
@@ -23,6 +25,7 @@ public class Button extends UIElement {
         this.clickable = true;
     }
 
+    /** Renders the background quad and the centered label when visible. */
     @Override
     public void render() {
         if (!visible) return;
@@ -33,6 +36,7 @@ public class Button extends UIElement {
         res.drawTextCentered(text, x, y, w, h, textScale, textR, textG, textB);
     }
 
+    /** Runs the button's action when clicked. */
     @Override
     protected void onClick() {
         if (action != null) action.run();

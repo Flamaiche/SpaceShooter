@@ -7,11 +7,14 @@ import org.joml.Vector3f;
 
 import java.util.function.IntConsumer;
 
+/** Creates vertices (from clicks or resolved positions) and dispatches picks to the sibling picker. */
 public class VertexAction {
     private final Context ctx;
 
+    /** Creates the vertex action bound to the given editor context. */
     public VertexAction(Context ctx) { this.ctx = ctx; }
 
+    /** Creates a vertex at the 3D position under the cursor, applying magnet/snap first. */
     public void create(float mx, float my) {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -34,6 +37,7 @@ public class VertexAction {
         learngl.LogFile.logf("[MarkerShape] created vertex %d at (%.3f, %.3f, %.3f)", newId, pos.x, pos.y, pos.z);
     }
 
+    /** Returns the next free vertex id (highest id + 1). */
     private int nextVertexId(ShapeData data) {
         if (data.vertices.isEmpty()) return 0;
         int max = -1;
@@ -57,6 +61,7 @@ public class VertexAction {
             newId, src.x, src.y, src.z);
     }
 
+    /** Handles a click on a vertex: opens the sibling picker if co-located vertices exist, else invokes onPicked. */
     public void handleClick(float mx, float my, int vertexId, IntConsumer onPicked) {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;

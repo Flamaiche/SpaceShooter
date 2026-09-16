@@ -27,12 +27,14 @@ public class SelectionManager {
     public org.joml.Vector3f crosshairPos = new org.joml.Vector3f();
     public boolean crosshairValid;
 
+    /** Creates the manager with the overlays used to edit the selected entity. */
     public SelectionManager(VertexOverlay vo, EdgeOverlay eo, SiblingPicker sp) {
         this.vertexOverlay = vo;
         this.edgeOverlay = eo;
         this.siblingPicker = sp;
     }
 
+    /** Sets the renderer used to read/write shape and selection data. */
     public void setRenderer(ShapeRenderer r) { this.renderer = r; }
 
     /** Clears multi selection and selects a single vertex (shows its overlay). */
@@ -169,6 +171,7 @@ public class SelectionManager {
         edgeOverlay.hide();
     }
 
+    /** Returns the ids of all vertices co-located with the given vertex. */
     public int[] findSiblings(ShapeData data, Vertex v) {
         ArrayList<Integer> list = new ArrayList<>();
         for (Vertex other : data.vertices.values()) {
@@ -181,17 +184,20 @@ public class SelectionManager {
         return arr;
     }
 
+    /** Returns whether the point lies on a currently visible editing overlay. */
     public boolean isOverOverlay(float mx, float my) {
         if (vertexOverlay.isVisible() && vertexOverlay.contains(mx, my)) return true;
         if (edgeOverlay.isVisible() && edgeOverlay.contains(mx, my)) return true;
         return false;
     }
 
+    /** Hides the vertex and edge editing overlays. */
     public void hideOverlays() {
         vertexOverlay.hide();
         edgeOverlay.hide();
     }
 
+    /** Clears all selection state, overlays, and renderer highlights. */
     public void reset() {
         selectedVertex = -1;
         selectedEdge = -1;

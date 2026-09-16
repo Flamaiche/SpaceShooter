@@ -11,6 +11,7 @@ import learngl.shape.Shape;
 public final class TriShape {
     private Shape shape;
 
+    /** (Re)builds the engine Shape from xyz+rgb vertex data; a null or too-short array releases the geometry. */
     public void rebuild(float[] xyzRgb) {
         if (xyzRgb == null || xyzRgb.length < 18) {
             release();
@@ -23,12 +24,15 @@ public final class TriShape {
         shape = new Shape(VertexUtils.autoAddSlotTexture(xyzRgb));
     }
 
+    /** Draws the current geometry through the engine if present. */
     public void render() {
         if (shape != null) shape.render();
     }
 
+    /** Returns true if a shape is currently built. */
     public boolean hasGeometry() { return shape != null; }
 
+    /** Releases the current engine geometry, if any. */
     public void release() {
         if (shape != null) {
             shape.cleanup();

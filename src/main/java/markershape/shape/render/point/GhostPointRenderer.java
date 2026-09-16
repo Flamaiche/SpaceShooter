@@ -23,15 +23,20 @@ public class GhostPointRenderer implements Renderer {
     private float lastSize = -1f;
     private boolean lastVisible = false;
 
+    /** Shows/hides the ghost point. */
     public void setVisible(boolean v) { visible = v; }
+    /** Sets the ghost point world position. */
     public void setPosition(float x, float y, float z) { px = x; py = y; pz = z; }
+    /** Sets the ghost point size in pixels. */
     public void setPointSize(float s) { pointSize = s; }
 
+    /** Returns true if the position differs from the last rendered one. */
     private boolean positionChanged(float x, float y, float z) {
         return x != lastPx || y != lastPy || z != lastPz;
     }
     private float lastPx = Float.MAX_VALUE, lastPy = Float.MAX_VALUE, lastPz = Float.MAX_VALUE;
 
+    /** Rebuilds and draws the ghost quad when the view, size or position changed. */
     @Override
     public void render(Shader shader, ShapeData data, Matrix4f view, Matrix4f projection, int screenW, int screenH) {
         if (!visible) return;
@@ -73,6 +78,7 @@ public class GhostPointRenderer implements Renderer {
         glDisable(GL_BLEND);
     }
 
+    /** Releases the ghost geometry and resets the cached state. */
     @Override
     public void cleanup() {
         tri.release();

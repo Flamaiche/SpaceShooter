@@ -22,15 +22,21 @@ public class CrosshairRenderer implements Renderer {
     private Matrix4f lastView;
     private boolean dirty = true;
 
+    /** Shows/hides the crosshair. */
     public void setVisible(boolean v) { visible = v; }
+    /** Sets the crosshair world position (rebuilds it on the next render). */
     public void setPosition(Vector3f p) {
         pos = p;
         dirty = true;
     }
+    /** Shows/hides the X axis line of the crosshair. */
     public void setShowAxisX(boolean v) { showAxisX = v; dirty = true; }
+    /** Shows/hides the Y axis line of the crosshair. */
     public void setShowAxisY(boolean v) { showAxisY = v; dirty = true; }
+    /** Shows/hides the Z axis line of the crosshair. */
     public void setShowAxisZ(boolean v) { showAxisZ = v; dirty = true; }
 
+    /** Rebuilds and draws the axis lines when the view or crosshair state changed. */
     @Override
     public void render(Shader shader, ShapeData data, Matrix4f view, Matrix4f projection, int screenW, int screenH) {
         if (!visible || pos == null || (!showAxisX && !showAxisY && !showAxisZ)) return;
@@ -63,6 +69,7 @@ public class CrosshairRenderer implements Renderer {
         glDepthMask(true);
     }
 
+    /** Releases the crosshair geometry. */
     @Override
     public void cleanup() {
         tri.release();

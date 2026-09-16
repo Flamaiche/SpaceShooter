@@ -26,9 +26,12 @@ public class DragAction {
     private final ArrayList<Integer> group = new ArrayList<>();
     private final HashMap<Integer, Vector3f> origins = new HashMap<>();
 
+    /** Creates the drag action bound to the given editor context. */
     public DragAction(Context ctx) { this.ctx = ctx; }
+    /** Returns whether a drag is currently in progress. */
     public boolean isDragging() { return dragVertexId >= 0; }
 
+    /** Begins dragging the given vertex (or the whole multi-selection group containing it). */
     public void start(int id, float mx, float my) {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -61,6 +64,7 @@ public class DragAction {
         dragNdcZ = clip.z / clip.w;
     }
 
+    /** Moves all dragged vertices along the screen plane to follow the cursor. */
     public void update(float mx, float my) {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null || dragVertexId < 0) return;
@@ -90,6 +94,7 @@ public class DragAction {
         if (v != null) ctx.selection.crosshairPos.set(v.x, v.y, v.z);
     }
 
+    /** Finalises the drag, keeping the new positions. */
     public void end() {
         dragVertexId = -1;
         ctx.selection.crosshairValid = false;
@@ -113,5 +118,6 @@ public class DragAction {
             }
         }
         end();
+        ctx.undoredo.discardLastSnapshot();
     }
 }

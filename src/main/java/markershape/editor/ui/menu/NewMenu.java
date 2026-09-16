@@ -4,26 +4,36 @@ import markershape.config.ConfigParametres;
 import markershape.editor.ui.Panel;
 import markershape.editor.ui.UIResources;
 
+/** Dropdown under the "New" button offering the vertex and edge creation modes. */
 public class NewMenu extends Panel {
     private boolean newMenuOpen;
     private int activeMode = -1; // -1=none, 0=vertex, 1=edge
     public static final float NEW_DROP_W = 130;
     public static final float NEW_ITEM_H = 22;
 
+    /** Creates the new-mode dropdown, initially closed. */
     public NewMenu(UIResources res) {
         super(res);
     }
 
+    /** @return true if the dropdown is open. */
     public boolean isOpen() { return newMenuOpen; }
+    /** Opens or closes the dropdown. */
     public void setOpen(boolean v) { newMenuOpen = v; visible = v; }
+    /** Toggles the dropdown open/closed state. */
     public void toggle() { newMenuOpen = !newMenuOpen; visible = newMenuOpen; }
+    /** Closes the dropdown. */
     public void close() { newMenuOpen = false; visible = false; }
 
+    /** Sets the active creation mode (0=vertex, 1=edge) and highlights its row. */
     public void setActiveMode(int mode) { activeMode = mode; }
+    /** @return the currently active creation mode. */
     public int getActiveMode() { return activeMode; }
 
+    /** Sets the window size used for rendering. */
     public void setSize(int w, int h) { res.setSize(w, h); }
 
+    /** Positions the dropdown just below the "New" button. */
     public void setBtnPos(float x, float y) {
         this.x = x;
         this.y = y + 36;
@@ -31,12 +41,14 @@ public class NewMenu extends Panel {
         h = 2 * NEW_ITEM_H;
     }
 
+    /** @return true if the point is inside the open dropdown. */
     @Override
     public boolean contains(float mx, float my) {
         return newMenuOpen && my >= y && my <= y + 2 * NEW_ITEM_H
             && mx >= x && mx <= x + NEW_DROP_W;
     }
 
+    /** Draws the dropdown's outer panel with a small border. */
     @Override
     protected void drawBackground() {
         float border = 1f;
@@ -47,6 +59,7 @@ public class NewMenu extends Panel {
             c[0], c[1], c[2], dropAlpha);
     }
 
+    /** Highlights the row of the active creation mode. */
     @Override
     protected void renderContent() {
         for (int i = 0; i < 2; i++) {
@@ -59,6 +72,7 @@ public class NewMenu extends Panel {
         }
     }
 
+    /** Draws the "Vertex" / "Edge" item labels. */
     @Override
     protected void renderText() {
         String[] items = {"Vertex", "Edge"};

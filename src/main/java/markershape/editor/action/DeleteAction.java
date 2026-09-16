@@ -3,15 +3,18 @@ package markershape.editor.action;
 import markershape.editor.Context;
 import markershape.shape.ShapeData;
 
+/** Deletes selected vertices/edges, cascading to affected faces and orphan vertices. */
 public class DeleteAction {
     private final Context ctx;
     private final FaceUtils faceUtils;
 
+    /** Creates the delete action with the shared context and face utilities. */
     public DeleteAction(Context ctx, FaceUtils faceUtils) {
         this.ctx = ctx;
         this.faceUtils = faceUtils;
     }
 
+    /** Deletes the currently selected vertices and/or edges (single or multi) with cascading cleanup. */
     public void deleteSelected() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -30,6 +33,7 @@ public class DeleteAction {
         learngl.LogFile.logf("[MarkerShape] deleted %d vertices, %d edges (cascade)", vv.size(), ee.size());
     }
 
+    /** Deletes the selected vertex on request of the vertex overlay's delete button. */
     public void deleteVertexFromOverlay() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;
@@ -43,6 +47,7 @@ public class DeleteAction {
         }
     }
 
+    /** Deletes the selected edge on request of the edge overlay's delete button. */
     public void deleteEdgeFromOverlay() {
         ShapeData data = ctx.renderer.getShapeData();
         if (data == null) return;

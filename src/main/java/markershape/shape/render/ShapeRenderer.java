@@ -22,6 +22,10 @@ import org.joml.Vector4f;
 
 import static org.lwjgl.opengl.GL11.*;
 
+/**
+ * High-level renderer orchestrating the grid, faces, edges, points and all
+ * transient overlays of the shape editor from a single ShapeData model.
+ */
 public class ShapeRenderer {
     private Shape shape;
     private Shader shader;
@@ -64,6 +68,7 @@ public class ShapeRenderer {
     private boolean pivotMarkerVisible;
     private final org.joml.Vector3f pivotMarkerPos = new org.joml.Vector3f();
 
+    /** Loads the default mesh shader for the editor. */
     public ShapeRenderer() {
         try {
             shader = new Shader(shaderPath + "default_Vertex.glsl", shaderPath + "default_Fragment.glsl");
@@ -72,6 +77,7 @@ public class ShapeRenderer {
         }
     }
 
+    /** Updates the screen size used for the overlays and the shadow renderer. */
     public void setScreenSize(int w, int h) {
         screenW = w;
         screenH = h;
@@ -79,6 +85,7 @@ public class ShapeRenderer {
         edgeHighlightRenderer.setScreenSize(w, h);
     }
 
+    /** Loads a shape from a JSON file name and rebuilds the renderer from it. */
     public boolean loadShape(String filename) {
         ShapeData data = ShapeLoader.load(filename);
         if (data == null) {
@@ -89,6 +96,7 @@ public class ShapeRenderer {
         return true;
     }
 
+    /** Rebuilds all geometry and resources from new shape data. */
     public void buildFromData(ShapeData data) {
         cleanup();
         this.shapeData = data;
@@ -111,7 +119,9 @@ public class ShapeRenderer {
             data.vertices.size(), data.faces.size(), data.vertices.size() > 0 ? data.faces.size() * 3 : 0);
     }
 
+    /** Returns the current shape data. */
     public ShapeData getShapeData() { return shapeData; }
+    /** Replaces the shape data and rebuilds the LOD geometry. */
     public void setShapeData(ShapeData data) {
         shapeData = data;
         Shader oldShader = shader;
@@ -125,6 +135,7 @@ public class ShapeRenderer {
         }
     }
 
+    /** Releases all GPU resources held by the sub-renderers and the mesh shape. */
     private void cleanupResources() {
         if (shape != null) { shape.cleanup(); shape = null; }
         faceRenderer.cleanup();
@@ -137,6 +148,7 @@ public class ShapeRenderer {
         frontArrowRenderer.cleanup();
     }
 
+    /** Stores the full face list and computes the mesh center once. */
     private void storeOriginalFaces(ShapeData data) {
         originalFaces = data.faces.toArray(new Face[0]);
         meshCenterValid = false;
@@ -199,41 +211,55 @@ public class ShapeRenderer {
         }
     }
 
+    /** Enables or disables level-of-detail face reduction. */
     public void setLodEnabled(boolean enabled) {
         if (lodEnabled == enabled) return;
         lodEnabled = enabled;
         lodLevel = 0;
         if (shapeData != null) rebuildLodGeometry();
     }
+    /** Returns true if LOD reduction is enabled. */
     public boolean isLodEnabled() { return lodEnabled; }
+    /** Returns the current LOD level (0 when disabled). */
     public int getLodLevel() { return lodEnabled ? lodLevel : 0; }
+    /** Returns the last computed camera distance used for LOD. */
     public float getLodDistance() { return lodDistance; }
+    /** Returns the total number of faces in the original mesh. */
     public int getTotalFaceCount() { return originalFaces != null ? originalFaces.length : 0; }
+    /** Returns the number of faces actually rendered at the current LOD. */
     public int getRenderedFaceCount() { return renderedFaceCount; }
 
+    /** Sets the hovered vertex ID and forwards it to the edge highlight renderer. */
     public void setHoveredVertex(int id) {
         hoveredVertexId = id;
         edgeHighlightRenderer.setHoveredVertex(id);
     }
+    /** Sets the hovered edge ID for highlighting. */
     public void setHoveredEdge(int id) { edgeHighlightRenderer.setHoveredEdge(id); }
+    /** Sets the selected edge ID for highlighting. */
     public void setSelectedEdge(int id) {
         selectedEdgeId = id;
         edgeHighlightRenderer.setSelectedEdge(id);
     }
+    /** Sets the selected vertex ID for highlighting. */
     public void setSelectedVertex(int id) {
         selectedVertexId = id;
         edgeHighlightRenderer.setSelectedVertex(id);
     }
+    /** Replaces the set of multi-selected vertex IDs to highlight. */
     public void setMultiVertexHighlight(Set<Integer> ids) {
         multiVertexHighlight.clear();
         if (ids != null) multiVertexHighlight.addAll(ids);
     }
+    /** Replaces the set of multi-selected edge IDs to highlight. */
     public void setMultiEdgeHighlight(Set<Integer> ids) {
         multiEdgeHighlight.clear();
         if (ids != null) multiEdgeHighlight.addAll(ids);
     }
+    /** Forwards the edge subset connected to a hovered vertex to the highlight renderer. */
     public void setHoveredPositionIds(Set<Integer> ids) { edgeHighlightRenderer.setHoveredPositionIds(ids); }
 
+    /** Sets and normalizes the marquee selection rectangle (so x1<=x2, y1<=y2). */
     public void setMarquee(boolean visible, float x1, float y1, float x2, float y2) {
         marqueeVisible = visible;
         marqueeX1 = Math.min(x1, x2);
@@ -242,11 +268,13 @@ public class ShapeRenderer {
         marqueeY2 = Math.max(y1, y2);
     }
 
+    /** Shows the rubber-band edge preview between two screen points. */
     public void setRubberBand(float ax, float ay, float bx, float by) {
         rubberVisible = true;
         rubberAx = ax; rubberAy = ay; rubberBx = bx; rubberBy = by;
     }
 
+    /** Hides the rubber-band edge preview. */
     public void clearRubberBand() {
         rubberVisible = false;
     }
@@ -261,14 +289,17 @@ public class ShapeRenderer {
         faceSelectPreview = vertexIds == null ? null : new ArrayList<>(vertexIds);
     }
 
+    /** Clears the pending face-by-selection contour preview. */
     public void clearFaceSelectPreview() {
         faceSelectPreview = null;
     }
+    /** Shows/hides the axis-aligned crosshair at a world position. */
     public void setCrosshair(boolean visible, org.joml.Vector3f pos) {
         crosshairRenderer.setVisible(visible);
         crosshairRenderer.setPosition(pos);
     }
 
+    /** Shows/hides the semi-transparent placement ghost at a world position. */
     public void setPlacementGhost(boolean visible, org.joml.Vector3f pos) {
         ghostPointRenderer.setVisible(visible);
         ghostPointRenderer.setPointSize(pointSize);
@@ -291,6 +322,7 @@ public class ShapeRenderer {
     }
 
     private boolean showFrontArrow = true;
+    /** Enables or disables the fixed "front" direction arrow. */
     public void setShowFrontArrow(boolean v) { showFrontArrow = v; }
 
     /**
@@ -307,6 +339,7 @@ public class ShapeRenderer {
     public void setOrbitPivotMarkerAxes(float rx, float ry, float rz, float ux, float uy, float uz) {
     }
 
+    /** Renders the grid, faces, edges, points and all 2D overlays with the given view/projection. */
     public void render(Matrix4f view, Matrix4f projection) {
         if (shader == null) {
             LogFile.log("[ShapeRenderer] render skipped: shader=" + (shader == null));
@@ -449,6 +482,14 @@ public class ShapeRenderer {
                 }
             }
 
+            // Re-bind the main shader: the 2D overlay draws above used their own
+            // uiShader and left the mesh shader unbound, which would otherwise
+            // corrupt the next triangle pass (e.g. a white front arrow).
+            shader.bind();
+            shader.setUniformMat4f("view", view);
+            shader.setUniformMat4f("projection", projection);
+            shader.setUniformMat4f("model", identity);
+
             crosshairRenderer.render(shader, shapeData, view, projection, screenW, screenH);
             ghostPointRenderer.render(shader, shapeData, view, projection, screenW, screenH);
             frontArrowRenderer.render(shader, shapeData, view, projection, screenW, screenH);
@@ -470,22 +511,37 @@ public class ShapeRenderer {
         shader.unbind();
     }
 
+    /** Sets the grid spacing used by the grid renderer. */
     public void setGridStep(float step) { grid.setGridStep(step); }
+    /** Shows/hides the grid. */
     public void setGridVisible(boolean v) { grid.setGridVisible(v); }
+    /** Shows/hides the X axis (also forwarded to the crosshair). */
     public void setShowAxisX(boolean v) { grid.setShowAxisX(v); crosshairRenderer.setShowAxisX(v); }
+    /** Shows/hides the Y axis (also forwarded to the crosshair). */
     public void setShowAxisY(boolean v) { grid.setShowAxisY(v); crosshairRenderer.setShowAxisY(v); }
+    /** Shows/hides the Z axis (also forwarded to the crosshair). */
     public void setShowAxisZ(boolean v) { grid.setShowAxisZ(v); crosshairRenderer.setShowAxisZ(v); }
 
+    /** Shows/hides triangle faces. */
     public void setShowFaces(boolean v) { showFaces = v; }
+    /** Shows/hides mesh edges. */
     public void setShowEdges(boolean v) { showEdges = v; }
+    /** Shows/hides mesh vertices. */
     public void setShowPoints(boolean v) { showPoints = v; }
+    /** Sets the on-screen point size in pixels. */
     public void setPointSize(float v) { pointSize = v; pointRenderer.setPointSize(v); }
+    /** Returns the current point size in pixels. */
     public float getPointSize() { return pointSize; }
+    /** Sets the edge line width in pixels. */
     public void setLineWidth(float v) { lineWidth = v; edgeBatchRenderer.setLineWidth(v); }
+    /** Returns the current edge line width in pixels. */
     public float getLineWidth() { return lineWidth; }
+    /** Sets the face transparency (0..1). */
     public void setFaceAlpha(float v) { faceAlpha = v; }
+    /** Returns the current face transparency. */
     public float getFaceAlpha() { return faceAlpha; }
 
+    /** Rebuilds all geometry from the current shape data (used after geometry edits). */
     public void rebuild() {
         if (shapeData == null) return;
         Shader savedShader = shader;
@@ -502,8 +558,10 @@ public class ShapeRenderer {
         grid.rebuild();
     }
 
+    /** Returns true if shape data is currently loaded. */
     public boolean hasShape() { return shapeData != null; }
 
+    /** Releases all resources owned by this renderer. */
     public void cleanup() {
         cleanupResources();
         if (shader != null) { shader.cleanup(); shader = null; }

@@ -11,6 +11,7 @@ public class Edge {
     public float thickness;
     public float r, g, bl;
 
+    /** Default constructor (leaves fields at their default values). */
     public Edge() {}
 
     /**
@@ -30,11 +31,13 @@ public class Edge {
         this.r = 1f; this.g = 1f; this.bl = 1f;
     }
 
+    /** Constructs an edge between two vertices with an explicit colour. */
     public Edge(int id, int a, int b, String mode, float thickness, float r, float g, float bl) {
         this(id, a, b, mode, thickness);
         this.r = r; this.g = g; this.bl = bl;
     }
 
+    /** Returns a deep copy of this edge. */
     public Edge copy() {
         return new Edge(id, a, b, mode, thickness, r, g, bl);
     }

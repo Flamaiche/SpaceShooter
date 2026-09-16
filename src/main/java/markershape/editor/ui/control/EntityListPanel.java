@@ -7,6 +7,10 @@ import markershape.shape.Edge;
 import markershape.shape.ShapeData;
 import markershape.shape.Vertex;
 
+/**
+ * Side panel listing the shape's vertices or edges, with tab switching, hover
+ * highlighting and page navigation arrows.
+ */
 public class EntityListPanel extends Panel {
     public static final int MODE_VERTEX = 0;
     public static final int MODE_EDGE = 1;
@@ -23,24 +27,35 @@ public class EntityListPanel extends Panel {
     private static final int ITEM_H = 18;
     private static final int NAV_W = 44;
 
+    /** Creates the entity list panel. */
     public EntityListPanel(UIResources res) {
         super(res);
     }
 
+    /** Sets the window size used for the layout. */
     public void setSize(int w, int h) {
         height = h;
         res.setSize(w, h);
     }
+    /** Sets the shape data whose entities are listed. */
     public void setData(ShapeData d) { data = d; }
+    /** @return the current tab (MODE_VERTEX or MODE_EDGE). */
     public int getActiveMode() { return activeMode; }
+    /** Switches the list to the given tab and resets hover and scroll. */
     public void setActiveMode(int mode) { activeMode = mode; hoveredId = -1; scrollOffset = 0; }
+    /** @return the id of the currently hovered entity, or -1. */
     public int getHoveredId() { return hoveredId; }
 
+    /** @return true if the point is inside the panel bounds. */
     @Override
     public boolean contains(float mx, float my) {
         return mx >= x && mx <= x + PW && my >= y && my <= y + h;
     }
 
+    /**
+     * Handles a click on the tab row.
+     * @return MODE_VERTEX, MODE_EDGE, or -1 if the click was elsewhere.
+     */
     public int clickTab(float mx, float my) {
         if (my < y || my > y + HEADER_H || mx < x || mx > x + PW - NAV_W) return -1;
         int halfW = (PW - NAV_W) / 2;
@@ -48,6 +63,7 @@ public class EntityListPanel extends Panel {
         return MODE_EDGE;
     }
 
+    /** @return the id of the entity under the given point, or -1. */
     public int getHoveredIdAt(float mx, float my) {
         if (!contains(mx, my) || data == null) return -1;
         if (my < y + HEADER_H) return -1;
@@ -63,6 +79,10 @@ public class EntityListPanel extends Panel {
         return -1;
     }
 
+    /**
+     * Handles a click: page arrows and tabs return -2, a list hit returns the
+     * entity id, otherwise -1.
+     */
     public int clickItem(float mx, float my) {
         if (!contains(mx, my) || data == null) return -1;
         int arrow = clickArrow(mx, my);
@@ -73,10 +93,16 @@ public class EntityListPanel extends Panel {
         return getHoveredIdAt(mx, my);
     }
 
+    /** Alias of {@link #clickItem(float, float)}. */
     public int clickList(float mx, float my) {
         return clickItem(mx, my);
     }
 
+    /**
+     * Handles a click on the navigation arrows.
+     * @return 0 for the previous-page arrow, 1 for the next-page arrow,
+     *         or -1 if no arrow was hit.
+     */
     public int clickArrow(float mx, float my) {
         if (my < y || my > y + HEADER_H || mx < x || mx > x + PW) return -1;
         float navX = x + PW - NAV_W;
@@ -84,26 +110,32 @@ public class EntityListPanel extends Panel {
         return mx < navX + NAV_W / 2 ? 0 : 1;
     }
 
+    /** @return the number of entities in the current tab. */
     private int totalItems() {
         if (data == null) return 0;
         return activeMode == MODE_VERTEX ? data.vertices.size() : data.edges.size();
     }
 
+    /** @return the number of rows shown per page, at least one. */
     private int pageSize() { return Math.max(1, visibleItems()); }
 
+    /** Scrolls the list one page backwards. */
     public void pagePrev() {
         scrollOffset = Math.max(0, scrollOffset - pageSize());
     }
 
+    /** Scrolls the list one page forwards. */
     public void pageNext() {
         int max = Math.max(0, totalItems() - visibleItems());
         scrollOffset = Math.min(max, scrollOffset + pageSize());
     }
 
+    /** @return how many rows fit in the visible list area. */
     private int visibleItems() {
-        return (int) (h - HEADER_H) / ITEM_H;
+        return Math.max(0, (int) (h - HEADER_H) / ITEM_H);
     }
 
+    /** Positions the panel on the right side and draws its background. */
     @Override
     protected void drawBackground() {
         if (data == null) return;
@@ -117,6 +149,7 @@ public class EntityListPanel extends Panel {
         res.drawQuad(x, y, w, h, c[0], c[1], c[2], BlurBackground.panelAlpha());
     }
 
+    /** Draws the tabs, navigation area and hover highlights. */
     @Override
     protected void renderContent() {
         float panelAlpha = BlurBackground.panelAlpha();
@@ -160,6 +193,7 @@ public class EntityListPanel extends Panel {
         }
     }
 
+    /** Draws the tab labels, navigation arrows and the entity rows. */
     @Override
     protected void renderText() {
         float[] tc = res.textColor();
@@ -211,11 +245,13 @@ public class EntityListPanel extends Panel {
         }
     }
 
+    /** Updates the hovered entity based on the mouse position. */
     public void updateHover(float mx, float my) {
         if (!contains(mx, my) || data == null) { hoveredId = -1; return; }
         hoveredId = getHoveredIdAt(mx, my);
     }
 
+    /** Formats a float, dropping the decimals when it is a whole number. */
     private static String fmt(float v) {
         if (v == (int) v) return String.valueOf((int) v);
         return String.format("%.2f", v);

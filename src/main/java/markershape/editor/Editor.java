@@ -14,6 +14,10 @@ import markershape.editor.ui.overlay.SiblingPicker;
 import markershape.editor.ui.overlay.VertexOverlay;
 import org.joml.Matrix4f;
 
+/**
+ * Central editor class that owns the renderer, camera, UI, and all editing actions.
+ * Coordinates shape loading, rendering, input handling, and undo/redo.
+ */
 public class Editor {
     public EditorCamera camera;
     public ShapeRenderer renderer;
@@ -35,6 +39,7 @@ public class Editor {
     public String currentFile;
     private final UIResources uiResources;
 
+    /** Wires up camera, renderer, picker, selection, actions and UI for a new window. */
     public Editor(long window, int w, int h, UIResources uiResources) {
         this.window = window;
         this.width = w;
@@ -96,22 +101,14 @@ public class Editor {
         edgeOverlay.setDeleteCallback(() -> del.deleteEdgeFromOverlay());
     }
 
+    /** Applies the current UI filter and slider values to the rendered shape. */
     private void applyFilterSettings() {
         boolean[] fv = editorUI.getFilterValues();
         float[] sv = editorUI.getSliderValues();
-        renderer.setShowFaces(fv[0]);
-        renderer.setShowEdges(fv[1]);
-        renderer.setShowPoints(fv[2]);
-        renderer.setShowAxisX(fv[3]);
-        renderer.setShowAxisY(fv[4]);
-        renderer.setShowAxisZ(fv[5]);
-        renderer.setShowFrontArrow(fv[8]);
-        renderer.setPointSize(sv[0]);
-        renderer.setLineWidth(sv[1]);
-        renderer.setFaceAlpha(sv[2]);
-        renderer.setGridStep(sv[3]);
+        ShapeIO.applyFilters(renderer, fv, sv);
     }
 
+    /** Updates the window size in the editor, picker, renderer, and UI. */
     public void setSize(int w, int h) {
         width = w;
         height = h;
@@ -123,6 +120,7 @@ public class Editor {
         ctx.windowHeight = h;
     }
 
+    /** Loads a shape file, resets the edit state, applies filters, and frames it. */
     public void loadShape(String filename) {
         ctx.currentFilename = filename;
         ctx.exitModes();
@@ -139,17 +137,7 @@ public class Editor {
         renderer.loadShape(filename);
         boolean[] fv = editorUI.getFilterValues();
         float[] sv = editorUI.getSliderValues();
-        renderer.setShowFaces(fv[0]);
-        renderer.setShowEdges(fv[1]);
-        renderer.setShowPoints(fv[2]);
-        renderer.setShowAxisX(fv[3]);
-        renderer.setShowAxisY(fv[4]);
-        renderer.setShowAxisZ(fv[5]);
-        renderer.setShowFrontArrow(fv[8]);
-        renderer.setPointSize(sv[0]);
-        renderer.setLineWidth(sv[1]);
-        renderer.setFaceAlpha(sv[2]);
-        renderer.setGridStep(sv[3]);
+        ShapeIO.applyFilters(renderer, fv, sv);
         frameToShape();
     }
 
@@ -167,6 +155,7 @@ public class Editor {
         camera.resetToFront(center, size);
     }
 
+/** Returns the axis-aligned bounding box of the shape: {minX, minY, minZ, maxX, maxY, maxZ}. */
 private float[] bounds(markershape.shape.ShapeData data) {
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
         float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
@@ -178,6 +167,7 @@ private float[] bounds(markershape.shape.ShapeData data) {
         return new float[]{minX, minY, minZ, maxX, maxY, maxZ};
     }
 
+    /** Updates the front-direction arrow overlay relative to the current shape. */
     private void updateFrontArrow() {
         org.joml.Vector3f center = null;
         float size = 0f;
@@ -193,6 +183,7 @@ private float[] bounds(markershape.shape.ShapeData data) {
             camera.getFrontDirection(), arrowLen);
     }
 
+    /** Renders the scene, UI overlays, and editor widgets. */
     public void render(Matrix4f view, Matrix4f projection) {
         updateFrontArrow();
         renderer.render(view, projection);
@@ -223,6 +214,7 @@ private float[] bounds(markershape.shape.ShapeData data) {
         editorUI.renderEntityList();
     }
 
+    /** Exits all edit modes and returns to the main menu. */
     public void goToMenu() {
         currentFile = null;
         ctx.currentFilename = null;
@@ -244,31 +236,38 @@ private float[] bounds(markershape.shape.ShapeData data) {
         if (menuUI != null) menuUI.refresh();
     }
 
+    /** Feeds mouse-position input to the input manager. */
     public void processInput(float mx, float my) {
         input.process(mx, my);
     }
 
+    /** Records a key press/release state for the input manager. */
     public void setKeyState(int key, int action) {
         input.setKeyState(key, action);
     }
 
+    /** Returns whether a text field of an overlay is currently being typed in. */
     public boolean isTyping() {
         return ctx.selection.vertexOverlay.isTyping() || ctx.selection.edgeOverlay.isTyping();
     }
 
+    /** Routes a typed character to the overlay currently in edit mode. */
     public void handleChar(int codepoint) {
         if (ctx.selection.vertexOverlay.isTyping()) ctx.selection.vertexOverlay.charTyped(codepoint);
         if (ctx.selection.edgeOverlay.isTyping()) ctx.selection.edgeOverlay.charTyped(codepoint);
     }
 
+    /** Processes per-frame input logic (held keys, continuous actions). */
     public void processKeys() {
         input.processFrameKeys();
     }
 
+    /** Routes a mouse-button event to the input manager. */
     public void onMouseButton(int btn, int action, float mx, float my) {
         input.onMouseButton(btn, action, mx, my);
     }
 
+    /** Routes a key event to overlays or the input manager, whichever is active. */
     public void handleKey(int key, int scancode, int action, int mods) {
         if (ctx.selection.vertexOverlay.isTyping()) {
             ctx.selection.vertexOverlay.keyTyped(key, action);
@@ -281,6 +280,7 @@ private float[] bounds(markershape.shape.ShapeData data) {
         input.handleKey(key, scancode, action, mods);
     }
 
+    /** Releases all GPU resources held by the renderer and text subsystem. */
     public void cleanup() {
         renderer.cleanup();
         gamegl.gestion.texte.Text.cleanup();

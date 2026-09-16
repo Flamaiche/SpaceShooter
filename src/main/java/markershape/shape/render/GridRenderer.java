@@ -14,27 +14,39 @@ public class GridRenderer {
     private Matrix4f lastView;
     private boolean dirty = true;
 
+    /** Shows/hides the grid. */
     public void setGridVisible(boolean v) { gridVisible = v; }
+    /** Returns true if the grid is visible. */
     public boolean isGridVisible() { return gridVisible; }
 
+    /** Shows/hides the axis-aligned X grid lines. */
     public void setShowAxisX(boolean v) { showAxisX = v; dirty = true; }
+    /** Shows/hides the axis-aligned Y grid lines. */
     public void setShowAxisY(boolean v) { showAxisY = v; dirty = true; }
+    /** Shows/hides the axis-aligned Z grid lines. */
     public void setShowAxisZ(boolean v) { showAxisZ = v; dirty = true; }
+    /** Returns true if the X grid lines are shown. */
     public boolean isShowAxisX() { return showAxisX; }
+    /** Returns true if the Y grid lines are shown. */
     public boolean isShowAxisY() { return showAxisY; }
+    /** Returns true if the Z grid lines are shown. */
     public boolean isShowAxisZ() { return showAxisZ; }
+    /** Returns true if at least one axis is set to be shown. */
     public boolean anyVisible() { return showAxisX || showAxisY || showAxisZ; }
 
+    /** Sets the grid spacing (clamped to a minimum of 0.1). */
     public void setGridStep(float step) {
         if (step <= 0f) step = 0.1f;
         gridStep = step;
         dirty = true;
     }
 
+    /** Marks the grid geometry dirty so it is rebuilt on the next render. */
     public void rebuild() {
         dirty = true;
     }
 
+    /** Builds the triangle geometry for the visible grid lines and colored axes. */
     private void buildTriangles(Cam cam, float gridPx, float axisPx) {
         final float targetHalfSize = 10f;
         final float step = gridStep;
@@ -100,6 +112,7 @@ public class GridRenderer {
         return depth > 1e-5f ? cam.halfSize(pixels, depth) : 0f;
     }
 
+    /** Renders the grid, rebuilding the geometry when the view or grid state changed. */
     public void render(Matrix4f view, Matrix4f projection, int screenW, int screenH) {
         if (!gridVisible || !anyVisible()) return;
         boolean viewChanged = lastView == null || !lastView.equals(view);
@@ -113,6 +126,7 @@ public class GridRenderer {
         tri.render();
     }
 
+    /** Releases the grid geometry and resets the dirty state. */
     public void cleanup() {
         tri.release();
         lastView = null;

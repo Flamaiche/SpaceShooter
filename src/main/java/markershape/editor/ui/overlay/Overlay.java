@@ -6,6 +6,10 @@ import markershape.editor.ui.UIResources;
 import markershape.editor.ui.control.Button;
 import markershape.editor.ui.menu.BlurBackground;
 
+/**
+ * Base class for modal editing overlays that edit a single shape entity.
+ * Provides the close/delete buttons and the semi-transparent panel rendering.
+ */
 public abstract class Overlay extends UIElement {
     protected final Button closeBtn;
     protected final Button deleteBtn;
@@ -14,6 +18,7 @@ public abstract class Overlay extends UIElement {
     protected Runnable preEditCallback;
     protected Runnable deleteCallback;
 
+    /** Creates an overlay of the given size, with close and delete buttons. */
     public Overlay(UIResources res, float pw, float ph) {
         super(res);
         this.w = pw;
@@ -30,19 +35,31 @@ public abstract class Overlay extends UIElement {
         deleteBtn.textR = 1f; deleteBtn.textG = 1f; deleteBtn.textB = 1f;
     }
 
+    /** Sets the callback invoked when the delete button is clicked. */
     public void setDeleteCallback(Runnable cb) { deleteCallback = cb; }
+    /** Hides the overlay and resets the selected field. */
     public void hide() { visible = false; selectedField = -1; }
+    /** @return true if the overlay is currently visible. */
     public boolean isVisible() { return visible; }
+    /** @return true if the given point is inside the close button while visible. */
     public boolean isCloseClicked(float mx, float my) { return visible && closeBtn.contains(mx, my); }
+    /** @return true if the point lies within the overlay bounds. */
     @Override
     public boolean contains(float mx, float my) {
         return mx >= x && mx <= x + w && my >= y && my <= y + h;
     }
+    /** Sets the callback invoked after an edit has been applied. */
     public void setEditCallback(Runnable cb) { editCallback = cb; }
+    /** Sets the callback invoked just before an edit is applied. */
     public void setPreEditCallback(Runnable cb) { preEditCallback = cb; }
 
+    /** @return true if the overlay has a target entity to edit. */
     protected abstract boolean hasEntity();
 
+    /**
+     * Renders the overlay panel, its content and text, plus the close and
+     * delete buttons, when visible and an entity is present.
+     */
     @Override
     public final void render() {
         if (!visible || !hasEntity()) return;
@@ -65,10 +82,13 @@ public abstract class Overlay extends UIElement {
         closeBtn.render();
     }
 
+    /** Renders overlay-specific decorative content behind the text. */
     protected abstract void renderContent();
 
+    /** Renders overlay-specific textual labels. */
     protected abstract void renderText();
 
+    /** Moves the overlay and its buttons to the given position. */
     public void setPosition(float x, float y) {
         this.x = x;
         this.y = y;

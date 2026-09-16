@@ -4,6 +4,7 @@ import markershape.config.ConfigParametres;
 import markershape.editor.ui.Panel;
 import markershape.editor.ui.UIResources;
 import markershape.editor.ui.control.Button;
+import markershape.editor.ui.widgets.AutoWindow;
 import markershape.editor.ui.widgets.EditableTextField;
 
 import java.util.ArrayList;
@@ -11,6 +12,10 @@ import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+/**
+ * Settings screen organized by categories, letting the user tweak booleans,
+ * floats and hex colors, with save/back handling and a confirm popup.
+ */
 public class ParametresUI extends Panel {
     private int width, height;
     private static final int MENU_X = 440;
@@ -31,13 +36,13 @@ public class ParametresUI extends Panel {
     private boolean confirmVisible;
     private Runnable confirmOuiAction;
     private Runnable confirmNonAction;
-    private static final float CONFIRM_W = 220;
-    private static final float CONFIRM_H = 100;
-    private static final float CONFIRM_BTN_W = 70;
-    private static final float CONFIRM_BTN_H = 28;
+    private final AutoWindow confirmBox;
+    private final Button confirmOuiBtn;
+    private final Button confirmNonBtn;
 
     private Button saveBtn, backBtn;
 
+    /** Creates the settings screen and its reusable text fields and buttons. */
     public ParametresUI(UIResources res, Runnable onBack) {
         super(res);
         this.onBack = onBack;
@@ -52,21 +57,33 @@ public class ParametresUI extends Panel {
         backBtn.textScale = 1.6f;
         addChild(saveBtn);
         addChild(backBtn);
+
+        confirmOuiBtn = new Button(res, "Oui", 0, 0, 70, 28, () -> {});
+        confirmNonBtn = new Button(res, "Non", 0, 0, 70, 28, () -> {});
+        confirmBox = new AutoWindow(res);
+        confirmBox.setTitle("Sauvegarder ?");
+        confirmBox.addChildRow(confirmOuiBtn, confirmNonBtn);
+        confirmBox.showBackground = false;
+        confirmBox.autoSize();
     }
 
+    /** Sets the window size used for the layout. */
     public void setSize(int w, int h) {
         width = w;
         height = h;
         res.setSize(w, h);
     }
 
+    /** Reloads the config values and returns to the category list. */
     public void loadFromConfig() {
         ConfigParametres.recharger();
         currentMenu = -1;
     }
 
+    /** Sets the callback invoked when settings are applied/saved. */
     public void setOnApply(Runnable r) { onApply = r; }
 
+    /** Renders the category list, a sub-menu, or the confirm popup. */
     @Override
     protected void renderContent() {
         if (confirmVisible) {
@@ -81,6 +98,7 @@ public class ParametresUI extends Panel {
         else renderSubMenu();
     }
 
+    /** @return the indices of the categories that are currently visible. */
     private List<Integer> getVisibleCategoryIndices() {
         ConfigParametres cfg = ConfigParametres.get();
         List<Integer> idxs = new ArrayList<>();
@@ -91,6 +109,7 @@ public class ParametresUI extends Panel {
         return idxs;
     }
 
+    /** Draws the category list and the save/back buttons. */
     private void renderCategories() {
         ConfigParametres cfg = ConfigParametres.get();
         List<Integer> visible = getVisibleCategoryIndices();
@@ -118,6 +137,7 @@ public class ParametresUI extends Panel {
         setupButtons("Sauvegarder", "Retour", btnY, cfg.hasChanges(), tR, tG, tB);
     }
 
+    /** Draws the currently selected category's parameters. */
     private void renderSubMenu() {
         ConfigParametres cfg = ConfigParametres.get();
         List<ConfigParametres.Categorie> cats = cfg.categories;
@@ -187,6 +207,7 @@ public class ParametresUI extends Panel {
         setupButtons("Appliquer", "Retour", btnY, false, tR, tG, tB);
     }
 
+    /** Draws a color swatch and an editable hex field bound to the given prefix. */
     private void renderColorEditor(float y, EditableTextField field,
                                    int r, int g, int b, String cfgPrefix) {
         ConfigParametres cfg = ConfigParametres.get();
@@ -196,7 +217,6 @@ public class ParametresUI extends Panel {
         field.setText(hex);
         field.setPosition(hx, y + 26);
         field.setScale(1.6f);
-        field.setColor(r / 255f, g / 255f, b / 255f);
         field.setOnConfirm(newHex -> {
             int nr = Integer.parseInt(newHex.substring(1, 3), 16);
             int ng = Integer.parseInt(newHex.substring(3, 5), 16);
@@ -207,6 +227,7 @@ public class ParametresUI extends Panel {
         field.render(res);
     }
 
+    /** Draws the float rows for the given param indices, returning the next Y. */
     private float renderFloatGroup(float curY, List<ConfigParametres.Param> params,
                                    int[] indices, boolean showEditField) {
         ConfigParametres cfg = ConfigParametres.get();
@@ -220,6 +241,7 @@ public class ParametresUI extends Panel {
         return curY;
     }
 
+    /** Handles a click on a float row ("[-]", value or "[+]"), @return true if consumed. */
     private boolean clickFloatRow(float mx, float my, float y, ConfigParametres.Param p) {
         ConfigParametres cfg = ConfigParametres.get();
         float val = cfg.getFloat(p.key);
@@ -252,6 +274,7 @@ public class ParametresUI extends Panel {
         return false;
     }
 
+    /** Styles the save/back buttons and binds their actions. */
     private void setupButtons(String primaryLabel, String backLabel, float btnY,
                               boolean hasChanges, float tR, float tG, float tB) {
         saveBtn.text = primaryLabel;
@@ -296,6 +319,7 @@ public class ParametresUI extends Panel {
         }
     }
 
+    /** Saves the config, applies changes and closes the screen. */
     private void saveAndClose() {
         ConfigParametres.sauvegarder();
         if (onApply != null) onApply.run();
@@ -303,6 +327,7 @@ public class ParametresUI extends Panel {
         if (onBack != null) onBack.run();
     }
 
+    /** Discards the changes, reapplies the saved config and closes the screen. */
     private void rollbackAndClose() {
         ConfigParametres.recharger();
         if (onApply != null) onApply.run();
@@ -310,17 +335,16 @@ public class ParametresUI extends Panel {
         if (onBack != null) onBack.run();
     }
 
+    /** Draws the editable inline field for the given float param. */
     private void renderFloatField(float y, ConfigParametres.Param p) {
         ConfigParametres cfg = ConfigParametres.get();
         float val = cfg.getFloat(p.key);
-        float tr = cfg.getFloat("textR") / 255f, tg = cfg.getFloat("textG") / 255f, tb = cfg.getFloat("textB") / 255f;
         float vx = MENU_X + MENU_W / 2f + 20;
         String display = fmtNum(val);
         floatField.setText(display);
         floatField.setPosition(vx + 2, y + 6);
         floatField.setScale(1.3f);
         floatField.setBounds(p.min, p.max);
-        floatField.setColor(tr, tg, tb);
         floatField.setOnConfirm(newVal -> {
             try { cfg.setFloat(p.key, Float.parseFloat(newVal)); }
             catch (NumberFormatException ignored) {}
@@ -329,6 +353,7 @@ public class ParametresUI extends Panel {
         floatField.render(res);
     }
 
+    /** Dispatches clicks to the category list, sub-menu or confirm popup. */
     @Override
     public boolean click(float mx, float my) {
         if (!visible) return false;
@@ -341,6 +366,7 @@ public class ParametresUI extends Panel {
         return true;
     }
 
+    /** Handles a click on the category list or its buttons. */
     private void clickCategories(float mx, float my) {
         hexField.cancelEditing();
         textHexField.cancelEditing();
@@ -373,6 +399,7 @@ public class ParametresUI extends Panel {
         }
     }
 
+    /** Handles a click inside the current sub-menu. */
     private void clickSubMenu(float mx, float my) {
         ConfigParametres cfg = ConfigParametres.get();
         List<ConfigParametres.Categorie> cats = cfg.categories;
@@ -441,6 +468,7 @@ public class ParametresUI extends Panel {
         }
     }
 
+    /** Handles key presses for editing fields and navigation (Esc). */
     public void handleKey(int key, int action) {
         if (action != GLFW_PRESS) return;
         if (confirmVisible) {
@@ -469,6 +497,7 @@ public class ParametresUI extends Panel {
         }
     }
 
+    /** Forwards character input to the active text field. */
     public void handleChar(int codepoint) {
         if (confirmVisible) return;
         if (hexField.isEditing()) {
@@ -480,51 +509,41 @@ public class ParametresUI extends Panel {
         }
     }
 
+    /** @return true if the given category id has an internal color picker. */
     private boolean hasColorPicker(String catId) {
         return "arriereplan".equals(catId) || "menu".equals(catId);
     }
 
+    /** Shows the confirm popup with the given Oui/Non actions. */
     private void showConfirmPopup(Runnable oui, Runnable non) {
         confirmVisible = true;
         confirmOuiAction = oui;
         confirmNonAction = non;
     }
 
+    /** Draws the dimming overlay and the centered confirm box. */
     private void renderConfirmPopup() {
-        float cx = (width - CONFIRM_W) / 2;
-        float cy = (36 + (height - 36) / 2) - CONFIRM_H / 2;
-        ConfigParametres cfg = ConfigParametres.get();
         float[] c = res.menuColor();
-        float tR = cfg.getFloat("textR") / 255f, tG = cfg.getFloat("textG") / 255f, tB = cfg.getFloat("textB") / 255f;
-        res.drawQuad(0, 0, width, height, c[0], c[1], c[2], BlurBackground.dimAlpha());
-        res.drawQuad(cx, cy, CONFIRM_W, CONFIRM_H, c[0], c[1], c[2], BlurBackground.boxAlpha());
-        res.drawText("Sauvegarder ?",
-            cx + CONFIRM_W / 2 - res.getTextExtent("Sauvegarder ?", 1.2f)[0] / 2f, cy + 18, 1.2f, tR, tG, tB);
-        float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
-        res.drawText("Oui", cx + 30, btnY + 2, 1.2f, tR, tG, tB);
-        res.drawText("Non", cx + CONFIRM_W - 60, btnY + 2, 1.2f, tR, tG, tB);
+        confirmBox.centerOn(width / 2f, 36 + (height - 36) / 2f);
+        res.drawQuad(0, 0, width, height, 0, 0, 0, BlurBackground.dimAlpha());
+        res.drawQuad(confirmBox.x, confirmBox.y, confirmBox.w, confirmBox.h, c[0], c[1], c[2], BlurBackground.boxAlpha());
+        confirmBox.render();
     }
 
+    /** Handles a click on the confirm popup's Oui/Non buttons. */
     private void handleConfirmClick(float mx, float my) {
-        float cx = (width - CONFIRM_W) / 2;
-        float cy = (36 + (height - 36) / 2) - CONFIRM_H / 2;
-        float btnY = cy + CONFIRM_H - CONFIRM_BTN_H - 12;
-        float ouiX = cx + 20;
-        float nonX = cx + CONFIRM_W - 20 - CONFIRM_BTN_W;
-        if (my >= btnY && my <= btnY + CONFIRM_BTN_H) {
-            if (mx >= ouiX && mx <= ouiX + CONFIRM_BTN_W) {
-                confirmVisible = false;
-                if (confirmOuiAction != null) confirmOuiAction.run();
-                return;
-            }
-            if (mx >= nonX && mx <= nonX + CONFIRM_BTN_W) {
-                confirmVisible = false;
-                if (confirmNonAction != null) confirmNonAction.run();
-                return;
-            }
+        if (confirmOuiBtn.contains(mx, my)) {
+            confirmVisible = false;
+            if (confirmOuiAction != null) confirmOuiAction.run();
+            return;
+        }
+        if (confirmNonBtn.contains(mx, my)) {
+            confirmVisible = false;
+            if (confirmNonAction != null) confirmNonAction.run();
         }
     }
 
+    /** Draws a boolean toggle row with a checked/unchecked prefix. */
     private void drawBoolRow(float y, ConfigParametres.Param p, float tr, float tg, float tb) {
         ConfigParametres cfg = ConfigParametres.get();
         boolean val = cfg.getBool(p.key);
@@ -534,6 +553,7 @@ public class ParametresUI extends Panel {
             tr * brightness, tg * brightness, tb * brightness);
     }
 
+    /** Draws a float row with its "[-]" and "[+]" buttons. */
     private void drawFloatRow(float y, ConfigParametres.Param p, float tr, float tg, float tb) {
         ConfigParametres cfg = ConfigParametres.get();
         float val = cfg.getFloat(p.key);
@@ -549,6 +569,7 @@ public class ParametresUI extends Panel {
             val < p.max ? tr : tr * 0.3f, val < p.max ? tg : tg * 0.3f, val < p.max ? tb : tb * 0.3f);
     }
 
+    /** Formats a float, dropping the decimals when it is a whole number. */
     private String fmtNum(float v) {
         if (v == Math.floor(v) && !Float.isInfinite(v)) return String.valueOf((int) v);
         return String.format("%.2f", v).replace(',', '.');

@@ -6,6 +6,7 @@ import markershape.editor.ui.control.EntityListPanel;
 import markershape.shape.ShapeData;
 import org.lwjgl.glfw.GLFW;
 
+/** Handles mouse click dispatching to the appropriate editor action (view, UI, confirm dialog, or tool). */
 public class ClickHandler {
     private final Context ctx;
     private final HoverManager hover;
@@ -15,11 +16,23 @@ public class ClickHandler {
     private final ShapeIO io;
     private final ShapeTools tools;
 
+    /** Constructor without shape tools (keyboard shortcuts requiring tools are unavailable). */
     public ClickHandler(Context ctx, HoverManager hover, VertexAction vertex,
                         EdgeAction edge, DeleteAction del, ShapeIO io) {
         this(ctx, hover, vertex, edge, del, io, null);
     }
 
+    /**
+     * Full constructor for the click handler.
+     *
+     * @param ctx   the shared editor context
+     * @param hover the hover manager
+     * @param vertex vertex action
+     * @param edge   edge action
+     * @param del    delete action
+     * @param io     shape I/O
+     * @param tools  shape tools (may be null)
+     */
     public ClickHandler(Context ctx, HoverManager hover, VertexAction vertex,
                         EdgeAction edge, DeleteAction del, ShapeIO io, ShapeTools tools) {
         this.ctx = ctx;
@@ -31,16 +44,25 @@ public class ClickHandler {
         this.tools = tools;
     }
 
+    /** Returns whether either Ctrl key is currently held down. */
     private boolean isCtrlDown() {
         return GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
             || GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
     }
 
+    /** Returns whether either Shift key is currently held down. */
     private boolean isShiftDown() {
         return GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
             || GLFW.glfwGetKey(ctx.window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
     }
 
+    /**
+     * Dispatches a mouse click: confirm dialogs first, then UI, overlays,
+     * record the sibling picker, and finally the 3D view.
+     *
+     * @param mx mouse X in screen coordinates
+     * @param my mouse Y in screen coordinates
+     */
     public void mouseClicked(float mx, float my) {
         if (ctx.ui.isConfirmSaveVisible()) {
             int cs = ctx.ui.clickConfirmSave(mx, my);
@@ -87,6 +109,7 @@ public class ClickHandler {
         handleViewClick(mx, my);
     }
 
+    /** Routes clicks on the top bar UI: save, quit, new, filter, origin, tools, and entity list. */
     private void handleUIClick(float mx, float my) {
         if (ctx.ui.isSaveClicked(mx, my)) { io.save(); return; }
         if (ctx.ui.isQuitClicked(mx, my)) {
@@ -132,6 +155,13 @@ public class ClickHandler {
         }
     }
 
+    /**
+     * Routes a click in the 3D viewport: vertex/edge creation, selection,
+     * face tracing, and multi-selection handling.
+     *
+     * @param mx mouse X in screen coordinates
+     * @param my mouse Y in screen coordinates
+     */
     private void handleViewClick(float mx, float my) {
         if (ctx.renderer.getShapeData() == null) return;
 
@@ -231,6 +261,7 @@ public class ClickHandler {
         ctx.selection.reset();
     }
 
+    /** Cancels the current modal state (dialog, menu, mode, or selection) step by step. */
     public void handleEscape() {
         if (ctx.ui.isConfirmSaveVisible()) { ctx.ui.closeConfirmSave(); return; }
         if (ctx.ui.isConfirmDeleteVisible()) { ctx.ui.closeConfirmDelete(); return; }
@@ -249,10 +280,13 @@ public class ClickHandler {
         }
     }
 
+    /** Saves the current shape to disk. */
     public void save() { io.save(); }
 
+    /** Deletes the currently selected vertices or edges. */
     public void deleteSelected() { del.deleteSelected(); }
 
+    /** Applies one undo step, restoring the previous shape and selection. */
     public void undo() {
         var cur = ctx.renderer.getShapeData();
         if (cur == null) return;
@@ -264,6 +298,7 @@ public class ClickHandler {
         }
     }
 
+    /** Applies one redo step, restoring the next shape and selection. */
     public void redo() {
         var cur = ctx.renderer.getShapeData();
         if (cur == null) return;
@@ -275,6 +310,7 @@ public class ClickHandler {
         }
     }
 
+    /** Restores the given vertex (or fallback edge) selection after an undo/redo, if it still exists. */
     private void restoreSelection(int sv, int se) {
         if (sv >= 0 && ctx.renderer.getShapeData().vertices.containsKey(sv)) {
             ctx.selection.selectVertex(sv);
@@ -283,6 +319,7 @@ public class ClickHandler {
         }
     }
 
+    /** Enters the vertex creation mode and resets the UI state. */
     private void onNewVertex() {
         ctx.exitModes();
         ctx.creatingVertex = true; ctx.ui.setActiveMode(0);
@@ -290,6 +327,7 @@ public class ClickHandler {
         ctx.selection.reset();
     }
 
+    /** Enters the edge creation mode and resets the UI state. */
     private void onNewEdge() {
         ctx.exitModes();
         ctx.creatingEdge = true; ctx.ui.setActiveMode(1);
@@ -343,10 +381,12 @@ public class ClickHandler {
         ctx.renderer.setPlacementGhost(false, null);
     }
 
+    /** Returns whether any vertex (single or multi) is currently selected. */
     private boolean hasVertexSelection() {
         return ctx.selection.selectedVertex >= 0 || !ctx.selection.multiVertices.isEmpty();
     }
 
+    /** Returns whether any edge (single or multi) is currently selected. */
     private boolean hasEdgeSelection() {
         return ctx.selection.selectedEdge >= 0 || !ctx.selection.multiEdges.isEmpty();
     }

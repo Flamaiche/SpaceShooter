@@ -20,6 +20,7 @@ public final class Cam {
     private final Matrix4f viewCopy = new Matrix4f();
     private final Vector4f scratch = new Vector4f();
 
+    /** Extracts camera axes, focal factor and screen height from a view/projection pair. */
     public static Cam extract(Matrix4f view, Matrix4f projection, int screenHeight) {
         Cam c = new Cam();
         if (view != null) {
